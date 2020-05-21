@@ -1,10 +1,10 @@
 /*!
  *
- * Angle - Bootstrap Admin Template
+ * Log Your Workout
  *
  * Version: 4.7.1
- * Author: @themicon_co
- * Website: http://themicon.co
+ * Author: Milan Sobat
+ * Website: https://logyourworkout.app
  * License: https://wrapbootstrap.com/help/licenses
  *
  */

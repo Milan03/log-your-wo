@@ -1,8 +1,8 @@
 {
-  "name": "angle",
+  "name": "log-your-wo",
   "version": "0.0.0",
-  "description": "Angle - Bootstrap Admin Template",
-  "author": "@themicon_co",
+  "description": "Log Your Workout",
+  "author": "Milan Sobat",
   "license": "https://wrapbootstrap.com/help/licenses",
   "private": true,
   "scripts": {
