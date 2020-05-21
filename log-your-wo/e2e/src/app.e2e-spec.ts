@@ -1,7 +1,7 @@
 import { AppPage } from './app.po';
 import { browser, logging } from 'protractor';
 
-describe('ng2angle App', () => {
+describe('log-your-wo App', () => {
   let page: AppPage;
 
   beforeEach(() => {
