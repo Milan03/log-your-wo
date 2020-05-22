@@ -8,9 +8,9 @@ describe('log-your-wo App', () => {
     page = new AppPage();
   });
 
-  it('should display Angle in h1 tag', () => {
+  it('should display Log Your Workout in h1 tag', () => {
     page.navigateTo();
-    expect(page.getParagraphText()).toEqual('Angle');
+    expect(page.getParagraphText()).toEqual('Log Your Workout');
   });
 
   afterEach(async () => {

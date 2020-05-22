@@ -20,7 +20,7 @@ export class SettingsService {
         // App Settings
         // -----------------------------------
         this.app = {
-            name: 'Angle',
+            name: 'Log Your Workout',
             description: 'Angular Bootstrap Admin Template',
             year: ((new Date()).getFullYear())
         };
