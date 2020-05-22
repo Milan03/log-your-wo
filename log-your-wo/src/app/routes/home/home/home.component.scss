@@ -7,6 +7,22 @@
     margin: 0 auto;
     max-width: map-get($container-max-widths, "lg");
 
+    button, input[type="submit"], input[type="reset"] {
+        background: none;
+        color: inherit;
+        border: none;
+        padding: 0;
+        font: inherit;
+        cursor: pointer;
+        outline: inherit;
+        text-align: left;
+    }
+
+    button:hover, button:active, button:focus {
+        border: 1px solid black;
+        border-radius: 0.25rem;
+    }
+
     .home-logo {
         width: 240px;
     }
