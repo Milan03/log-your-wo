@@ -1,10 +1,10 @@
 /*!
  *
- * Log Your Workout
+ * Log Your Workout - Bootstrap Admin Template
  *
  * Version: 4.7.1
- * Author: Milan Sobat
- * Website: https://logyourworkout.app
+ * Author: @themicon_co
+ * Website: http://themicon.co
  * License: https://wrapbootstrap.com/help/licenses
  *
  */
@@ -15,6 +15,9 @@
 @import "bootstrap/mixins";
 // Variables
 @import "app/variables";
+// Globals
+@import "app/material/colors";
+@import "app/utils-mixins";
 // Layout
 @import "app/layout";
 @import "app/layout-extra";
@@ -36,6 +39,7 @@
 @import "app/half-float";
 @import "app/animate";
 @import "app/slim-scroll";
+@import "app/datepicker";
 @import "app/inputs";
 @import "app/utils";
 @import "app/print";
@@ -63,3 +67,10 @@
 // @import "app/calendar";
 // @import "app/mailbox";
 // @import "app/plans";
+// Material
+@import "app/material/welcome";
+@import "app/material/cards";
+@import "app/material/md-forms";
+@import "app/material/md-list";
+@import "app/material/md-inputs";
+@import "app/material/ngmaterial";

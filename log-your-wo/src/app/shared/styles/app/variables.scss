@@ -7,19 +7,19 @@ $gray-light:            #e4eaec;
 $gray-lighter:          #edf1f2;
 
 // Custom brand colors for theme
-$inverse:               #131e26;
-$purple:                #7266ba;
-$pink:                  #f532e5;
-$yellow:                #fad732;
-$green:                 #37bc9b;
+$inverse:               #263238;
+$purple:                #673AB7;
+$pink:                  #E91E63;
+$yellow:                #FFEB3B;
+$green:                 #009688;
 
-$primary:               #5d9cec;
+$primary:               #3F51B5;
 $secondary:             #fff;
-$success:               #27c24c;
-$info:                  #23b7e5;
-$warning:               #ff902b;
-$danger:                #f05050;
-$dark:                  #3a3f51;
+$success:               #4CAF50;
+$info:                  #2196F3;
+$warning:               #FF9800;
+$danger:                #F44336;
+$dark:                  #607D8B;
 
 // Custom color variants
 $amountOfLight: 10%;
@@ -48,7 +48,7 @@ $yellow-dark:           darken($yellow, $amountOfLight);
 // Theme variables
 
 // used for sidebars and content spacing
-$navbar-height:                    55px;
+$navbar-height:                    65px;
 
 // Button secondary redefinition style for theme
 $btn-secondary-color:              #333;
@@ -139,7 +139,9 @@ $theme-colors: (
 // Body
 
 $body-bg:                   #f5f7fa;
-$body-color:                #656565;
+$body-color:                rgba(0,0,0,0.8);
+
+$link-color:                #106CC8;
 
 $border-radius:               .25rem;
 $border-radius-lg:            .375rem;
@@ -202,6 +204,9 @@ $list-group-border-color:           #e4eaec;
 
 $thumbnail-padding:                 .125rem;
 
+// Pagination
+
+$pagination-color:                  $body-color;
 
 // Breadcrumbs
 

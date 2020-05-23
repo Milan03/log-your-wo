@@ -10,6 +10,11 @@
 // Adds support to use more components inside cards
 //
 .card {
+    @include material-shadow(1);
+    border: 0;
+    border-radius: 4px;
+    margin-bottom: 16px;
+
     .table {
         margin-bottom: 0;
         >thead>tr>th {

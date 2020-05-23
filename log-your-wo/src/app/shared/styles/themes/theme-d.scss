@@ -3,6 +3,7 @@
 @import "../bootstrap/variables";
 @import "../bootstrap/mixins";
 @import '../app/variables';
+@import '../app/material/colors';
 
 
 // LAYOUT
@@ -12,9 +13,9 @@ $aside-bg:                      #fff;
 
 // NAVBAR TOP
 
-$nav-top-bg:                    $danger;
+$nav-top-bg:                    $success;
 $nav-top-bg-start:              $nav-top-bg;
-$nav-top-bg-end:                $danger-light;
+$nav-top-bg-end:                $nav-top-bg;
 $nav-header-bg:                 transparent;
 
 $nav-top-item:                  #fff;

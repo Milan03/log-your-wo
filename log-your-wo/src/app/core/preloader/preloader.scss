@@ -6,9 +6,9 @@
 @import "../../shared/styles/bootstrap/_mixins";
 @import "../../shared/styles/app/variables";
 
-$preloader-bg: $info;
-$preloader-wd: 400px;
-$preloader-hg: 80px;
+$preloader-bg: $primary;
+$preloader-wd: 300px;
+$preloader-hg: 60px;
 
 /*@noflip*/
 .preloader {

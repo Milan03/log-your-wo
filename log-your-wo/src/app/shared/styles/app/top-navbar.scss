@@ -14,7 +14,7 @@ $nav-header-wd-toggled-text:    $aside-wd-collapsed-text;
 
 $nav-top-bg:                    $info;
 $nav-top-bg-start:              $nav-top-bg;
-$nav-top-bg-end:                $info-light;
+$nav-top-bg-end:                $nav-top-bg;
 $nav-header-bg:                 transparent;
 
 $nav-top-item-mobile:           $nav-top-bg;
@@ -35,6 +35,7 @@ $nav-top-item-desktop-active:   $nav-top-item-mobile-active;
     min-height: $navbar-height;
     background-color: $nav-top-bg;
     @include gradient-x($nav-top-bg-start, $nav-top-bg-end); // // dont' allow stacked icons
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.26);
 
     @include media-breakpoint-up(md) {
         .navbar-header {
@@ -75,11 +76,11 @@ $nav-top-item-desktop-active:   $nav-top-item-mobile-active;
         }
         .brand-logo {
             display: block;
-            padding: 10px 15px;
+            padding: 15px 15px;
         }
         .brand-logo-collapsed {
             display: none;
-            padding: 6px 15px;
+            padding: 10px 15px;
         }
     }
 
@@ -199,9 +200,12 @@ $nav-top-item-desktop-active:   $nav-top-item-mobile-active;
 @include media-breakpoint-down(sm) {
     .sidebar-toggle {
         position: absolute !important;
-        top: 2px;
+        top: 0;
         left: 0;
         z-index: 3001; // Add color only for the icon
+        line-height: $navbar-height !important;
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
         >em {
             color: white;
         }

@@ -2,7 +2,7 @@
  *
  * Log Your Workout
  *
- * Version: 4.7.1
+ * Version: 1.0.0
  * Author: Milan Sobat
  * Website: https://logyourworkout.app
  * License: https://wrapbootstrap.com/help/licenses

@@ -41,7 +41,7 @@
         </li> -->
         <!-- END lock screen-->
     </ul>
-    <ul class="navbar-nav mr-auto flex-row">
+    <ul *ngIf="currentLogType" class="navbar-nav mr-auto flex-row">
         <li class="nav-item d-none d-md-block">
             <a class="nav-link">
                 <span>{{ currentLogType }} - {{ logStartDatim | date: 'short' }}</span>
