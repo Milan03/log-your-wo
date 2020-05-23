@@ -18,7 +18,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     navCollapsed = true; // for horizontal layout
     menuItems = []; // for horizontal layout
     router: Router;
-    logType: string;
+    currentLogType: string;
 
     isNavSearchVisible: boolean;
     @ViewChild('fsbutton', { static: true }) fsbutton;  // the fullscreen button
@@ -71,8 +71,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
     subToLogType(): void {
         this.logTypeSub = this.sharedService.logTypeEmitted$.subscribe(
-            data => console.log(data),
-            err => console.log(err)
+            data => this.currentLogType = data
         );
     }
 
