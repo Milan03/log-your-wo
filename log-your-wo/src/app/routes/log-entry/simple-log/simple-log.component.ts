@@ -10,15 +10,18 @@ import { LogTypes } from '../../../shared/common/common.constants';
     styleUrls: ['./simple-log.component.scss']
 })
 export class SimpleLogComponent implements OnInit {
+    private logStartDatim: Date;
 
     constructor(
         private _sharedService: SharedService
     ) {
-        //this._sharedService.emitLogType(LogTypes.SimpleLog);
+
     }
 
     ngOnInit(): void {
+        this.logStartDatim = new Date();
         this._sharedService.emitLogType(LogTypes.SimpleLog);
+        this._sharedService.emitLogStartDatim(this.logStartDatim);
     }
 
 }

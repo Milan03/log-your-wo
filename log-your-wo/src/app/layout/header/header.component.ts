@@ -19,11 +19,13 @@ export class HeaderComponent implements OnInit, OnDestroy {
     menuItems = []; // for horizontal layout
     router: Router;
     currentLogType: string;
+    logStartDatim: Date;
 
     isNavSearchVisible: boolean;
     @ViewChild('fsbutton', { static: true }) fsbutton;  // the fullscreen button
 
     logTypeSub: Subscription;
+    logStartDatimSub: Subscription;
 
     constructor(
         public menu: MenuService,
@@ -35,6 +37,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
         // show only a few items on demo
         this.menuItems = menu.getMenu().slice(0, 4); // for horizontal layout
         this.subToLogType();
+        this.subToLogStartDatim();
     }
 
     ngOnInit() {
@@ -67,12 +70,20 @@ export class HeaderComponent implements OnInit, OnDestroy {
     ngOnDestroy() {
         if (this.logTypeSub)
             this.logTypeSub.unsubscribe();
+        if (this.logStartDatimSub)
+            this.logStartDatimSub.unsubscribe();
     }
 
     subToLogType(): void {
         this.logTypeSub = this.sharedService.logTypeEmitted$.subscribe(
             data => this.currentLogType = data
         );
+    }
+
+    subToLogStartDatim(): void {
+        this.logStartDatimSub = this.sharedService.logStartDatimEmitted$.subscribe(
+            data => this.logStartDatim = data
+        )
     }
 
     toggleUserBlock(event) {
