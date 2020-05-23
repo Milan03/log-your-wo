@@ -7,8 +7,8 @@
                 </div>
             </div>
             <div class="col-xl-9 col-lg-8 home-text">
-                <h1 class="home-text-big">Log Your Workout</h1>
-                <p class="lead"><small>One log. Mobile and desktop.</small></p>
+                <h1 class="home-text-big">{{ 'global.LogYourWorkout' | translate }}</h1>
+                <p class="lead"><small>{{ 'global.LogYourWorkoutDescription' | translate }}</small></p>
                 <p><a class="btn btn-primary btn-lg" href="https://angular.io/" target="_blank">Learn more</a></p>
             </div>
         </div>
@@ -18,10 +18,10 @@
             <div class="card b">
                 <button (click)="navigateToSimpleLogEntry()">
                     <div class="card-header">
-                        <h3>Simple Log</h3>
+                        <h3>{{ 'log-entry.SimpleLog' | translate }}</h3>
                     </div>
                     <div class="card-body">
-                        Simple log to get you started on your workout quickly!
+                        {{ 'log-entry.SimpleLogDescription' | translate }}
                     </div>
                 </button>
             </div>

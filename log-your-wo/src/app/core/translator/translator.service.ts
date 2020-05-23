@@ -8,7 +8,7 @@ export class TranslatorService {
 
     private availablelangs = [
         { code: 'en', text: 'English' },
-        { code: 'es_AR', text: 'Spanish' }
+        { code: 'en_FR', text: 'French' }
     ];
 
     constructor(public translate: TranslateService) {

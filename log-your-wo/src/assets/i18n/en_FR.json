@@ -1,0 +1,35 @@
+{
+    "global": {
+        "LogYourWorkout": "Enregistrez votre entraînement",
+        "LogYourWorkoutDescription": "Un journal. Mobile et bureau."
+    },
+    "header": {
+        "search": {
+            "PLACEHOLDER": "Tapez et appuyez sur Entrée ..."
+        }
+    },
+    "offsidebar": {
+        "setting": {
+            "SETTINGS": "Réglages"
+        }
+    },
+    "sidebar": {
+        "WELCOME": "Bienvenu",
+        "heading": {
+            "HEADER": "Titre du menu"
+        },
+        "nav": {
+            "SINGLEVIEW": "Vue unique"
+        }
+    },
+    "dashboard": {
+        "WELCOME": "Bienvenu"
+    },
+    "log-entry": {
+        "SimpleLog": "Journal simple",
+        "SimpleLogDescription": "Journal simple pour démarrer rapidement votre séance d'entraînement!",
+        "AddExercise": "Ajouter de l'exercice",
+        "PlusOneExercise": "+ Exercice",
+        "PlusOneCardioExercise": "+ Exercice cardio"
+    }
+}
