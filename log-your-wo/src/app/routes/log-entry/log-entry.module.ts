@@ -3,7 +3,7 @@ import { SimpleLogComponent } from './simple-log/simple-log.component'
 import { Routes, RouterModule } from '@angular/router';
 
 const routes: Routes = [
-    { path: '', component: SimpleLogComponent },
+    { path: 'simple-log', component: SimpleLogComponent },
 ];
 
 @NgModule({

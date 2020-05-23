@@ -7,7 +7,8 @@ export const routes: Routes = [
         component: LayoutComponent,
         children: [
             { path: '', redirectTo: 'home', pathMatch: 'full' },
-            { path: 'home', loadChildren: () => import('./home/home.module').then(m => m.HomeModule) }
+            { path: 'home', loadChildren: () => import('./home/home.module').then(m => m.HomeModule) },
+            { path: 'log-entry', loadChildren: () => import('./log-entry/log-entry.module').then(m => m.LogEntryModule) }
         ]
     },
 
