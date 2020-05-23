@@ -1,7 +1,9 @@
 import { Injectable } from '@angular/core';
 import { Subject } from 'rxjs/Subject';
 
-@Injectable()
+@Injectable({
+    providedIn: 'root'
+})
 export class SharedService {
     // Observable string sources
     private emitLogTypeSource = new Subject<string>();

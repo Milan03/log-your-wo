@@ -33,8 +33,6 @@ import { NowDirective } from './directives/now/now.directive';
 import { ScrollableDirective } from './directives/scrollable/scrollable.directive';
 import { JqcloudDirective } from './directives/jqcloud/jqcloud.directive';
 
-import { SharedService } from './services/shared.service';
-
 // https://angular.io/styleguide#!#04-10
 @NgModule({
     imports: [
@@ -62,8 +60,7 @@ import { SharedService } from './services/shared.service';
         ToastrModule.forRoot()
     ],
     providers: [
-        ColorsService,
-        SharedService
+        ColorsService
     ],
     declarations: [
         FlotDirective,

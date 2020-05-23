@@ -1,30 +1,40 @@
-import { Component, OnInit, ViewChild, Injector } from '@angular/core';
+import { Component, OnInit, ViewChild, Injector, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 const screenfull = require('screenfull');
 
 import { UserblockService } from '../sidebar/userblock/userblock.service';
 import { SettingsService } from '../../core/settings/settings.service';
 import { MenuService } from '../../core/menu/menu.service';
+import { SharedService } from '../../shared/services/shared.service';
+import { Subscription } from 'rxjs';
 
 @Component({
     selector: 'app-header',
     templateUrl: './header.component.html',
     styleUrls: ['./header.component.scss']
 })
-export class HeaderComponent implements OnInit {
+export class HeaderComponent implements OnInit, OnDestroy {
 
     navCollapsed = true; // for horizontal layout
     menuItems = []; // for horizontal layout
     router: Router;
+    logType: string;
 
     isNavSearchVisible: boolean;
     @ViewChild('fsbutton', { static: true }) fsbutton;  // the fullscreen button
 
-    constructor(public menu: MenuService, public userblockService: UserblockService, public settings: SettingsService, public injector: Injector) {
+    logTypeSub: Subscription;
 
+    constructor(
+        public menu: MenuService,
+        public userblockService: UserblockService,
+        public settings: SettingsService,
+        public injector: Injector,
+        private sharedService: SharedService
+    ) {
         // show only a few items on demo
         this.menuItems = menu.getMenu().slice(0, 4); // for horizontal layout
-
+        this.subToLogType();
     }
 
     ngOnInit() {
@@ -52,6 +62,18 @@ export class HeaderComponent implements OnInit {
             this.navCollapsed = true;
         });
 
+    }
+
+    ngOnDestroy() {
+        if (this.logTypeSub)
+            this.logTypeSub.unsubscribe();
+    }
+
+    subToLogType(): void {
+        this.logTypeSub = this.sharedService.logTypeEmitted$.subscribe(
+            data => console.log(data),
+            err => console.log(err)
+        );
     }
 
     toggleUserBlock(event) {
