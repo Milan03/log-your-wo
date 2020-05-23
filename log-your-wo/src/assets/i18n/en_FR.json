@@ -28,8 +28,6 @@
     "log-entry": {
         "SimpleLog": "Journal simple",
         "SimpleLogDescription": "Journal simple pour démarrer rapidement votre séance d'entraînement!",
-        "AddExercise": "Ajouter de l'exercice",
-        "PlusOneExercise": "+ Exercice",
-        "PlusOneCardioExercise": "+ Exercice cardio"
+        "AddExercise": "Ajouter de l'exercice"
     }
 }
