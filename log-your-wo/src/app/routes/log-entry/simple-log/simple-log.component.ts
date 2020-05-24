@@ -3,6 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { SharedService } from '../../../shared/services/shared.service';
 
 import { LogTypes } from '../../../shared/common/common.constants';
+import { SimpleLog } from '../../../shared/models/simple-log.model';
 
 @Component({
     selector: 'app-simple-log',
@@ -10,6 +11,7 @@ import { LogTypes } from '../../../shared/common/common.constants';
     styleUrls: ['./simple-log.component.scss']
 })
 export class SimpleLogComponent implements OnInit {
+    private currentLog: SimpleLog;
     private logStartDatim: Date;
 
     constructor(
@@ -19,6 +21,7 @@ export class SimpleLogComponent implements OnInit {
     }
 
     ngOnInit(): void {
+        this.currentLog = new SimpleLog();
         this.logStartDatim = new Date();
         this._sharedService.emitLogType(LogTypes.SimpleLog);
         this._sharedService.emitLogStartDatim(this.logStartDatim);

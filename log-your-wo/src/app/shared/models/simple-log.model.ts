@@ -4,13 +4,14 @@ import { CardioExercise } from './cardio-exercise.model';
 export class SimpleLog {
     constructor(
         public logId?: number,
-        public dateTime?: Date,
+        public startDatim?: Date,
+        public endDatim?: Date,
         public name?: string,
         public exercises?: Array<Exercise>,
         public cardioExercises?: Array<CardioExercise>,
         public notes?: string
     ) { 
-        this.dateTime = new Date();
+        this.startDatim = new Date();
         this.exercises = new Array<Exercise>();
         this.cardioExercises = new Array<CardioExercise>();
     }
