@@ -5,7 +5,7 @@
         <button class="mb-1 mr-1 btn btn-primary" type="button">+ <em class="fa fa-running"></em></button>
     </div>
 </div>
-<div class="container-lg">
+<div *ngIf="currentLog.exercises.length > 0" class="container-lg">
     <form [formGroup]="simpleLogForm" class="form-validate" (submit)="submitForm($event, simpleLogForm.value)"
         novalidate="">
         <div class="md-card">
