@@ -1,7 +1,7 @@
 <div class="content-heading">
     <div>{{ 'log-entry.AddExercise' | translate }}</div>
     <div id="exercise-btns">
-        <button class="mb-1 mr-1 btn btn-primary" type="button">+ <em class="fa fa-dumbbell"></em></button>
+        <button class="mb-1 mr-1 btn btn-primary" type="button" (click)="addExerciseFormControl()">+ <em class="fa fa-dumbbell"></em></button>
         <button class="mb-1 mr-1 btn btn-primary" type="button">+ <em class="fa fa-running"></em></button>
     </div>
 </div>
@@ -10,28 +10,28 @@
         novalidate="">
         <div class="md-card">
             <div class="container">
-                <div class="row">
+                <div class="row" *ngFor="let exercise of currentLog.exercises; let i = index">
                     <div class="col-4">
                         <div class="mda-form-group float-label first-fg">
-                            <input class="mda-form-control" name="exercise" tabindex="0" aria-invalid="false" />
+                            <input class="mda-form-control" name="{{ exercise.formControlNames.get('name') }}" formControlName="{{ exercise.formControlNames.get('name') }}" tabindex="0" aria-invalid="false" />
                             <label>Exercise</label>
                         </div>
                     </div>
                     <div class="col">
                         <div class="mda-form-group float-label">
-                            <input class="mda-form-control" name="sets" tabindex="0" aria-invalid="false" />
+                            <input class="mda-form-control" name="{{ exercise.formControlNames.get('sets') }}" formControlName="{{ exercise.formControlNames.get('sets') }}" tabindex="0" aria-invalid="false" />
                             <label>Sets</label>
                         </div>
                     </div>
                     <div class="col">
                         <div class="mda-form-group float-label">
-                            <input class="mda-form-control" name="reps" tabindex="0" aria-invalid="false" />
+                            <input class="mda-form-control" name="{{ exercise.formControlNames.get('reps') }}" formControlName="{{ exercise.formControlNames.get('reps') }}" tabindex="0" aria-invalid="false" />
                             <label>Reps</label>
                         </div>
                     </div>
                     <div class="col">
                         <div class="mda-form-group float-label">
-                            <input class="mda-form-control" name="weight" tabindex="0" aria-invalid="false" />
+                            <input class="mda-form-control" name="{{ exercise.formControlNames.get('weight') }}" formControlName="{{ exercise.formControlNames.get('weight') }}" tabindex="0" aria-invalid="false" />
                             <label>Weight</label>
                         </div>
                     </div>
