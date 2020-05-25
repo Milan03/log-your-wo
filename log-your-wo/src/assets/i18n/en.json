@@ -1,7 +1,8 @@
 {
     "global": {
         "LogYourWorkout": "Log Your Workout",
-        "LogYourWorkoutDescription": "One log. Mobile and desktop."
+        "LogYourWorkoutDescription": "One log. Mobile and desktop.",
+        "Required": "Required"
     },
     "header": {
         "search": {

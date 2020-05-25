@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { FormGroup, FormBuilder, FormControl } from '@angular/forms';
+import { FormGroup, FormBuilder, FormControl, Validators } from '@angular/forms';
 
 import { Exercise } from 'src/app/shared/models/exercise.model';
 import { SimpleLog } from '../../../shared/models/simple-log.model';
@@ -15,6 +15,7 @@ import { LogTypes, FormValues } from '../../../shared/common/common.constants';
 export class SimpleLogComponent implements OnInit {
     private simpleLogForm: FormGroup;
     private currentLog: SimpleLog;
+    private currentExercise: Exercise;
     private exerciseRowCount: number;
 
     constructor(
@@ -50,12 +51,12 @@ export class SimpleLogComponent implements OnInit {
         let formControlName2 = `${FormValues.ExerciseSetsFormControl}${this.exerciseRowCount}`;
         let formControlName3 = `${FormValues.ExerciseRepsFormControl}${this.exerciseRowCount}`;
         let formControlName4 = `${FormValues.ExerciseWeightFormControl}${this.exerciseRowCount}`;
-        this.simpleLogForm.addControl(formControlName1, new FormControl());
+        this.simpleLogForm.addControl(formControlName1, new FormControl('', Validators.required));
         this.simpleLogForm.addControl(formControlName2, new FormControl());
         this.simpleLogForm.addControl(formControlName3, new FormControl());
         this.simpleLogForm.addControl(formControlName4, new FormControl());
         ++this.exerciseRowCount;
-        console.log(this.simpleLogForm.get(formControlName1));
+        //console.log(this.simpleLogForm.get(formControlName1));
         // add exercise to log
         let newExercise = new Exercise();
         newExercise.logId = this.currentLog.logId;
@@ -64,6 +65,16 @@ export class SimpleLogComponent implements OnInit {
         newExercise.formControlNames.set('reps', formControlName3);
         newExercise.formControlNames.set('weight', formControlName4);
         this.currentLog.exercises.push(newExercise);
-        console.log(newExercise.formControlNames.get('name'));
+        this.currentExercise = newExercise;
+        //console.log(newExercise.formControlNames.get('name'));
+    }
+
+    public checkForValues(): void {
+        let exerciseName = this.simpleLogForm.get(this.currentExercise.formControlNames.get('name')).value;
+        if (exerciseName)
+            this.currentExercise.exerciseName = exerciseName;
+        else
+            this.currentExercise.exerciseName = null;
+        console.log(this.currentExercise.exerciseName);
     }
 }

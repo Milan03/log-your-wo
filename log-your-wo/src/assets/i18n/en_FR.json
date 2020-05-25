@@ -1,7 +1,8 @@
 {
     "global": {
         "LogYourWorkout": "Enregistrez votre entraînement",
-        "LogYourWorkoutDescription": "Un journal. Mobile et bureau."
+        "LogYourWorkoutDescription": "Un journal. Mobile et bureau.",
+        "Required": "Requis"
     },
     "header": {
         "search": {
