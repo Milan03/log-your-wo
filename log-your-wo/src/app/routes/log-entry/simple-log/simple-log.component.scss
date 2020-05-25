@@ -1,7 +1,27 @@
+@import '../../../shared/styles/common.scss';
+
 #exercise-btns {
   margin-left: 2em;
 }
 
-ul {
-  list-style-type: none;
+.first-fg {
+    margin-left: 10px;
+}
+
+.btn-row-close {
+    float: right;
+}
+
+.btn-row-close:focus, .btn-row-close:active {
+    color: #ff6358;
+}
+
+.fa-window-close {
+    margin-right: 15px;
+    margin-top: 25px;
+    font-size: 25px;
+}
+
+.fa-window-close:hover, .fa-window-close:focus, .fa-window-close:active {
+    color: #ff6358;
 }

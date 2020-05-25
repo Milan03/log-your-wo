@@ -9,29 +9,36 @@
     <form [formGroup]="simpleLogForm" class="form-validate" (submit)="submitForm($event, simpleLogForm.value)"
         novalidate="">
         <div class="md-card">
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="mda-form-group float-label">
-                        <input class="mda-form-control" name="exercise" tabindex="0" aria-invalid="false" />
-                        <label>Exercise</label>
+            <div class="container">
+                <div class="row">
+                    <div class="col-4">
+                        <div class="mda-form-group float-label first-fg">
+                            <input class="mda-form-control" name="exercise" tabindex="0" aria-invalid="false" />
+                            <label>Exercise</label>
+                        </div>
                     </div>
-                </div>
-                <div class="col-md-2">
-                    <div class="mda-form-group float-label">
-                        <input class="mda-form-control" name="sets" tabindex="0" aria-invalid="false" />
-                        <label>Sets</label>
+                    <div class="col">
+                        <div class="mda-form-group float-label">
+                            <input class="mda-form-control" name="sets" tabindex="0" aria-invalid="false" />
+                            <label>Sets</label>
+                        </div>
                     </div>
-                </div>
-                <div class="col-md-2">
-                    <div class="mda-form-group float-label">
-                        <input class="mda-form-control" name="reps" tabindex="0" aria-invalid="false" />
-                        <label>Reps</label>
+                    <div class="col">
+                        <div class="mda-form-group float-label">
+                            <input class="mda-form-control" name="reps" tabindex="0" aria-invalid="false" />
+                            <label>Reps</label>
+                        </div>
                     </div>
-                </div>
-                <div class="col-md-2">
-                    <div class="mda-form-group float-label">
-                        <input class="mda-form-control" name="weight" tabindex="0" aria-invalid="false" />
-                        <label>Weight</label>
+                    <div class="col">
+                        <div class="mda-form-group float-label">
+                            <input class="mda-form-control" name="weight" tabindex="0" aria-invalid="false" />
+                            <label>Weight</label>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <button class="btn-transparent btn-row-close">
+                            <em class="far fa-window-close"></em>
+                        </button>
                     </div>
                 </div>
             </div>
