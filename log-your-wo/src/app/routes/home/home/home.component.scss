@@ -2,21 +2,11 @@
 @import "../../../shared/styles/bootstrap/_variables.scss";
 @import "../../../shared/styles/bootstrap/_mixins";
 @import '../../../shared/styles/app/variables.scss';
+@import '../../../shared/styles/common.scss';
 
 .home-container {
     margin: 0 auto;
     max-width: map-get($container-max-widths, "lg");
-
-    button, input[type="submit"], input[type="reset"] {
-        background: none;
-        color: inherit;
-        border: none;
-        padding: 0;
-        font: inherit;
-        cursor: pointer;
-        outline: inherit;
-        text-align: left;
-    }
 
     button:hover, button:active, button:focus {
         background-color: rgba(236, 236, 236, 0.5);
