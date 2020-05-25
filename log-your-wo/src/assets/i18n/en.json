@@ -28,6 +28,10 @@
     "log-entry": {
         "SimpleLog": "Simple Log",
         "SimpleLogDescription": "Simple log to get you started on your workout quickly!",
-        "AddExercise": "Add Exercise"
+        "AddExercise": "Add Exercise",
+        "ExerciseName": "Exercise Name",
+        "ExerciseSets": "Sets",
+        "ExerciseReps": "Reps",
+        "ExerciseWeight": "Weight"
     }
 }
