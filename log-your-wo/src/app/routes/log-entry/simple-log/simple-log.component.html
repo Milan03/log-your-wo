@@ -2,10 +2,10 @@
     <div>{{ 'log-entry.AddExercise' | translate }}</div>
     <div id="exercise-btns">
         <button class="mb-1 mr-1 btn btn-primary" type="button" (click)="addExerciseFormControl()">+ <em class="fa fa-dumbbell"></em></button>
-        <button class="mb-1 mr-1 btn btn-primary" type="button">+ <em class="fa fa-running"></em></button>
+        <button class="mb-1 mr-1 btn btn-primary" type="button" (click)="addCardioExerciseFormControl()">+ <em class="fa fa-running"></em></button>
     </div>
 </div>
-<div *ngIf="currentLog.exercises.length > 0" class="container-lg">
+<div *ngIf="currentLog.exercises.length > 0 || currentLog.cardioExercises.length > 0" class="container-lg">
     <form [formGroup]="simpleLogForm" class="form-validate" (submit)="submitForm($event, simpleLogForm.value)"
         novalidate="">
         <div class="md-card">
@@ -45,6 +45,21 @@
                     </div>
                     <div class="col">
                         <button type="button" class="btn-transparent btn-row-close" (click)="removeExerciseRow(exercise)">
+                            <em class="far fa-window-close"></em>
+                        </button>
+                    </div>
+                </div>
+                <div class="row" *ngFor="let exercise of currentLog.cardioExercises; let i = index">
+                    <div class="col-4">
+                        <div class="mda-form-group float-label first-fg">
+                            <input class="mda-form-control" name="{{ exercise.formControlNames.get('name') }}" formControlName="{{ exercise.formControlNames.get('name') }}" tabindex="0" aria-invalid="false" (blur)="checkForExerciseNameValue(exercise.formControlNames.get('name'))" />
+                            <label>{{ 'log-entry.ExerciseName' | translate }}</label>
+                            <span class="text-danger" *ngIf="simpleLogForm.get(exercise.formControlNames.get('name')).hasError('required') && (simpleLogForm.get(exercise.formControlNames.get('name')).dirty || simpleLogForm.get(exercise.formControlNames.get('name')).touched)">{{ 'global.Required' | translate }}</span>
+                            <span class="text-danger" *ngIf="simpleLogForm.get(exercise.formControlNames.get('name')).hasError('maxlength') && (simpleLogForm.get(exercise.formControlNames.get('name')).dirty || simpleLogForm.get(exercise.formControlNames.get('name')).touched)">{{ 'global.CharacterLimit' | translate }} {{ exerciseNameCharLimit }}</span>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <button type="button" class="btn-transparent btn-row-close" (click)="removeCardioExerciseRow(exercise)">
                             <em class="far fa-window-close"></em>
                         </button>
                     </div>

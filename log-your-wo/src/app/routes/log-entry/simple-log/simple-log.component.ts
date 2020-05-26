@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormBuilder, FormControl, Validators } from '@angular/forms';
 
 import { Exercise } from 'src/app/shared/models/exercise.model';
+import { CardioExercise } from 'src/app/shared/models/cardio-exercise.model';
 import { SimpleLog } from '../../../shared/models/simple-log.model';
 import { SharedService } from '../../../shared/services/shared.service';
 
@@ -16,7 +17,9 @@ export class SimpleLogComponent implements OnInit {
     private simpleLogForm: FormGroup;
     private currentLog: SimpleLog;
     private currentExercise: Exercise;
+    private currentCardioExercise: CardioExercise;
     private exerciseRowCount: number;
+    private cardioExerciseRowCount: number;
 
     public readonly exerciseNameCharLimit: number = 50;
     public readonly exerciseNumericCharLimit: number = 5;
@@ -33,6 +36,7 @@ export class SimpleLogComponent implements OnInit {
         this._sharedService.emitLogType(LogTypes.SimpleLog);
         this._sharedService.emitLogStartDatim(this.currentLog.startDatim);
         this.exerciseRowCount = 0;
+        this.cardioExerciseRowCount = 0;
     }
 
     public submitForm($ev, value: any): void {
@@ -70,6 +74,18 @@ export class SimpleLogComponent implements OnInit {
         this.currentLog.exercises.push(newExercise);
         this.currentExercise = newExercise;
         //console.log(newExercise.formControlNames.get('name'));
+    }
+
+    public addCardioExerciseFormControl(): void {
+        let formControlName1 = `${FormValues.CardioExerciseFormControl}${this.cardioExerciseRowCount}`;
+        this.simpleLogForm.addControl(formControlName1, new FormControl('', Validators.compose([Validators.required, Validators.maxLength(50)])));
+        ++this.cardioExerciseRowCount;
+        // add cardio exercise to log
+        let newCardioExercise = new CardioExercise();
+        newCardioExercise.logId = this.currentLog.logId;
+        newCardioExercise.formControlNames.set('name', formControlName1);
+        this.currentLog.cardioExercises.push(newCardioExercise);
+        this.currentCardioExercise = newCardioExercise;
     }
 
     /**
@@ -131,5 +147,13 @@ export class SimpleLogComponent implements OnInit {
         this.simpleLogForm.removeControl(exerciseToRemove.formControlNames.get('sets'));
         this.simpleLogForm.removeControl(exerciseToRemove.formControlNames.get('reps'));
         this.simpleLogForm.removeControl(exerciseToRemove.formControlNames.get('weight'));
+    }
+
+    public removeCardioExerciseRow(cardioExerciseToRemove: CardioExercise): void {
+        // find in current log and remove
+        let i =  this.currentLog.cardioExercises.findIndex(x => x.exerciseId == cardioExerciseToRemove.exerciseId);
+        this.currentLog.cardioExercises.splice(i, 1);
+        /// remove from form control group
+        this.simpleLogForm.removeControl(cardioExerciseToRemove.formControlNames.get('name'));
     }
 }
