@@ -2,7 +2,9 @@
     "global": {
         "LogYourWorkout": "Log Your Workout",
         "LogYourWorkoutDescription": "One log. Mobile and desktop.",
-        "Required": "Required"
+        "Required": "Required",
+        "CharacterLimit": "Character limit: ",
+        "NumericOnly": "Numbers only"
     },
     "header": {
         "search": {

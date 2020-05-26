@@ -18,6 +18,9 @@ export class SimpleLogComponent implements OnInit {
     private currentExercise: Exercise;
     private exerciseRowCount: number;
 
+    public readonly exerciseNameCharLimit: number = 50;
+    public readonly exerciseNumericCharLimit: number = 5;
+
     constructor(
         private _formBuilder: FormBuilder,
         private _sharedService: SharedService
@@ -51,10 +54,10 @@ export class SimpleLogComponent implements OnInit {
         let formControlName2 = `${FormValues.ExerciseSetsFormControl}${this.exerciseRowCount}`;
         let formControlName3 = `${FormValues.ExerciseRepsFormControl}${this.exerciseRowCount}`;
         let formControlName4 = `${FormValues.ExerciseWeightFormControl}${this.exerciseRowCount}`;
-        this.simpleLogForm.addControl(formControlName1, new FormControl('', Validators.required));
-        this.simpleLogForm.addControl(formControlName2, new FormControl());
-        this.simpleLogForm.addControl(formControlName3, new FormControl());
-        this.simpleLogForm.addControl(formControlName4, new FormControl());
+        this.simpleLogForm.addControl(formControlName1, new FormControl('', Validators.compose([Validators.required, Validators.maxLength(50)])));
+        this.simpleLogForm.addControl(formControlName2, new FormControl('', Validators.compose([Validators.pattern("^[0-9]*$"), Validators.maxLength(5)])));
+        this.simpleLogForm.addControl(formControlName3, new FormControl('', Validators.compose([Validators.pattern("^[0-9]*$"), Validators.maxLength(5)])));
+        this.simpleLogForm.addControl(formControlName4, new FormControl('', Validators.compose([Validators.pattern("^[0-9]*$"), Validators.maxLength(5)])));
         ++this.exerciseRowCount;
         //console.log(this.simpleLogForm.get(formControlName1));
         // add exercise to log

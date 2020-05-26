@@ -2,7 +2,9 @@
     "global": {
         "LogYourWorkout": "Enregistrez votre entraînement",
         "LogYourWorkoutDescription": "Un journal. Mobile et bureau.",
-        "Required": "Requis"
+        "Required": "Requis",
+        "CharacterLimit": "Limite de caractères: ",
+        "NumericOnly": "Chiffres uniquement"
     },
     "header": {
         "search": {
