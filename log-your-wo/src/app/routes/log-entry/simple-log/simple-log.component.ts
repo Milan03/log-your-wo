@@ -69,12 +69,43 @@ export class SimpleLogComponent implements OnInit {
         //console.log(newExercise.formControlNames.get('name'));
     }
 
-    public checkForValues(): void {
+    public checkForExerciseNameValue(formControlName: string): void {
+        this.currentExercise = this.currentLog.exercises.find(x => x.formControlNames.get('name') == formControlName);
         let exerciseName = this.simpleLogForm.get(this.currentExercise.formControlNames.get('name')).value;
         if (exerciseName)
             this.currentExercise.exerciseName = exerciseName;
         else
             this.currentExercise.exerciseName = null;
-        console.log(this.currentExercise.exerciseName);
+        //console.log(`Exercise Name: ${this.currentExercise.exerciseName} for ${formControlName}`);
+    }
+
+    public checkForExerciseSetsValue(formControlName: string): void {
+        this.currentExercise = this.currentLog.exercises.find(x => x.formControlNames.get('sets') == formControlName);
+        let exerciseSets = this.simpleLogForm.get(this.currentExercise.formControlNames.get('sets')).value;
+        if (exerciseSets)
+            this.currentExercise.sets = exerciseSets;
+        else
+            this.currentExercise.sets = null;
+        //console.log(`Sets: ${this.currentExercise.sets} for ${formControlName}`);
+    }
+
+    public checkForExerciseRepsValue(formControlName: string): void {
+        this.currentExercise = this.currentLog.exercises.find(x => x.formControlNames.get('reps') == formControlName);
+        let exerciseReps = this.simpleLogForm.get(this.currentExercise.formControlNames.get('reps')).value;
+        if (exerciseReps)
+            this.currentExercise.reps = exerciseReps;
+        else
+            this.currentExercise.reps = null;
+        //console.log(`Reps: ${this.currentExercise.reps} for ${formControlName}`);
+    }
+
+    public checkForExerciseWeightValue(formControlName: string): void {
+        this.currentExercise = this.currentLog.exercises.find(x => x.formControlNames.get('weight') == formControlName);
+        let exerciseWeight = this.simpleLogForm.get(this.currentExercise.formControlNames.get('weight')).value;
+        if (exerciseWeight)
+            this.currentExercise.weight = exerciseWeight;
+        else
+            this.currentExercise.weight = null;
+        //console.log(`Reps: ${this.currentExercise.reps} for ${formControlName}`);
     }
 }
