@@ -69,6 +69,11 @@ export class SimpleLogComponent implements OnInit {
         //console.log(newExercise.formControlNames.get('name'));
     }
 
+    /**
+     * On blur of form control check the value - if present and valid add to the @var currentExercise model.
+     * Find correct @var currentExercise first to determine which one to update based on @param formControlName.
+     * @param formControlName - form control name to search for @var currentExercise with
+     */
     public checkForExerciseNameValue(formControlName: string): void {
         this.currentExercise = this.currentLog.exercises.find(x => x.formControlNames.get('name') == formControlName);
         let exerciseName = this.simpleLogForm.get(this.currentExercise.formControlNames.get('name')).value;
