@@ -116,4 +116,20 @@ export class SimpleLogComponent implements OnInit {
             this.currentExercise.weight = null;
         //console.log(`Reps: ${this.currentExercise.reps} for ${formControlName}`);
     }
+
+    /**
+     * Remove the targetted row from the page. Removes from @var currentlog.exercises and
+     * @var simpleLogForm form group.
+     * @param exerciseToRemove 
+     */
+    public removeExerciseRow(exerciseToRemove: Exercise): void {
+        // find in current log and remove
+        let i = this.currentLog.exercises.findIndex(x => x.exerciseId == exerciseToRemove.exerciseId);
+        this.currentLog.exercises.splice(i, 1);
+        // remove from form control group
+        this.simpleLogForm.removeControl(exerciseToRemove.formControlNames.get('name'));
+        this.simpleLogForm.removeControl(exerciseToRemove.formControlNames.get('sets'));
+        this.simpleLogForm.removeControl(exerciseToRemove.formControlNames.get('reps'));
+        this.simpleLogForm.removeControl(exerciseToRemove.formControlNames.get('weight'));
+    }
 }
