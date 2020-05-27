@@ -25,7 +25,7 @@ export class SimpleLogComponent implements OnInit {
     public readonly exerciseNameCharLimit: number = 50;
     public readonly exerciseNumericCharLimit: number = 5;
     public readonly exerciseType: string = FormValues.ExerciseNameFormControl;
-    public readonly cardioExerciseType: string = FormValues.CardioExerciseFormControl;
+    public readonly cardioExerciseType: string = FormValues.CardioExerciseNameFormControl;
 
     constructor(
         private _formBuilder: FormBuilder,
@@ -77,21 +77,24 @@ export class SimpleLogComponent implements OnInit {
         newExercise.formControlNames.set('weight', formControlName4);
         this.currentLog.exercises.push(newExercise);
         this.currentExercise = newExercise;
-        //console.log(newExercise.formControlNames.get('name'));
+        // add to current active rows
         this.activeRows.push(newExercise);
     }
 
     public addCardioExerciseFormControl(): void {
-        let formControlName1 = `${FormValues.CardioExerciseFormControl}${this.cardioExerciseRowCount}`;
+        let formControlName1 = `${FormValues.CardioExerciseNameFormControl}${this.cardioExerciseRowCount}`;
+        let formControlName2 = `${FormValues.CardioExerciseDistanceFormControl}${this.cardioExerciseRowCount}`;
         this.simpleLogForm.addControl(formControlName1, new FormControl('', Validators.compose([Validators.required, Validators.maxLength(50)])));
+        this.simpleLogForm.addControl(formControlName2, new FormControl('', Validators.compose([Validators.pattern("^[0-9]*$"), Validators.maxLength(5)])));
         ++this.cardioExerciseRowCount;
         // add cardio exercise to log
         let newCardioExercise = new CardioExercise();
         newCardioExercise.logId = this.currentLog.logId;
         newCardioExercise.formControlNames.set('name', formControlName1);
+        newCardioExercise.formControlNames.set('distance', formControlName2);
         this.currentLog.cardioExercises.push(newCardioExercise);
         this.currentCardioExercise = newCardioExercise;
-        this.currentCardioExercise.formControlNames.get('name').includes
+        // add to current active rows
         this.activeRows.push(newCardioExercise);
     }
 
@@ -124,7 +127,10 @@ export class SimpleLogComponent implements OnInit {
             let exerciseValue = this.simpleLogForm.get(this.currentCardioExercise.formControlNames.get(formCtrlType)).value;
             switch(formCtrlType) {
                 case 'name':
-                    this.currentCardioExercise.exerciseName = exerciseValue;
+                    exerciseValue.length > 0 ? this.currentCardioExercise.exerciseName = exerciseValue : null;
+                    break;
+                case 'distance':
+                    exerciseValue > 0 ? this.currentCardioExercise.distance = +exerciseValue : null;
                     break;
             }
             console.log(`Cardio Exercise set: ${this.currentCardioExercise.exerciseName} | Exercise value: ${exerciseValue}`);

@@ -6,5 +6,6 @@ export const FormValues = {
     ExerciseSetsFormControl: "ExerciseSetsFormControl",
     ExerciseRepsFormControl: "ExerciseRepsFormControl",
     ExerciseWeightFormControl: "ExerciseWeightFormControl",
-    CardioExerciseFormControl: "CardioExerciseFormControl"
+    CardioExerciseNameFormControl: "CardioExerciseFormControl",
+    CardioExerciseDistanceFormControl: "CardioExerciseDistanceFormControl"
 }

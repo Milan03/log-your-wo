@@ -66,6 +66,14 @@
                             </div>
                         </div>
                         <div class="col">
+                            <div class="mda-form-group float-label">
+                                <input class="mda-form-control" name="{{ exercise.formControlNames.get('distance') }}" formControlName="{{ exercise.formControlNames.get('distance') }}" tabindex="0" aria-invalid="false" (blur)="checkForExerciseValue(exercise, 'distance')" />
+                                <label>{{ 'log-entry.ExerciseDistance' | translate }}</label>
+                                <span class="text-danger" *ngIf="simpleLogForm.get(exercise.formControlNames.get('distance')).hasError('pattern') && (simpleLogForm.get(exercise.formControlNames.get('distance')).dirty || simpleLogForm.get(exercise.formControlNames.get('distance')).touched)">{{ 'global.NumericOnly' | translate }}</span>
+                                <span class="text-danger" *ngIf="simpleLogForm.get(exercise.formControlNames.get('distance')).hasError('maxlength') && (simpleLogForm.get(exercise.formControlNames.get('distance')).dirty || simpleLogForm.get(exercise.formControlNames.get('distance')).touched)">{{ 'global.CharacterLimit' | translate }} {{ exerciseNameCharLimit }}</span>
+                            </div>
+                        </div>
+                        <div class="col">
                             <button type="button" class="btn-transparent btn-row-close" (click)="removeCardioExerciseRow(exercise)">
                                 <em class="far fa-window-close"></em>
                             </button>

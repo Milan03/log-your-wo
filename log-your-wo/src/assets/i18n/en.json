@@ -35,6 +35,7 @@
         "ExerciseName": "Exercise Name",
         "ExerciseSets": "Sets",
         "ExerciseReps": "Reps",
-        "ExerciseWeight": "Weight"
+        "ExerciseWeight": "Weight",
+        "ExerciseDistance": "Distance"
     }
 }
