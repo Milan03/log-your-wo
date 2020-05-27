@@ -8,6 +8,8 @@ import { SharedService } from '../../../shared/services/shared.service';
 
 import { LogTypes, FormValues } from '../../../shared/common/common.constants';
 
+import * as moment from 'moment';
+
 @Component({
     selector: 'app-simple-log',
     templateUrl: './simple-log.component.html',
@@ -169,5 +171,16 @@ export class SimpleLogComponent implements OnInit {
         this.activeRows.splice(n, 1);
         // remove from form control group
         this.simpleLogForm.removeControl(cardioExerciseToRemove.formControlNames.get('name'));
+    }
+
+    /**
+     * Track exercise duration set for the particular cardio exercise row.
+     * @param date - track hours, minutes, seconds
+     * @param exercise - exercise to be updated
+     */
+    public onDurationChange(date: Date, exercise: CardioExercise): void {
+        let duration = moment.duration({hours: date.getHours(), minutes: date.getMinutes(), seconds: date.getSeconds()});
+        this.currentCardioExercise = this.currentLog.cardioExercises.find(x => x.exerciseId == exercise.exerciseId);
+        this.currentCardioExercise.exerciseDuration = duration;
     }
 }

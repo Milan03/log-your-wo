@@ -1,4 +1,5 @@
 import { Guid } from 'guid-typescript';
+import * as moment from 'moment';
 
 export class CardioExercise {
     constructor(
@@ -7,9 +8,7 @@ export class CardioExercise {
         public exerciseName?: string,
         public formControlNames?: Map<string, string>,
         public distance?: string,
-        public hours?: number,
-        public minutes?: number,
-        public seconds?: number,
+        public exerciseDuration?: moment.Duration,
         public intensity?: Intensity
     ) { 
         this.exerciseId = Guid.create();
