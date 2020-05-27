@@ -96,48 +96,39 @@ export class SimpleLogComponent implements OnInit {
     }
 
     /**
-     * On blur of form control check the value - if present and valid add to the @var currentExercise model.
-     * Find correct @var currentExercise first to determine which one to update based on @param formControlName.
-     * @param formControlName - form control name to search for @var currentExercise with
+     * On blur of form control check the value - if present and valid add to the @var currentExercise | @var currentCardioExercise model.
+     * Find correct @var currentExercise | @var currentCardioExercise first to determine which one to update based on @param formCtrlType.
+     * @param formCtrlType - form control type to search for
      */
-    public checkForExerciseNameValue(formControlName: string): void {
-        this.currentExercise = this.currentLog.exercises.find(x => x.formControlNames.get('name') == formControlName);
-        let exerciseName = this.simpleLogForm.get(this.currentExercise.formControlNames.get('name')).value;
-        if (exerciseName)
-            this.currentExercise.exerciseName = exerciseName;
-        else
-            this.currentExercise.exerciseName = null;
-        //console.log(`Exercise Name: ${this.currentExercise.exerciseName} for ${formControlName}`);
-    }
-
-    public checkForExerciseSetsValue(formControlName: string): void {
-        this.currentExercise = this.currentLog.exercises.find(x => x.formControlNames.get('sets') == formControlName);
-        let exerciseSets = this.simpleLogForm.get(this.currentExercise.formControlNames.get('sets')).value;
-        if (exerciseSets)
-            this.currentExercise.sets = exerciseSets;
-        else
-            this.currentExercise.sets = null;
-        //console.log(`Sets: ${this.currentExercise.sets} for ${formControlName}`);
-    }
-
-    public checkForExerciseRepsValue(formControlName: string): void {
-        this.currentExercise = this.currentLog.exercises.find(x => x.formControlNames.get('reps') == formControlName);
-        let exerciseReps = this.simpleLogForm.get(this.currentExercise.formControlNames.get('reps')).value;
-        if (exerciseReps)
-            this.currentExercise.reps = exerciseReps;
-        else
-            this.currentExercise.reps = null;
-        //console.log(`Reps: ${this.currentExercise.reps} for ${formControlName}`);
-    }
-
-    public checkForExerciseWeightValue(formControlName: string): void {
-        this.currentExercise = this.currentLog.exercises.find(x => x.formControlNames.get('weight') == formControlName);
-        let exerciseWeight = this.simpleLogForm.get(this.currentExercise.formControlNames.get('weight')).value;
-        if (exerciseWeight)
-            this.currentExercise.weight = exerciseWeight;
-        else
-            this.currentExercise.weight = null;
-        //console.log(`Reps: ${this.currentExercise.reps} for ${formControlName}`);
+    public checkForExerciseValue(exercise: Exercise | CardioExercise, formCtrlType: string): void {
+        if (exercise.formControlNames.get('name').includes(this.exerciseType)) {
+            this.currentExercise = this.currentLog.exercises.find(x => x.exerciseId == exercise.exerciseId);
+            let exerciseValue = this.simpleLogForm.get(this.currentExercise.formControlNames.get(formCtrlType)).value;
+            switch(formCtrlType) {
+                case 'name':
+                    exerciseValue.length > 0 ? this.currentExercise.exerciseName = exerciseValue : this.currentExercise.exerciseName =  null
+                    break;
+                case 'sets':
+                    exerciseValue > 0 ? this.currentExercise.sets = +exerciseValue : this.currentExercise.sets = null;
+                    break;
+                case 'reps':
+                    exerciseValue > 0 ? this.currentExercise.reps = +exerciseValue : this.currentExercise.reps = null;
+                    break;
+                case 'weight':
+                    exerciseValue > 0 ? this.currentExercise.weight = +exerciseValue : this.currentExercise.weight = null;
+                    break;
+            }
+            console.log(this.currentExercise);
+        } else {
+            this.currentCardioExercise = this.currentLog.cardioExercises.find(x => x.exerciseId == exercise.exerciseId);
+            let exerciseValue = this.simpleLogForm.get(this.currentCardioExercise.formControlNames.get(formCtrlType)).value;
+            switch(formCtrlType) {
+                case 'name':
+                    this.currentCardioExercise.exerciseName = exerciseValue;
+                    break;
+            }
+            console.log(`Cardio Exercise set: ${this.currentCardioExercise.exerciseName} | Exercise value: ${exerciseValue}`);
+        }
     }
 
     /**
