@@ -6,7 +6,7 @@ export class CardioExercise {
         public logId?: Guid,
         public exerciseName?: string,
         public formControlNames?: Map<string, string>,
-        public distance?: number,
+        public distance?: string,
         public hours?: number,
         public minutes?: number,
         public seconds?: number ,

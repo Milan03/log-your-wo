@@ -24,6 +24,7 @@ export class SimpleLogComponent implements OnInit {
 
     public readonly exerciseNameCharLimit: number = 50;
     public readonly exerciseNumericCharLimit: number = 5;
+    public readonly exerciseAlphaNumericCharLimit: number = 15;
     public readonly exerciseType: string = FormValues.ExerciseNameFormControl;
     public readonly cardioExerciseType: string = FormValues.CardioExerciseNameFormControl;
 
@@ -65,7 +66,7 @@ export class SimpleLogComponent implements OnInit {
         this.simpleLogForm.addControl(formControlName1, new FormControl('', Validators.compose([Validators.required, Validators.maxLength(50)])));
         this.simpleLogForm.addControl(formControlName2, new FormControl('', Validators.compose([Validators.pattern("^[0-9]*$"), Validators.maxLength(5)])));
         this.simpleLogForm.addControl(formControlName3, new FormControl('', Validators.compose([Validators.pattern("^[0-9]*$"), Validators.maxLength(5)])));
-        this.simpleLogForm.addControl(formControlName4, new FormControl('', Validators.compose([Validators.pattern("^[0-9]*$"), Validators.maxLength(5)])));
+        this.simpleLogForm.addControl(formControlName4, new FormControl('', Validators.compose([Validators.maxLength(15)])));
         ++this.exerciseRowCount;
         //console.log(this.simpleLogForm.get(formControlName1));
         // add exercise to log
@@ -85,7 +86,7 @@ export class SimpleLogComponent implements OnInit {
         let formControlName1 = `${FormValues.CardioExerciseNameFormControl}${this.cardioExerciseRowCount}`;
         let formControlName2 = `${FormValues.CardioExerciseDistanceFormControl}${this.cardioExerciseRowCount}`;
         this.simpleLogForm.addControl(formControlName1, new FormControl('', Validators.compose([Validators.required, Validators.maxLength(50)])));
-        this.simpleLogForm.addControl(formControlName2, new FormControl('', Validators.compose([Validators.pattern("^[0-9]*$"), Validators.maxLength(5)])));
+        this.simpleLogForm.addControl(formControlName2, new FormControl('', Validators.compose([Validators.maxLength(15)])));
         ++this.cardioExerciseRowCount;
         // add cardio exercise to log
         let newCardioExercise = new CardioExercise();
@@ -118,7 +119,7 @@ export class SimpleLogComponent implements OnInit {
                     exerciseValue > 0 ? this.currentExercise.reps = +exerciseValue : this.currentExercise.reps = null;
                     break;
                 case 'weight':
-                    exerciseValue > 0 ? this.currentExercise.weight = +exerciseValue : this.currentExercise.weight = null;
+                    exerciseValue.length > 0 ? this.currentExercise.weight = exerciseValue : this.currentExercise.weight = null;
                     break;
             }
             console.log(this.currentExercise);
@@ -130,7 +131,7 @@ export class SimpleLogComponent implements OnInit {
                     exerciseValue.length > 0 ? this.currentCardioExercise.exerciseName = exerciseValue : null;
                     break;
                 case 'distance':
-                    exerciseValue > 0 ? this.currentCardioExercise.distance = +exerciseValue : null;
+                    exerciseValue.length > 0 ? this.currentCardioExercise.distance = exerciseValue : null;
                     break;
             }
             console.log(`Cardio Exercise set: ${this.currentCardioExercise.exerciseName} | Exercise value: ${exerciseValue}`);

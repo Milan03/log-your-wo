@@ -8,7 +8,7 @@ export class Exercise {
         public exerciseName?: string,
         public sets?: number,
         public reps?: number,
-        public weight?: number
+        public weight?: string
     ) {
         this.exerciseId = Guid.create();
         this.formControlNames = new Map<string, string>();
