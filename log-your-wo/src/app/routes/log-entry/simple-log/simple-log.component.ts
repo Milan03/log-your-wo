@@ -85,14 +85,17 @@ export class SimpleLogComponent implements OnInit {
     public addCardioExerciseFormControl(): void {
         let formControlName1 = `${FormValues.CardioExerciseNameFormControl}${this.cardioExerciseRowCount}`;
         let formControlName2 = `${FormValues.CardioExerciseDistanceFormControl}${this.cardioExerciseRowCount}`;
+        let formControlName3 = `${FormValues.CardioExerciseTimeFormControl}${this.cardioExerciseRowCount}`;
         this.simpleLogForm.addControl(formControlName1, new FormControl('', Validators.compose([Validators.required, Validators.maxLength(50)])));
         this.simpleLogForm.addControl(formControlName2, new FormControl('', Validators.compose([Validators.maxLength(15)])));
+        this.simpleLogForm.addControl(formControlName3, new FormControl());
         ++this.cardioExerciseRowCount;
         // add cardio exercise to log
         let newCardioExercise = new CardioExercise();
         newCardioExercise.logId = this.currentLog.logId;
         newCardioExercise.formControlNames.set('name', formControlName1);
         newCardioExercise.formControlNames.set('distance', formControlName2);
+        newCardioExercise.formControlNames.set('time', formControlName3);
         this.currentLog.cardioExercises.push(newCardioExercise);
         this.currentCardioExercise = newCardioExercise;
         // add to current active rows

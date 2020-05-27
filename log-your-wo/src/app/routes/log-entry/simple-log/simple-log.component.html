@@ -72,6 +72,12 @@
                             </div>
                         </div>
                         <div class="col">
+                            <div class="mda-form-group">
+                                <timepicker class="mda-form-control" name="{{ exercise.formControlNames.get('time') }}" formControlName="{{ exercise.formControlNames.get('time') }}" aria-invalid="false" [showMeridian]="false" [showSeconds]="true"></timepicker>
+                                <label>{{ 'log-entry.ExerciseTime' | translate }}</label>
+                            </div>
+                        </div>
+                        <div class="col">
                             <button type="button" class="btn-transparent btn-row-close" (click)="removeCardioExerciseRow(exercise)">
                                 <em class="far fa-window-close"></em>
                             </button>

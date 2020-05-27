@@ -9,7 +9,7 @@ export class CardioExercise {
         public distance?: string,
         public hours?: number,
         public minutes?: number,
-        public seconds?: number ,
+        public seconds?: number,
         public intensity?: Intensity
     ) { 
         this.exerciseId = Guid.create();
