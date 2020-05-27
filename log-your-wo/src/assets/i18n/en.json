@@ -37,6 +37,6 @@
         "ExerciseReps": "Reps",
         "ExerciseWeight": "Weight",
         "ExerciseDistance": "Distance",
-        "ExerciseTime": "Time"
+        "ExerciseDuration": "Duration"
     }
 }

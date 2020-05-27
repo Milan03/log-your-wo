@@ -179,8 +179,10 @@ export class SimpleLogComponent implements OnInit {
      * @param exercise - exercise to be updated
      */
     public onDurationChange(date: Date, exercise: CardioExercise): void {
-        let duration = moment.duration({hours: date.getHours(), minutes: date.getMinutes(), seconds: date.getSeconds()});
-        this.currentCardioExercise = this.currentLog.cardioExercises.find(x => x.exerciseId == exercise.exerciseId);
-        this.currentCardioExercise.exerciseDuration = duration;
+        if (date) {
+            let duration = moment.duration({ hours: date.getHours(), minutes: date.getMinutes(), seconds: date.getSeconds() });
+            this.currentCardioExercise = this.currentLog.cardioExercises.find(x => x.exerciseId == exercise.exerciseId);
+            this.currentCardioExercise.exerciseDuration = duration;
+        }
     }
 }

@@ -72,9 +72,9 @@
                             </div>
                         </div>
                         <div class="col">
-                            <div class="mda-form-group">
-                                <timepicker class="mda-form-control" name="{{ exercise.formControlNames.get('time') }}" formControlName="{{ exercise.formControlNames.get('time') }}" aria-invalid="false" [showMeridian]="false" [showSeconds]="true" (ngModelChange)="onDurationChange($event, exercise)"></timepicker>
-                                <label>{{ 'log-entry.ExerciseTime' | translate }}</label>
+                            <div class="form-group">
+                                <label class="duration-label">{{ 'log-entry.ExerciseDuration' | translate }}</label>
+                                <timepicker formControlName="{{ exercise.formControlNames.get('time') }}" aria-invalid="false" [showMeridian]="false" [showSpinners]="false" [showSeconds]="true" [hoursPlaceholder]="'hh'" [minutesPlaceholder]="'mm'" [secondsPlaceholder]="'ss'" (ngModelChange)="onDurationChange($event, exercise)"></timepicker>
                             </div>
                         </div>
                         <div class="col">
