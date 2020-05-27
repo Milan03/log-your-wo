@@ -1,3 +1,4 @@
+<!-- START Add Exercise Heading START -->
 <div class="content-heading">
     <div>{{ 'log-entry.AddExercise' | translate }}</div>
     <div id="exercise-btns">
@@ -5,11 +6,15 @@
         <button class="mb-1 mr-1 btn btn-primary" type="button" (click)="addCardioExerciseFormControl()">+ <em class="fa fa-running"></em></button>
     </div>
 </div>
+<!-- END Add Exercise Heading END -->
+<!-- START Active Row Container START -->
 <div *ngIf="currentLog.exercises.length > 0 || currentLog.cardioExercises.length > 0" class="container-lg">
     <form [formGroup]="simpleLogForm" class="form-validate" (submit)="submitForm($event, simpleLogForm.value)" novalidate="">
         <div class="md-card">
             <div class="container">
+                <!-- START Active Rows START -->
                 <div class="row" *ngFor="let exercise of activeRows; let i = index">
+                    <!-- START Exercise Row START -->
                     <div class="div-inherit" *ngIf="exercise.formControlNames.get('name').includes(exerciseType)">
                         <div class="col-4">
                             <div class="mda-form-group float-label first-fg">
@@ -49,6 +54,8 @@
                             </button>
                         </div>
                     </div>
+                    <!-- END Exercise Row END -->
+                    <!-- START Cardio Exercise Row START -->
                     <div class="div-inherit" *ngIf="exercise.formControlNames.get('name').includes(cardioExerciseType)">
                         <div class="col-4">
                             <div class="mda-form-group float-label first-fg">
@@ -64,8 +71,11 @@
                             </button>
                         </div>
                     </div>
+                    <!-- END Cardio Exercise Row END -->
                 </div>
+                <!-- END Active Rows END -->
             </div>
         </div>
     </form>
 </div>
+<!-- END Active Row Container END -->
