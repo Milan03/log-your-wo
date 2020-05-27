@@ -20,9 +20,12 @@ export class SimpleLogComponent implements OnInit {
     private currentCardioExercise: CardioExercise;
     private exerciseRowCount: number;
     private cardioExerciseRowCount: number;
+    private activeRows: Array<Exercise | CardioExercise>;
 
     public readonly exerciseNameCharLimit: number = 50;
     public readonly exerciseNumericCharLimit: number = 5;
+    public readonly exerciseType: string = FormValues.ExerciseNameFormControl;
+    public readonly cardioExerciseType: string = FormValues.CardioExerciseFormControl;
 
     constructor(
         private _formBuilder: FormBuilder,
@@ -37,6 +40,7 @@ export class SimpleLogComponent implements OnInit {
         this._sharedService.emitLogStartDatim(this.currentLog.startDatim);
         this.exerciseRowCount = 0;
         this.cardioExerciseRowCount = 0;
+        this.activeRows = new Array<Exercise | CardioExercise>();
     }
 
     public submitForm($ev, value: any): void {
@@ -74,6 +78,7 @@ export class SimpleLogComponent implements OnInit {
         this.currentLog.exercises.push(newExercise);
         this.currentExercise = newExercise;
         //console.log(newExercise.formControlNames.get('name'));
+        this.activeRows.push(newExercise);
     }
 
     public addCardioExerciseFormControl(): void {
@@ -86,6 +91,8 @@ export class SimpleLogComponent implements OnInit {
         newCardioExercise.formControlNames.set('name', formControlName1);
         this.currentLog.cardioExercises.push(newCardioExercise);
         this.currentCardioExercise = newCardioExercise;
+        this.currentCardioExercise.formControlNames.get('name').includes
+        this.activeRows.push(newCardioExercise);
     }
 
     /**
@@ -142,6 +149,9 @@ export class SimpleLogComponent implements OnInit {
         // find in current log and remove
         let i = this.currentLog.exercises.findIndex(x => x.exerciseId == exerciseToRemove.exerciseId);
         this.currentLog.exercises.splice(i, 1);
+        // find in active rows and remove
+        let n = this.activeRows.findIndex(x => x.exerciseId == exerciseToRemove.exerciseId);
+        this.activeRows.splice(n, 1);
         // remove from form control group
         this.simpleLogForm.removeControl(exerciseToRemove.formControlNames.get('name'));
         this.simpleLogForm.removeControl(exerciseToRemove.formControlNames.get('sets'));
@@ -151,9 +161,12 @@ export class SimpleLogComponent implements OnInit {
 
     public removeCardioExerciseRow(cardioExerciseToRemove: CardioExercise): void {
         // find in current log and remove
-        let i =  this.currentLog.cardioExercises.findIndex(x => x.exerciseId == cardioExerciseToRemove.exerciseId);
+        let i = this.currentLog.cardioExercises.findIndex(x => x.exerciseId == cardioExerciseToRemove.exerciseId);
         this.currentLog.cardioExercises.splice(i, 1);
-        /// remove from form control group
+        // find in active rows and remove
+        let n = this.activeRows.findIndex(x => x.exerciseId == cardioExerciseToRemove.exerciseId);
+        this.activeRows.splice(n, 1);
+        // remove from form control group
         this.simpleLogForm.removeControl(cardioExerciseToRemove.formControlNames.get('name'));
     }
 }
