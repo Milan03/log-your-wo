@@ -1,6 +1,9 @@
 import { NgModule } from '@angular/core';
-import { SimpleLogComponent } from './simple-log/simple-log.component'
 import { Routes, RouterModule } from '@angular/router';
+
+import { SimpleLogComponent } from './simple-log/simple-log.component'
+import { DurationDialog } from './simple-log/duration-dialog.component';
+
 import { SharedModule } from '../../shared/shared.module';
 
 const routes: Routes = [
@@ -12,7 +15,10 @@ const routes: Routes = [
         RouterModule.forChild(routes),
         SharedModule
     ],
-    declarations: [SimpleLogComponent],
+    declarations: [
+        SimpleLogComponent,
+        DurationDialog
+    ],
     exports: [
         RouterModule
     ]

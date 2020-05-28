@@ -1,7 +1,9 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormGroup, FormBuilder, FormControl, Validators } from '@angular/forms';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { Subscription } from 'rxjs';
 
+import { DurationDialog } from './duration-dialog.component';
 import { Exercise } from 'src/app/shared/models/exercise.model';
 import { CardioExercise } from 'src/app/shared/models/cardio-exercise.model';
 import { SimpleLog } from '../../../shared/models/simple-log.model';
@@ -41,7 +43,8 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     constructor(
         private _formBuilder: FormBuilder,
         private _sharedService: SharedService,
-        private _translatorService: TranslatorService
+        private _translatorService: TranslatorService,
+        private _dialog: MatDialog
     ) {
         this.simpleLogForm = this._formBuilder.group({});
     }
@@ -189,6 +192,11 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         this.activeRows.splice(n, 1);
         // remove from form control group
         this.simpleLogForm.removeControl(cardioExerciseToRemove.formControlNames.get('name'));
+    }
+
+    public openDialog(): void {
+        let dialogRef = this._dialog.open(DurationDialog);
+
     }
 
     /**

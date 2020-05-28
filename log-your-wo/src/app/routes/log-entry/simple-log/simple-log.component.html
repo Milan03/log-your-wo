@@ -56,7 +56,7 @@
                     <!-- END Exercise Row END -->
                     <!-- START Cardio Exercise Row START -->
                     <div class="div-inherit" *ngIf="exercise.formControlNames.get('name').includes(cardioExerciseType)">
-                        <div class="col-4">
+                        <div class="first-col-cv col-4">
                             <div class="mda-form-group float-label first-fg">
                                 <input class="mda-form-control" name="{{ exercise.formControlNames.get('name') }}" formControlName="{{ exercise.formControlNames.get('name') }}" tabindex="0" aria-invalid="false" (blur)="checkForExerciseValue(exercise, 'name')" />
                                 <label>{{ 'log-entry.ExerciseName' | translate }}</label>
@@ -72,19 +72,22 @@
                             </div>
                         </div>
                         <div class="col">
-                            <div class="form-group">
+                            <div class="mda-form-group">
                                 <label class="duration-label">{{ 'log-entry.ExerciseDuration' | translate }}</label>
-                                <timepicker formControlName="{{ exercise.formControlNames.get('time') }}" aria-invalid="false" [showMeridian]="false" [showSpinners]="false" [showSeconds]="true" [hoursPlaceholder]="'hh'" [minutesPlaceholder]="'mm'" [secondsPlaceholder]="'ss'" (ngModelChange)="onDurationChange($event, exercise)"></timepicker>
+                                <!-- <timepicker formControlName="{{ exercise.formControlNames.get('time') }}" aria-invalid="false" [showMeridian]="false" [showSpinners]="false" [showSeconds]="true" [hoursPlaceholder]="'hh'" [minutesPlaceholder]="'mm'" [secondsPlaceholder]="'ss'" (ngModelChange)="onDurationChange($event, exercise)"></timepicker> -->
+                                <button mat-button (click)="openDialog()">+ <em class="far fa-clock"></em></button>
                             </div>
                         </div>
                         <div class="col">
-                            <mat-form-field>
-                                <mat-select placeholder="{{ 'log-entry.ExerciseIntensity' | translate }}" (selectionChange)="onIntensityChange($event, exercise)" formControlName="{{ exercise.formControlNames.get('intensity') }}">
-                                    <mat-option *ngFor="let intensity of intensities" [value]="intensity.value">
-                                      {{ intensity.viewValue }}
-                                    </mat-option>
-                                </mat-select>
-                            </mat-form-field>
+                            <div class="mda-form-group">
+                                <mat-form-field>
+                                    <mat-select placeholder="{{ 'log-entry.ExerciseIntensity' | translate }}" (selectionChange)="onIntensityChange($event, exercise)" formControlName="{{ exercise.formControlNames.get('intensity') }}">
+                                        <mat-option *ngFor="let intensity of intensities" [value]="intensity.value">
+                                            {{ intensity.viewValue }}
+                                        </mat-option>
+                                    </mat-select>
+                                </mat-form-field>
+                            </div>
                         </div>
                         <div class="col">
                             <button type="button" class="btn-transparent btn-row-close" (click)="removeCardioExerciseRow(exercise)">
