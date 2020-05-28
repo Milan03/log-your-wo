@@ -37,6 +37,7 @@
         "ExerciseReps": "Reps",
         "ExerciseWeight": "Poids",
         "ExerciseDistance": "Distance",
-        "ExerciseDuration": "Temps"
+        "ExerciseDuration": "Temps",
+        "ExerciseIntensity": "Intensité"
     }
 }

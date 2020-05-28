@@ -24,11 +24,14 @@ export class SimpleLogComponent implements OnInit {
     private cardioExerciseRowCount: number;
     private activeRows: Array<Exercise | CardioExercise>;
 
+    public selectedIntensity: string;
+
     public readonly exerciseNameCharLimit: number = 50;
     public readonly exerciseNumericCharLimit: number = 5;
     public readonly exerciseAlphaNumericCharLimit: number = 15;
     public readonly exerciseType: string = FormValues.ExerciseNameFormControl;
     public readonly cardioExerciseType: string = FormValues.CardioExerciseNameFormControl;
+    public readonly intensities = FormValues.ExerciseIntensities;
 
     constructor(
         private _formBuilder: FormBuilder,
@@ -88,9 +91,11 @@ export class SimpleLogComponent implements OnInit {
         let formControlName1 = `${FormValues.CardioExerciseNameFormControl}${this.cardioExerciseRowCount}`;
         let formControlName2 = `${FormValues.CardioExerciseDistanceFormControl}${this.cardioExerciseRowCount}`;
         let formControlName3 = `${FormValues.CardioExerciseTimeFormControl}${this.cardioExerciseRowCount}`;
+        let formControlName4 = `${FormValues.CardioExerciseIntensityFormControl}${this.cardioExerciseRowCount}`;
         this.simpleLogForm.addControl(formControlName1, new FormControl('', Validators.compose([Validators.required, Validators.maxLength(50)])));
         this.simpleLogForm.addControl(formControlName2, new FormControl('', Validators.compose([Validators.maxLength(15)])));
         this.simpleLogForm.addControl(formControlName3, new FormControl());
+        this.simpleLogForm.addControl(formControlName4, new FormControl());
         ++this.cardioExerciseRowCount;
         // add cardio exercise to log
         let newCardioExercise = new CardioExercise();
@@ -98,6 +103,7 @@ export class SimpleLogComponent implements OnInit {
         newCardioExercise.formControlNames.set('name', formControlName1);
         newCardioExercise.formControlNames.set('distance', formControlName2);
         newCardioExercise.formControlNames.set('time', formControlName3);
+        newCardioExercise.formControlNames.set('intensity', formControlName4);
         this.currentLog.cardioExercises.push(newCardioExercise);
         this.currentCardioExercise = newCardioExercise;
         // add to current active rows
@@ -183,6 +189,18 @@ export class SimpleLogComponent implements OnInit {
             let duration = moment.duration({ hours: date.getHours(), minutes: date.getMinutes(), seconds: date.getSeconds() });
             this.currentCardioExercise = this.currentLog.cardioExercises.find(x => x.exerciseId == exercise.exerciseId);
             this.currentCardioExercise.exerciseDuration = duration;
+        }
+    }
+
+    /**
+     * Track exercise intensity set for the particular cardio exercise row.
+     * @param intensity - i.e. easy, moderate, hard, maximal
+     * @param exercise - exercise to be updated
+     */
+    public onIntensityChange(intensity: any, exercise: CardioExercise): void {
+        if (intensity) {
+            this.currentCardioExercise = this.currentLog.cardioExercises.find(x => x.exerciseId == exercise.exerciseId);
+            this.currentCardioExercise.intensity = +intensity.value;
         }
     }
 }

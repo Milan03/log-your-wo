@@ -8,5 +8,12 @@ export const FormValues = {
     ExerciseWeightFormControl: "ExerciseWeightFormControl",
     CardioExerciseNameFormControl: "CardioExerciseFormControl",
     CardioExerciseDistanceFormControl: "CardioExerciseDistanceFormControl",
-    CardioExerciseTimeFormControl: "CardioExerciseTimeFormControl"
+    CardioExerciseTimeFormControl: "CardioExerciseTimeFormControl",
+    CardioExerciseIntensityFormControl: "CardioExerciseIntensityFormControl",
+    ExerciseIntensities: [
+        { value: '1', viewValue: 'Easy' },
+        { value: '2', viewValue: 'Moderate' },
+        { value: '3', viewValue: 'Hard' },
+        { value: '4', viewValue: 'Maximal'}
+    ]
 }

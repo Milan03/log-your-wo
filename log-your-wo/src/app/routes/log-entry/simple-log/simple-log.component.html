@@ -78,6 +78,15 @@
                             </div>
                         </div>
                         <div class="col">
+                            <mat-form-field>
+                                <mat-select placeholder="{{ 'log-entry.ExerciseIntensity' | translate }}" (selectionChange)="onIntensityChange($event, exercise)" formControlName="{{ exercise.formControlNames.get('intensity') }}">
+                                    <mat-option *ngFor="let intensity of intensities" [value]="intensity.value">
+                                      {{ intensity.viewValue }}
+                                    </mat-option>
+                                </mat-select>
+                            </mat-form-field>
+                        </div>
+                        <div class="col">
                             <button type="button" class="btn-transparent btn-row-close" (click)="removeCardioExerciseRow(exercise)">
                                 <em class="far fa-window-close"></em>
                             </button>
