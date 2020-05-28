@@ -64,21 +64,21 @@
                                 <span class="text-danger" *ngIf="simpleLogForm.get(exercise.formControlNames.get('name')).hasError('maxlength') && (simpleLogForm.get(exercise.formControlNames.get('name')).dirty || simpleLogForm.get(exercise.formControlNames.get('name')).touched)">{{ 'global.CharacterLimit' | translate }} {{ exerciseNameCharLimit }}</span>
                             </div>
                         </div>
-                        <div class="col">
+                        <div class="second-col-cv col-2">
                             <div class="mda-form-group float-label">
                                 <input class="mda-form-control" name="{{ exercise.formControlNames.get('distance') }}" formControlName="{{ exercise.formControlNames.get('distance') }}" tabindex="0" aria-invalid="false" (blur)="checkForExerciseValue(exercise, 'distance')" />
                                 <label>{{ 'log-entry.ExerciseDistance' | translate }}</label>
                                 <span class="text-danger" *ngIf="simpleLogForm.get(exercise.formControlNames.get('distance')).hasError('maxlength') && (simpleLogForm.get(exercise.formControlNames.get('distance')).dirty || simpleLogForm.get(exercise.formControlNames.get('distance')).touched)">{{ 'global.CharacterLimit' | translate }} {{ exerciseAlphaNumericCharLimit }}</span>
                             </div>
                         </div>
-                        <div class="col">
+                        <div class="col-2">
                             <div class="mda-form-group">
                                 <label class="duration-label">{{ 'log-entry.ExerciseDuration' | translate }}</label>
                                 <!-- <timepicker formControlName="{{ exercise.formControlNames.get('time') }}" aria-invalid="false" [showMeridian]="false" [showSpinners]="false" [showSeconds]="true" [hoursPlaceholder]="'hh'" [minutesPlaceholder]="'mm'" [secondsPlaceholder]="'ss'" (ngModelChange)="onDurationChange($event, exercise)"></timepicker> -->
                                 <button mat-button (click)="openDialog()">+ <em class="far fa-clock"></em></button>
                             </div>
                         </div>
-                        <div class="col">
+                        <div class="col-2">
                             <div class="mda-form-group">
                                 <mat-form-field>
                                     <mat-select placeholder="{{ 'log-entry.ExerciseIntensity' | translate }}" (selectionChange)="onIntensityChange($event, exercise)" formControlName="{{ exercise.formControlNames.get('intensity') }}">
@@ -89,8 +89,8 @@
                                 </mat-form-field>
                             </div>
                         </div>
-                        <div class="col">
-                            <button type="button" class="btn-transparent btn-row-close" (click)="removeCardioExerciseRow(exercise)">
+                        <div class="col-2">
+                            <button type="button" class="btn-transparent btn-row-close close-btn-cv" (click)="removeCardioExerciseRow(exercise)">
                                 <em class="far fa-window-close"></em>
                             </button>
                         </div>

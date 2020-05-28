@@ -35,17 +35,26 @@
     margin-bottom: 0;
 }
 
-@media only screen and (max-width: 767px) and (orientation: portrait) {
-    /* portrait phones */
-    mat-form-field {
-        width: 30%;
+@media only screen and (min-width: 1200px) {
+    .close-btn-cv {
+        margin-left: 2.5em;
     }
 }
 
-@media only screen and (max-width: 767px) {
-    /* phones */
+@media only screen and (max-width: 767px) and (orientation: portrait) {
+    /* portrait phones */
     .first-col-cv {
-        max-width: 24.33333%;
+        max-width: 27%;
+    }
+    .col-2 { 
+        max-width: 14%;
+    }
+}
+
+@media only screen and (max-width: 812px) {
+    /* phones */
+    mat-form-field {
+        display: block;
     }
 }
 
