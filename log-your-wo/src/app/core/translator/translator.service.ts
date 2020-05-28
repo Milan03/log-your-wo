@@ -1,14 +1,19 @@
 import { Injectable } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
+import { Subject } from 'rxjs/Subject';
+
+import { FormValues } from '../../shared/common/common.constants';
 
 @Injectable()
 export class TranslatorService {
+    private currentLanguage = new Subject<string>();
+    private defaultLanguage: string = FormValues.ENCode;
 
-    private defaultLanguage: string = 'en';
+    public languageChangeEmitted$ = this.currentLanguage.asObservable();
 
     private availablelangs = [
-        { code: 'en', text: 'English' },
-        { code: 'en_FR', text: 'French' }
+        { code: FormValues.ENCode, text: FormValues.English },
+        { code: FormValues.FRCode, text: FormValues.French }
     ];
 
     constructor(public translate: TranslateService) {
@@ -22,6 +27,7 @@ export class TranslatorService {
 
     useLanguage(lang: string = null) {
         this.translate.use(lang || this.translate.getDefaultLang());
+        this.currentLanguage.next(lang || this.translate.getDefaultLang());
     }
 
     getAvailableLanguages() {

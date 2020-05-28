@@ -1,10 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormGroup, FormBuilder, FormControl, Validators } from '@angular/forms';
+import { Subscription } from 'rxjs';
 
 import { Exercise } from 'src/app/shared/models/exercise.model';
 import { CardioExercise } from 'src/app/shared/models/cardio-exercise.model';
 import { SimpleLog } from '../../../shared/models/simple-log.model';
 import { SharedService } from '../../../shared/services/shared.service';
+import { TranslatorService } from '../../../core/translator/translator.service';
 
 import { LogTypes, FormValues } from '../../../shared/common/common.constants';
 
@@ -15,8 +17,9 @@ import * as moment from 'moment';
     templateUrl: './simple-log.component.html',
     styleUrls: ['./simple-log.component.scss']
 })
-export class SimpleLogComponent implements OnInit {
+export class SimpleLogComponent implements OnInit, OnDestroy {
     private simpleLogForm: FormGroup;
+    private currentLanguage: string;
     private currentLog: SimpleLog;
     private currentExercise: Exercise;
     private currentCardioExercise: CardioExercise;
@@ -31,11 +34,14 @@ export class SimpleLogComponent implements OnInit {
     public readonly exerciseAlphaNumericCharLimit: number = 15;
     public readonly exerciseType: string = FormValues.ExerciseNameFormControl;
     public readonly cardioExerciseType: string = FormValues.CardioExerciseNameFormControl;
-    public readonly intensities = FormValues.ExerciseIntensities;
+    public intensities = FormValues.ExerciseIntensities;
+
+    private langSub: Subscription;
 
     constructor(
         private _formBuilder: FormBuilder,
-        private _sharedService: SharedService
+        private _sharedService: SharedService,
+        private _translatorService: TranslatorService
     ) {
         this.simpleLogForm = this._formBuilder.group({});
     }
@@ -47,6 +53,12 @@ export class SimpleLogComponent implements OnInit {
         this.exerciseRowCount = 0;
         this.cardioExerciseRowCount = 0;
         this.activeRows = new Array<Exercise | CardioExercise>();
+        this.subToLanguageChange();
+    }
+
+    ngOnDestroy(): void {
+        if (this.langSub)
+            this.langSub.unsubscribe();
     }
 
     public submitForm($ev, value: any): void {
@@ -202,5 +214,18 @@ export class SimpleLogComponent implements OnInit {
             this.currentCardioExercise = this.currentLog.cardioExercises.find(x => x.exerciseId == exercise.exerciseId);
             this.currentCardioExercise.intensity = +intensity.value;
         }
+    }
+
+    private subToLanguageChange(): void {
+        this.langSub = this._translatorService.languageChangeEmitted$.subscribe(
+            data => {
+                this.currentLanguage = data;
+                if (this.currentLanguage == FormValues.ENCode) {
+                    this.intensities = FormValues.ExerciseIntensities;
+                } else {
+                    this.intensities = FormValues.FRExerciseIntensities;
+                }
+            }
+        );
     }
 }
