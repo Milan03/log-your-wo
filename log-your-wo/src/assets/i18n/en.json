@@ -4,7 +4,8 @@
         "LogYourWorkoutDescription": "One log. Mobile and desktop.",
         "Required": "Required",
         "CharacterLimit": "Character limit: ",
-        "NumericOnly": "Numbers only"
+        "NumericOnly": "Numbers only",
+        "OkLabel": "OK"
     },
     "header": {
         "search": {
@@ -38,6 +39,7 @@
         "ExerciseWeight": "Weight",
         "ExerciseDistance": "Distance",
         "ExerciseDuration": "Duration",
-        "ExerciseIntensity": "Intensity"
+        "ExerciseIntensity": "Intensity",
+        "DurationDialogDescription": "Enter the duration of your exercise"
     }
 }

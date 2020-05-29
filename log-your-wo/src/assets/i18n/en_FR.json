@@ -4,7 +4,8 @@
         "LogYourWorkoutDescription": "Un journal. Mobile et bureau.",
         "Required": "Requis",
         "CharacterLimit": "Limite de caractères: ",
-        "NumericOnly": "Chiffres uniquement"
+        "NumericOnly": "Chiffres uniquement",
+        "OkLabel": "D'accord"
     },
     "header": {
         "search": {
@@ -38,6 +39,7 @@
         "ExerciseWeight": "Poids",
         "ExerciseDistance": "Distance",
         "ExerciseDuration": "Temps",
-        "ExerciseIntensity": "Intensité"
+        "ExerciseIntensity": "Intensité",
+        "DurationDialogDescription": "Entrez la durée de votre exercice"
     }
 }

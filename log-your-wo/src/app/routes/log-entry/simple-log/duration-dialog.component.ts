@@ -11,13 +11,13 @@ import * as moment from 'moment';
     selector: 'duration-dialog',
     template: `
         <h1 mat-dialog-title>{{ 'log-entry.ExerciseDuration' | translate }}</h1>
-        <div mat-dialog-content>Enter the duration of your exercise:</div>
+        <div mat-dialog-content>{{ 'log-entry.DurationDialogDescription' | translate }}:</div>
         <div mat-dialog-actions>
             <timepicker aria-invalid="false" [showMeridian]="false" [showSpinners]="true" [showSeconds]="true" [hoursPlaceholder]="'hh'" [minutesPlaceholder]="'mm'" [secondsPlaceholder]="'ss'" (ngModelChange)="onDurationChange($event)"></timepicker>
         </div>
         <br>
         <div class="row">
-            <button mat-button (click)="dialogRef.close()">OK</button>
+            <button mat-button (click)="dialogRef.close()">{{ 'global.OkLabel' | translate }}</button>
         </div>
     `,
     styles: ['button { display: block; margin-right: 0; margin-left: auto }']
