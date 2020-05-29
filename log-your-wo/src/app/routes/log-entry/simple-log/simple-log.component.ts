@@ -224,6 +224,9 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         }
     }
 
+    /**
+     * Track the language currently chosen by the user.
+     */
     private subToLanguageChange(): void {
         this.langSub = this._translatorService.languageChangeEmitted$.subscribe(
             data => {
