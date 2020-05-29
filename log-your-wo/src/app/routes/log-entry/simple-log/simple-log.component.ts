@@ -198,6 +198,14 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         let dialogRef = this._dialog.open(DurationDialog);
         this.currentCardioExercise = this.currentLog.cardioExercises.find(x => x.exerciseId == exercise.exerciseId);
         this._sharedService.emitCvExercise(this.currentCardioExercise);
+        dialogRef.afterClosed().subscribe(result => {
+            this.currentCardioExercise = result;
+            //console.log(this.currentLog.cardioExercises.find(x => x.exerciseId == exercise.exerciseId));
+        }); 
+    }
+
+    public onCvEmit(exercise: CardioExercise): void {
+        console.log(exercise);
     }
 
     /**

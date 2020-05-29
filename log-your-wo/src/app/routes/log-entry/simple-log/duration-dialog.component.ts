@@ -13,16 +13,17 @@ import * as moment from 'moment';
         <h1 mat-dialog-title>{{ 'log-entry.ExerciseDuration' | translate }}</h1>
         <div mat-dialog-content>{{ 'log-entry.DurationDialogDescription' | translate }}:</div>
         <div mat-dialog-actions>
-            <timepicker aria-invalid="false" [showMeridian]="false" [showSpinners]="true" [showSeconds]="true" [hoursPlaceholder]="'hh'" [minutesPlaceholder]="'mm'" [secondsPlaceholder]="'ss'" (ngModelChange)="onDurationChange($event)"></timepicker>
+            <timepicker [ngModel]="durationValue" aria-invalid="false" [showMeridian]="false" [showSpinners]="true" [showSeconds]="true" [hoursPlaceholder]="'hh'" [minutesPlaceholder]="'mm'" [secondsPlaceholder]="'ss'" (ngModelChange)="onDurationChange($event)"></timepicker>
         </div>
         <br>
         <div class="row">
-            <button mat-button (click)="dialogRef.close()">{{ 'global.OkLabel' | translate }}</button>
+            <button mat-button (click)="dialogRef.close(currentCardioExercise)">{{ 'global.OkLabel' | translate }}</button>
         </div>
     `,
     styles: ['button { display: block; margin-right: 0; margin-left: auto }']
 })
 export class DurationDialog implements OnDestroy {
+    public durationValue: Date;
     private currentCardioExercise: CardioExercise;
 
     private cvExerciseSub: Subscription;
@@ -57,7 +58,7 @@ export class DurationDialog implements OnDestroy {
         if (dateTime) {
             let duration = moment.duration({ hours: dateTime.getHours(), minutes: dateTime.getMinutes(), seconds: dateTime.getSeconds() });
             this.currentCardioExercise.exerciseDuration = duration;
-            console.log(this.currentCardioExercise);
+            //console.log(this.currentCardioExercise);
         }
     }
 }
