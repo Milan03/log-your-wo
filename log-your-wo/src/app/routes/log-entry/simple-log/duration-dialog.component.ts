@@ -41,11 +41,19 @@ export class DurationDialog implements OnDestroy {
     }
 
     /**
-     * Track exercise being editted.
+     * Track exercise being editted. If the exercise has a duration defined, set it in the control.
      */
     private subToCurrentCardioExercise(): void {
         this.cvExerciseSub = this.sharedService.cvExerciseEmitted$.subscribe(
-            data => this.currentCardioExercise = data
+            data => { 
+                this.currentCardioExercise = data;
+                if (this.currentCardioExercise.exerciseDuration) {
+                    this.durationValue = new Date();
+                    this.durationValue.setHours(this.currentCardioExercise.exerciseDuration.get('hours'));
+                    this.durationValue.setMinutes(this.currentCardioExercise.exerciseDuration.get('minutes'));
+                    this.durationValue.setSeconds(this.currentCardioExercise.exerciseDuration.get('seconds'));
+                }
+            }
         );
     }
 

@@ -40,6 +40,7 @@
         "ExerciseDistance": "Distance",
         "ExerciseDuration": "Duration",
         "ExerciseIntensity": "Intensity",
-        "DurationDialogDescription": "Enter the duration of your exercise"
+        "DurationDialogDescription": "Enter the duration of your exercise",
+        "EditDuration": "Click to edit duration"
     }
 }

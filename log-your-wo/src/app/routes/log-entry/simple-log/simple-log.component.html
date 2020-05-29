@@ -76,7 +76,7 @@
                                 <label class="duration-label">{{ 'log-entry.ExerciseDuration' | translate }}</label>
                                 <!-- <timepicker formControlName="{{ exercise.formControlNames.get('time') }}" aria-invalid="false" [showMeridian]="false" [showSpinners]="false" [showSeconds]="true" [hoursPlaceholder]="'hh'" [minutesPlaceholder]="'mm'" [secondsPlaceholder]="'ss'" (ngModelChange)="onDurationChange($event, exercise)"></timepicker> -->
                                 <button *ngIf="!exercise.exerciseDuration" mat-button (click)="openDialog(exercise)">+ <em class="far fa-clock"></em></button> 
-                                <span *ngIf="exercise.exerciseDuration">{{ exercise.exerciseDuration.get('hours') }}h {{ exercise.exerciseDuration.get('minutes') }}m {{ exercise.exerciseDuration.get('seconds') }}</span>
+                                <label matTooltip="{{ 'log-entry.EditDuration' | translate }}" [matTooltipPosition]="'below'" class="duration-display-label" *ngIf="exercise.exerciseDuration" (click)="openDialog(exercise)">{{ exercise.exerciseDuration.get('hours') }}h {{ exercise.exerciseDuration.get('minutes') }}m {{ exercise.exerciseDuration.get('seconds') }}s</label>
                             </div>
                         </div>
                         <div class="col-2">
