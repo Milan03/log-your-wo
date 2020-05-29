@@ -75,7 +75,7 @@
                             <div class="mda-form-group">
                                 <label class="duration-label">{{ 'log-entry.ExerciseDuration' | translate }}</label>
                                 <!-- <timepicker formControlName="{{ exercise.formControlNames.get('time') }}" aria-invalid="false" [showMeridian]="false" [showSpinners]="false" [showSeconds]="true" [hoursPlaceholder]="'hh'" [minutesPlaceholder]="'mm'" [secondsPlaceholder]="'ss'" (ngModelChange)="onDurationChange($event, exercise)"></timepicker> -->
-                                <button mat-button (click)="openDialog()">+ <em class="far fa-clock"></em></button>
+                                <button mat-button (click)="openDialog(exercise)">+ <em class="far fa-clock"></em></button>
                             </div>
                         </div>
                         <div class="col-2">

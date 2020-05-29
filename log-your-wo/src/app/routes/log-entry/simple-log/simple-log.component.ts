@@ -194,22 +194,10 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         this.simpleLogForm.removeControl(cardioExerciseToRemove.formControlNames.get('name'));
     }
 
-    public openDialog(): void {
+    public openDialog(exercise: CardioExercise): void {
         let dialogRef = this._dialog.open(DurationDialog);
-
-    }
-
-    /**
-     * Track exercise duration set for the particular cardio exercise row.
-     * @param date - track hours, minutes, seconds
-     * @param exercise - exercise to be updated
-     */
-    public onDurationChange(date: Date, exercise: CardioExercise): void {
-        if (date) {
-            let duration = moment.duration({ hours: date.getHours(), minutes: date.getMinutes(), seconds: date.getSeconds() });
-            this.currentCardioExercise = this.currentLog.cardioExercises.find(x => x.exerciseId == exercise.exerciseId);
-            this.currentCardioExercise.exerciseDuration = duration;
-        }
+        this.currentCardioExercise = this.currentLog.cardioExercises.find(x => x.exerciseId == exercise.exerciseId);
+        this._sharedService.emitCvExercise(this.currentCardioExercise);
     }
 
     /**
