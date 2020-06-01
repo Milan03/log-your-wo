@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { FormGroup, FormBuilder, FormControl, Validators } from '@angular/forms';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { Subscription } from 'rxjs';
@@ -13,6 +13,7 @@ import { TranslatorService } from '../../../core/translator/translator.service';
 import { LogTypes, FormValues } from '../../../shared/common/common.constants';
 
 import * as moment from 'moment';
+import * as jsPDF from 'jspdf'
 const swal = require('sweetalert');
 
 @Component({
@@ -21,6 +22,8 @@ const swal = require('sweetalert');
     styleUrls: ['./simple-log.component.scss']
 })
 export class SimpleLogComponent implements OnInit, OnDestroy {
+    @ViewChild('exerciseTable', {static: false}) exerciseTable: ElementRef;
+    
     private simpleLogForm: FormGroup;
     private currentLanguage: string;
     private currentLog: SimpleLog;
@@ -72,8 +75,27 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             this.simpleLogForm.controls[c].markAsTouched();
         }
         if (this.simpleLogForm.valid) {
-            
+            this.downloadAsPDF();
         }
+    }
+
+    private downloadAsPDF(): void {
+        const doc = new jsPDF();
+
+        const specialElementHandlers = {
+            '#editor': function (element, renderer) {
+                return true;
+            }
+        };
+
+        const exerciseTable = this.exerciseTable.nativeElement;
+
+        doc.fromHTML(exerciseTable.innerHTML, 15, 15, {
+            width: 190,
+            'elementHandlers': specialElementHandlers
+        });
+
+        doc.save('tableToPdf.pdf');
     }
 
     /**
