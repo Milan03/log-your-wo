@@ -148,7 +148,6 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
                     exerciseValue.length > 0 ? this.currentExercise.weight = exerciseValue : this.currentExercise.weight = null;
                     break;
             }
-            console.log(this.currentExercise);
         } else {
             this.currentCardioExercise = this.currentLog.cardioExercises.find(x => x.exerciseId == exercise.exerciseId);
             let exerciseValue = this.simpleLogForm.get(this.currentCardioExercise.formControlNames.get(formCtrlType)).value;
@@ -160,7 +159,6 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
                     exerciseValue.length > 0 ? this.currentCardioExercise.distance = exerciseValue : null;
                     break;
             }
-            console.log(`Cardio Exercise set: ${this.currentCardioExercise.exerciseName} | Exercise value: ${exerciseValue}`);
         }
     }
 
