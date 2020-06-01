@@ -13,6 +13,7 @@ import { TranslatorService } from '../../../core/translator/translator.service';
 import { LogTypes, FormValues } from '../../../shared/common/common.constants';
 
 import * as moment from 'moment';
+const swal = require('sweetalert');
 
 @Component({
     selector: 'app-simple-log',
@@ -50,6 +51,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     }
 
     ngOnInit(): void {
+        this.currentLanguage = FormValues.ENCode;
         this.currentLog = new SimpleLog();
         this._sharedService.emitLogType(LogTypes.SimpleLog);
         this._sharedService.emitLogStartDatim(this.currentLog.startDatim);
@@ -79,50 +81,56 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
      * and current log exercise array.
      */
     public addExerciseFormControl(): void {
-        let formControlName1 = `${FormValues.ExerciseNameFormControl}${this.exerciseRowCount}`;
-        let formControlName2 = `${FormValues.ExerciseSetsFormControl}${this.exerciseRowCount}`;
-        let formControlName3 = `${FormValues.ExerciseRepsFormControl}${this.exerciseRowCount}`;
-        let formControlName4 = `${FormValues.ExerciseWeightFormControl}${this.exerciseRowCount}`;
-        this.simpleLogForm.addControl(formControlName1, new FormControl('', Validators.compose([Validators.required, Validators.maxLength(50)])));
-        this.simpleLogForm.addControl(formControlName2, new FormControl('', Validators.compose([Validators.pattern("^[0-9]*$"), Validators.maxLength(5)])));
-        this.simpleLogForm.addControl(formControlName3, new FormControl('', Validators.compose([Validators.pattern("^[0-9]*$"), Validators.maxLength(5)])));
-        this.simpleLogForm.addControl(formControlName4, new FormControl('', Validators.compose([Validators.maxLength(15)])));
-        ++this.exerciseRowCount;
-        //console.log(this.simpleLogForm.get(formControlName1));
-        // add exercise to log
-        let newExercise = new Exercise();
-        newExercise.logId = this.currentLog.logId;
-        newExercise.formControlNames.set('name', formControlName1);
-        newExercise.formControlNames.set('sets', formControlName2);
-        newExercise.formControlNames.set('reps', formControlName3);
-        newExercise.formControlNames.set('weight', formControlName4);
-        this.currentLog.exercises.push(newExercise);
-        this.currentExercise = newExercise;
-        // add to current active rows
-        this.activeRows.push(newExercise);
+        if (this.simpleLogForm.valid) {
+            let formControlName1 = `${FormValues.ExerciseNameFormControl}${this.exerciseRowCount}`;
+            let formControlName2 = `${FormValues.ExerciseSetsFormControl}${this.exerciseRowCount}`;
+            let formControlName3 = `${FormValues.ExerciseRepsFormControl}${this.exerciseRowCount}`;
+            let formControlName4 = `${FormValues.ExerciseWeightFormControl}${this.exerciseRowCount}`;
+            this.simpleLogForm.addControl(formControlName1, new FormControl('', Validators.compose([Validators.required, Validators.maxLength(50)])));
+            this.simpleLogForm.addControl(formControlName2, new FormControl('', Validators.compose([Validators.pattern("^[0-9]*$"), Validators.maxLength(5)])));
+            this.simpleLogForm.addControl(formControlName3, new FormControl('', Validators.compose([Validators.pattern("^[0-9]*$"), Validators.maxLength(5)])));
+            this.simpleLogForm.addControl(formControlName4, new FormControl('', Validators.compose([Validators.maxLength(15)])));
+            ++this.exerciseRowCount;
+            //console.log(this.simpleLogForm.get(formControlName1));
+            // add exercise to log
+            let newExercise = new Exercise();
+            newExercise.logId = this.currentLog.logId;
+            newExercise.formControlNames.set('name', formControlName1);
+            newExercise.formControlNames.set('sets', formControlName2);
+            newExercise.formControlNames.set('reps', formControlName3);
+            newExercise.formControlNames.set('weight', formControlName4);
+            this.currentLog.exercises.push(newExercise);
+            this.currentExercise = newExercise;
+            // add to current active rows
+            this.activeRows.push(newExercise);
+        } else
+            this.swalCompleteRowError();
     }
 
     public addCardioExerciseFormControl(): void {
-        let formControlName1 = `${FormValues.CardioExerciseNameFormControl}${this.cardioExerciseRowCount}`;
-        let formControlName2 = `${FormValues.CardioExerciseDistanceFormControl}${this.cardioExerciseRowCount}`;
-        let formControlName3 = `${FormValues.CardioExerciseTimeFormControl}${this.cardioExerciseRowCount}`;
-        let formControlName4 = `${FormValues.CardioExerciseIntensityFormControl}${this.cardioExerciseRowCount}`;
-        this.simpleLogForm.addControl(formControlName1, new FormControl('', Validators.compose([Validators.required, Validators.maxLength(50)])));
-        this.simpleLogForm.addControl(formControlName2, new FormControl('', Validators.compose([Validators.maxLength(15)])));
-        this.simpleLogForm.addControl(formControlName3, new FormControl());
-        this.simpleLogForm.addControl(formControlName4, new FormControl());
-        ++this.cardioExerciseRowCount;
-        // add cardio exercise to log
-        let newCardioExercise = new CardioExercise();
-        newCardioExercise.logId = this.currentLog.logId;
-        newCardioExercise.formControlNames.set('name', formControlName1);
-        newCardioExercise.formControlNames.set('distance', formControlName2);
-        newCardioExercise.formControlNames.set('time', formControlName3);
-        newCardioExercise.formControlNames.set('intensity', formControlName4);
-        this.currentLog.cardioExercises.push(newCardioExercise);
-        this.currentCardioExercise = newCardioExercise;
-        // add to current active rows
-        this.activeRows.push(newCardioExercise);
+        if (this.simpleLogForm.valid) {
+            let formControlName1 = `${FormValues.CardioExerciseNameFormControl}${this.cardioExerciseRowCount}`;
+            let formControlName2 = `${FormValues.CardioExerciseDistanceFormControl}${this.cardioExerciseRowCount}`;
+            let formControlName3 = `${FormValues.CardioExerciseTimeFormControl}${this.cardioExerciseRowCount}`;
+            let formControlName4 = `${FormValues.CardioExerciseIntensityFormControl}${this.cardioExerciseRowCount}`;
+            this.simpleLogForm.addControl(formControlName1, new FormControl('', Validators.compose([Validators.required, Validators.maxLength(50)])));
+            this.simpleLogForm.addControl(formControlName2, new FormControl('', Validators.compose([Validators.maxLength(15)])));
+            this.simpleLogForm.addControl(formControlName3, new FormControl());
+            this.simpleLogForm.addControl(formControlName4, new FormControl());
+            ++this.cardioExerciseRowCount;
+            // add cardio exercise to log
+            let newCardioExercise = new CardioExercise();
+            newCardioExercise.logId = this.currentLog.logId;
+            newCardioExercise.formControlNames.set('name', formControlName1);
+            newCardioExercise.formControlNames.set('distance', formControlName2);
+            newCardioExercise.formControlNames.set('time', formControlName3);
+            newCardioExercise.formControlNames.set('intensity', formControlName4);
+            this.currentLog.cardioExercises.push(newCardioExercise);
+            this.currentCardioExercise = newCardioExercise;
+            // add to current active rows
+            this.activeRows.push(newCardioExercise);
+        } else
+            this.swalCompleteRowError();
     }
 
     /**
@@ -232,5 +240,16 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
                 }
             }
         );
+    }
+
+    /**
+     * Sweet alert prompts.
+     */
+    private swalCompleteRowError(): void {
+        if (this.currentLanguage == FormValues.ENCode) {
+            swal('Complete Current Row', 'Please complete the current row before trying to add another.', 'info');
+        } else {
+            swal('Compl\u00E9ter la ligne actuelle', 'Veuillez compl\u00E9ter la ligne actuelle avant d\'essayer d\'en ajouter une autre.', 'info');
+        }
     }
 }
