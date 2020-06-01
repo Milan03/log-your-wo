@@ -23,6 +23,9 @@ const swal = require('sweetalert');
 })
 export class SimpleLogComponent implements OnInit, OnDestroy {
     @ViewChild('exerciseTable', {static: false}) exerciseTable: ElementRef;
+
+    displayedColumns: string[] = ['exercise-name', 'sets', 'reps', 'weight'];
+    private exDataSource: any;
     
     private simpleLogForm: FormGroup;
     private currentLanguage: string;
@@ -75,11 +78,12 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             this.simpleLogForm.controls[c].markAsTouched();
         }
         if (this.simpleLogForm.valid) {
-            this.downloadAsPDF();
+            this.exDataSource = this.currentLog.exercises;
+            setTimeout(() => { this.downloadAsPDF() });
         }
     }
 
-    private downloadAsPDF(): void {
+    private downloadAsPDF(): void {  
         const doc = new jsPDF();
 
         const specialElementHandlers = {
@@ -90,10 +94,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
 
         const exerciseTable = this.exerciseTable.nativeElement;
 
-        doc.fromHTML(exerciseTable.innerHTML, 15, 15, {
-            width: 190,
-            'elementHandlers': specialElementHandlers
-        });
+        doc.fromHTML(exerciseTable.innerHTML, 10, 10);
 
         doc.save('tableToPdf.pdf');
     }
