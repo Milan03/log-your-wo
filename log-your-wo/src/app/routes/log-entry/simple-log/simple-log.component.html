@@ -107,8 +107,8 @@
 </div>
 
 <div id="exerciseTable" #exerciseTable>
-    <h1>Exercises</h1>
-    <table>
+    <h1 *ngIf="currentLog.exercises.length > 0">{{ 'global.ExercisesTitle' | translate }}</h1>
+    <table *ngIf="currentLog.exercises.length > 0">
         <tr>
             <th>{{ 'log-entry.ExerciseName' | translate }}</th>
             <th>{{ 'log-entry.ExerciseSets' | translate }}</th>
@@ -122,8 +122,8 @@
             <td>{{ exercise.weight }}</td>
         </tr>
     </table>
-    <h1>Cardio Exercises</h1>
-    <table *ngIf="currentLog.cardioExercises">
+    <h1 *ngIf="currentLog.cardioExercises.length > 0">{{ 'global.CardioExercisesTitle' | translate }}</h1>
+    <table *ngIf="currentLog.cardioExercises.length > 0">
         <tr>
             <th>{{ 'log-entry.ExerciseName' | translate }}</th>
             <th>{{ 'log-entry.ExerciseDistance' | translate }}</th>

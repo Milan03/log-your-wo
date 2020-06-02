@@ -5,7 +5,9 @@
         "Required": "Requis",
         "CharacterLimit": "Limite de caractères: ",
         "NumericOnly": "Chiffres uniquement",
-        "OkLabel": "D'accord"
+        "OkLabel": "D'accord",
+        "ExercisesTitle": "Des exercices",
+        "CardioExercisesTitle": "Exercices cardiovasculaires"
     },
     "header": {
         "search": {
