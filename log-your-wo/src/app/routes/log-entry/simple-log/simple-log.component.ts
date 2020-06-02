@@ -23,9 +23,6 @@ const swal = require('sweetalert');
 })
 export class SimpleLogComponent implements OnInit, OnDestroy {
     @ViewChild('exerciseTable', {static: false}) exerciseTable: ElementRef;
-
-    displayedColumns: string[] = ['exercise-name', 'sets', 'reps', 'weight'];
-    private exDataSource: any;
     
     private simpleLogForm: FormGroup;
     private currentLanguage: string;
@@ -78,22 +75,28 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             this.simpleLogForm.controls[c].markAsTouched();
         }
         if (this.simpleLogForm.valid) {
-            this.exDataSource = this.currentLog.exercises;
-            setTimeout(() => { this.downloadAsPDF() });
+            this.downloadAsPDF();
         }
     }
 
     private downloadAsPDF(): void {  
-        const doc = new jsPDF();
-
-        const specialElementHandlers = {
-            '#editor': function (element, renderer) {
-                return true;
-            }
+        let orientation = {
+            orientation: 'p',
+            unit: 'mm',
+            format: 'a3',
+            compress: true,
+            fontSize: 8,
+            lineHeight: 0.5,
+            autoSize: false,
+            printHeaders: true
         };
-
+        const doc = new jsPDF(orientation);
+        doc.setProperties({
+            title: 'Log Your Workout'
+        });
         const exerciseTable = this.exerciseTable.nativeElement;
 
+        doc.setFontSize(12);
         doc.fromHTML(exerciseTable.innerHTML, 10, 10);
 
         doc.save('tableToPdf.pdf');
