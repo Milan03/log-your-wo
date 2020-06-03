@@ -43,8 +43,8 @@
     </ul>
     <ul *ngIf="currentLogType" class="navbar-nav mr-auto flex-row">
         <li class="nav-item d-none d-md-block">
-            <a class="nav-link">
-                <span>{{ currentLogType }} - {{ logStartDatim | date: 'short' }}</span>
+            <a id="log-header" class="nav-link">
+                <span>{{ currentLogType }} - {{ logStartDatim | date: 'MM/dd/yyyy h:mm a' }}</span>
             </a>
         </li>
     </ul>
