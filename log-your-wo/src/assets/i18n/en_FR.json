@@ -43,6 +43,8 @@
         "ExerciseDuration": "Temps",
         "ExerciseIntensity": "Intensité",
         "DurationDialogDescription": "Entrez la durée de votre exercice",
-        "EditDuration": "Cliquez pour modifier la durée"
+        "EditDuration": "Cliquez pour modifier la durée",
+        "SaveAsPDF": "Enregistrer au format PDF",
+        "EmailAsPDF": "Courriel au format PDF"
     }
 }

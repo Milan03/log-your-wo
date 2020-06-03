@@ -98,11 +98,16 @@
                     <!-- END Cardio Exercise Row END -->
                 </div>
                 <!-- END Active Rows END -->
-                <div class="row">
-                    <button class="mb-1 mr-1 btn btn-primary" type="submit">Save to PDF</button>
-                </div>
             </div>
         </div>
+        <!-- START Submit Buttons START -->
+        <div class="row">
+            <div class="col-md-12 text-right">
+                <button class="mb-1 mr-1 btn btn-primary" type="submit">{{ 'log-entry.SaveAsPDF' | translate }}</button>
+                <button class="mb-1 mr-1 btn btn-primary" type="submit">{{ 'log-entry.EmailAsPDF' | translate }}</button>
+            </div>
+        </div>
+        <!-- END Submit Buttons END -->
     </form>
 </div>
 <!-- END Active Row Container END -->
