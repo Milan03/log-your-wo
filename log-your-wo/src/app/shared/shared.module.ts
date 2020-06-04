@@ -65,6 +65,7 @@ import { VectormapDirective } from './directives/vectormap/vectormap.directive';
 import { NowDirective } from './directives/now/now.directive';
 import { ScrollableDirective } from './directives/scrollable/scrollable.directive';
 import { JqcloudDirective } from './directives/jqcloud/jqcloud.directive';
+import { EmailService } from './services/email.service';
 
 // https://angular.io/styleguide#!#04-10
 @NgModule({
@@ -126,7 +127,8 @@ import { JqcloudDirective } from './directives/jqcloud/jqcloud.directive';
         MatStepperModule
     ],
     providers: [
-        ColorsService
+        ColorsService,
+        EmailService
     ],
     declarations: [
         FlotDirective,

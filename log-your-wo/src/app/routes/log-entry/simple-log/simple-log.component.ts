@@ -9,11 +9,13 @@ import { CardioExercise } from 'src/app/shared/models/cardio-exercise.model';
 import { SimpleLog } from '../../../shared/models/simple-log.model';
 import { SharedService } from '../../../shared/services/shared.service';
 import { TranslatorService } from '../../../core/translator/translator.service';
+import { EmailService } from 'src/app/shared/services/email.service';
 
 import { LogTypes, FormValues } from '../../../shared/common/common.constants';
 
 import * as moment from 'moment';
 import * as jsPDF from 'jspdf'
+
 const swal = require('sweetalert');
 
 @Component({
@@ -48,7 +50,8 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         private _formBuilder: FormBuilder,
         private _sharedService: SharedService,
         private _translatorService: TranslatorService,
-        private _dialog: MatDialog
+        private _dialog: MatDialog,
+        private _emailService: EmailService
     ) {
         this.simpleLogForm = this._formBuilder.group({});
     }
@@ -75,7 +78,8 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             this.simpleLogForm.controls[c].markAsTouched();
         }
         if (this.simpleLogForm.valid) {
-            this.downloadAsPDF();
+            //this.downloadAsPDF();
+            this.emailAsPDF();
         }
     }
 
@@ -100,6 +104,20 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         doc.fromHTML(exerciseTable.innerHTML, 10, 10);
 
         doc.save('tableToPdf.pdf');
+    }
+
+    public emailAsPDF(): void {
+        let request = {
+            from: "milansobat03@gmail.com",
+            to: "milan.sobat@sykes.com",
+            subject: "Test Subject",
+            attachments: [],
+            body: "<h1>This is a test</h1>"
+        }
+        this._emailService.sendMail(request).subscribe(
+            data => console.log(data),
+            err => console.error(err)
+        );
     }
 
     /**
