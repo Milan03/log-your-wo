@@ -34,6 +34,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     private exerciseRowCount: number;
     private cardioExerciseRowCount: number;
     private activeRows: Array<Exercise | CardioExercise>;
+    private currentPDF: any;
 
     public selectedIntensity: string;
 
@@ -72,16 +73,42 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             this.langSub.unsubscribe();
     }
 
-    public submitForm($ev, value: any): void {
-        $ev.preventDefault();
+    public submit(submitType: string): void {
+        if (submitType == 'save') 
+            this.savePDFSubmit();
+        else
+            this.emailAsPDF();
+    }
+
+    private savePDFSubmit(): void {
         for (let c in this.simpleLogForm.controls) {
             this.simpleLogForm.controls[c].markAsTouched();
         }
         if (this.simpleLogForm.valid) {
-            //this.downloadAsPDF();
+            this.downloadAsPDF();
+        }
+    }
+
+    private emailPDFSubmit(): void {
+        for (let c in this.simpleLogForm.controls) {
+            this.simpleLogForm.controls[c].markAsTouched();
+        }
+        if (this.simpleLogForm.valid) {
             this.emailAsPDF();
         }
     }
+
+    // public submitForm($ev, value: any): void {
+    //     $ev.preventDefault();
+    //     for (let c in this.simpleLogForm.controls) {
+    //         this.simpleLogForm.controls[c].markAsTouched();
+    //     }
+    //     if (this.simpleLogForm.valid) {
+    //         console.log(value);
+    //         // this.downloadAsPDF();
+    //         // this.emailAsPDF();
+    //     }
+    // }
 
     private downloadAsPDF(): void {  
         let orientation = {
@@ -107,11 +134,30 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     }
 
     public emailAsPDF(): void {
+        let orientation = {
+            orientation: 'p',
+            unit: 'mm',
+            format: 'a3',
+            compress: true,
+            fontSize: 8,
+            lineHeight: 0.5,
+            autoSize: false,
+            printHeaders: true
+        };
+        const doc = new jsPDF(orientation);
+        doc.setProperties({
+            title: 'Log Your Workout'
+        });
+        const exerciseTable = this.exerciseTable.nativeElement;
+
+        doc.setFontSize(12);
+        doc.fromHTML(exerciseTable.innerHTML, 10, 10);
+        this.currentPDF = btoa(doc.output());
         let request = {
             from: "milansobat03@gmail.com",
             to: "milan.sobat@sykes.com",
             subject: "Test Subject",
-            attachments: [],
+            attachments: [this.currentPDF],
             body: "<h1>This is a test</h1>"
         }
         this._emailService.sendMail(request).subscribe(

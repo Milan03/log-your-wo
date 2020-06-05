@@ -9,7 +9,7 @@
 <!-- END Add Exercise Heading END -->
 <!-- START Active Row Container START -->
 <div *ngIf="currentLog.exercises.length > 0 || currentLog.cardioExercises.length > 0" class="container-lg">
-    <form [formGroup]="simpleLogForm" class="form-validate" (submit)="submitForm($event, simpleLogForm.value)" novalidate="">
+    <form [formGroup]="simpleLogForm" class="form-validate" novalidate="">
         <div class="md-card">
             <div class="container">
                 <!-- START Active Rows START -->
@@ -103,8 +103,8 @@
         <!-- START Submit Buttons START -->
         <div class="row">
             <div class="col-md-12 text-right">
-                <button class="mb-1 mr-1 btn btn-primary" type="submit">{{ 'log-entry.SaveAsPDF' | translate }}</button>
-                <button class="mb-1 mr-1 btn btn-primary" type="submit">{{ 'log-entry.EmailAsPDF' | translate }}</button>
+                <button class="mb-1 mr-1 btn btn-primary" type="button" (click)="submit('save')">{{ 'log-entry.SaveAsPDF' | translate }}</button>
+                <button class="mb-1 mr-1 btn btn-primary" type="button" (click)="submit('email')">{{ 'log-entry.EmailAsPDF' | translate }}</button>
             </div>
         </div>
         <!-- END Submit Buttons END -->
