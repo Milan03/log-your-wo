@@ -73,11 +73,15 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             this.langSub.unsubscribe();
     }
 
+    /**
+     * Determine which submit was triggered and initiate the appropriate flow.
+     * @param submitType - 'save' or 'email'
+     */
     public submit(submitType: string): void {
         if (submitType == 'save') 
             this.savePDFSubmit();
         else
-            this.emailAsPDF();
+            this.emailPDFSubmit();
     }
 
     private savePDFSubmit(): void {
@@ -97,18 +101,6 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             this.emailAsPDF();
         }
     }
-
-    // public submitForm($ev, value: any): void {
-    //     $ev.preventDefault();
-    //     for (let c in this.simpleLogForm.controls) {
-    //         this.simpleLogForm.controls[c].markAsTouched();
-    //     }
-    //     if (this.simpleLogForm.valid) {
-    //         console.log(value);
-    //         // this.downloadAsPDF();
-    //         // this.emailAsPDF();
-    //     }
-    // }
 
     private downloadAsPDF(): void {  
         let orientation = {
@@ -264,7 +256,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     /**
      * Remove the targetted row from the page. Removes from @var currentlog.exercises and
      * @var simpleLogForm form group.
-     * @param exerciseToRemove 
+     * @param exerciseToRemove - exercise to be removed
      */
     public removeExerciseRow(exerciseToRemove: Exercise): void {
         // find in current log and remove
