@@ -29,16 +29,17 @@ let transport = nodemailer.createTransport({
 // 'sendmail' POST call which instantiates mail options and send mail call
 app.post("/sendmail", function (req, res) {
     let request = req.body;
+    // convert base64 PDF contents to local PDF
     let stringToDecode = request.attachments[0];
     let bin = Base64.atob(stringToDecode);
     fs.writeFile('Log Your Workout.pdf', bin, 'binary', error => {
         if (error)
             throw error;
-        else {
+        else { // if successful, send email off with PDF attachment
             console.log('Binary saved!');
             let pathToPDF = `${process.cwd()}\\Log Your Workout.pdf`;
-            // Setup email
-            var mailOptions = {
+            // setup email
+            let mailOptions = {
                 from: request.from,
                 to: request.to,
                 subject: request.subject,
@@ -49,6 +50,7 @@ app.post("/sendmail", function (req, res) {
                 }],
                 html: request.body
             };
+            // send off email
             transport.sendMail(mailOptions, function (error, response) {
                 if (error) {
                     console.log(error);
