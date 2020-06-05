@@ -158,7 +158,8 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             to: "milan.sobat@sykes.com",
             subject: "Test Subject",
             attachments: [this.currentPDF],
-            body: "<h1>This is a test</h1>"
+            body: "<h1>This is a test</h1>",
+            date: this.currentLog.startDatim.toDateString()
         }
         this._emailService.sendMail(request).subscribe(
             data => console.log(data),

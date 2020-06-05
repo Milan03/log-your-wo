@@ -32,19 +32,19 @@ app.post("/sendmail", function (req, res) {
     // convert base64 PDF contents to local PDF
     let stringToDecode = request.attachments[0];
     let bin = Base64.atob(stringToDecode);
-    fs.writeFile('Log Your Workout.pdf', bin, 'binary', error => {
+    fs.writeFile(`Log Your Workout - ${request.date}.pdf`, bin, 'binary', error => {
         if (error)
             throw error;
         else { // if successful, send email off with PDF attachment
             console.log('Binary saved!');
-            let pathToPDF = `${process.cwd()}\\Log Your Workout.pdf`;
+            let pathToPDF = `${process.cwd()}\\Log Your Workout - ${request.date}.pdf`;
             // setup email
             let mailOptions = {
                 from: request.from,
                 to: request.to,
                 subject: request.subject,
                 attachments: [{
-                    filename: 'Log Your Workout.pdf',
+                    filename: `Log Your Workout - ${request.date}.pdf`,
                     path: pathToPDF,
                     contentType: 'application/pdf'
                 }],
@@ -62,5 +62,5 @@ app.post("/sendmail", function (req, res) {
                 res.sendStatus(200);
             });
         }
-    })
+    });
 });
