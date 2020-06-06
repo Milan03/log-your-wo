@@ -33,9 +33,10 @@ app.post("/sendmail", function (req, res) {
     let stringToDecode = request.attachments[0];
     let bin = Base64.atob(stringToDecode);
     fs.writeFile(`Log Your Workout - ${request.date}.pdf`, bin, 'binary', error => {
-        if (error)
+        if (error) {
+            res.status(400).send(error.message);
             throw error;
-        else { // if successful, send email off with PDF attachment
+        } else { // if successful, send email off with PDF attachment
             console.log('Binary saved!');
             let pathToPDF = `${process.cwd()}\\Log Your Workout - ${request.date}.pdf`;
             // setup email
@@ -54,14 +55,15 @@ app.post("/sendmail", function (req, res) {
             transport.sendMail(mailOptions, function (error, response) {
                 if (error) {
                     console.log(error);
-                    return;
+                    res.status(400).send(error.message);
+                    throw error;
                 }
                 console.log("Message sent: " + response.response);
                 // remove file from filesystem after successful send
-                fs.unlink(pathToPDF, (err) => {
-                    if (err) {
-                        console.error(err);
-                        return;
+                fs.unlink(pathToPDF, (error) => {
+                    if (error) {
+                        console.error(eerrorrr);
+                        throw error;
                     }
                 });
                 // shut down the connection pool, no more messages
