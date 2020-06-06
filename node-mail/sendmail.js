@@ -57,6 +57,13 @@ app.post("/sendmail", function (req, res) {
                     return;
                 }
                 console.log("Message sent: " + response.response);
+                // remove file from filesystem after successful send
+                fs.unlink(pathToPDF, (err) => {
+                    if (err) {
+                        console.error(err);
+                        return;
+                    }
+                });
                 // shut down the connection pool, no more messages
                 transport.close();
                 res.sendStatus(200);
