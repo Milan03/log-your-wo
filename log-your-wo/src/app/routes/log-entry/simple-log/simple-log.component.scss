@@ -7,8 +7,15 @@
     top: 80px;
 }
 
+.content-heading .mda-form-group {
+    padding: 18px 0 0 0;
+    .mda-form-control {
+        border: none;
+    }
+}
+
 .container-lg {
-    margin-top: 9em;
+    margin-top: 10em;
 }
 
 #exercise-btns {

@@ -41,6 +41,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     public readonly exerciseNameCharLimit: number = 50;
     public readonly exerciseNumericCharLimit: number = 5;
     public readonly exerciseAlphaNumericCharLimit: number = 15;
+    public readonly titleCharLimit: number = 75;
     public readonly exerciseType: string = FormValues.ExerciseNameFormControl;
     public readonly cardioExerciseType: string = FormValues.CardioExerciseNameFormControl;
     public intensities = FormValues.ExerciseIntensities;
@@ -54,7 +55,9 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         private _dialog: MatDialog,
         private _emailService: EmailService
     ) {
-        this.simpleLogForm = this._formBuilder.group({});
+        this.simpleLogForm = this._formBuilder.group({
+            'title': ['', Validators.compose([Validators.required, Validators.maxLength(75)])]
+        });
     }
 
     ngOnInit(): void {
@@ -251,6 +254,12 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
                     break;
             }
         }
+    }
+
+    public checkForTitleValue(): void {
+        let title = this.simpleLogForm.get('title').value;
+        if (title)
+            this.currentLog.title = title;
     }
 
     /**

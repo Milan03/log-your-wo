@@ -7,7 +7,7 @@ export class SimpleLog {
         public logId?: Guid,
         public startDatim?: Date,
         public endDatim?: Date,
-        public name?: string,
+        public title?: string,
         public exercises?: Array<Exercise>,
         public cardioExercises?: Array<CardioExercise>,
         public notes?: string

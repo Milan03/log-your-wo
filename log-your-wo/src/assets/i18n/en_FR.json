@@ -34,6 +34,7 @@
     "log-entry": {
         "SimpleLog": "Journal simple",
         "SimpleLogDescription": "Journal simple pour démarrer rapidement votre séance d'entraînement!",
+        "WorkoutTitle": "Titre d'entraînement",
         "AddExercise": "Ajouter de l'exercice",
         "ExerciseName": "Nom de l'exercice",
         "ExerciseSets": "Ensembles",

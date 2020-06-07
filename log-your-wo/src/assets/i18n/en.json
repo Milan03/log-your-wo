@@ -34,6 +34,7 @@
     "log-entry": {
         "SimpleLog": "Simple Log",
         "SimpleLogDescription": "Simple log to get you started on your workout quickly!",
+        "WorkoutTitle": "Workout Title",
         "AddExercise": "Add Exercise",
         "ExerciseName": "Exercise Name",
         "ExerciseSets": "Sets",

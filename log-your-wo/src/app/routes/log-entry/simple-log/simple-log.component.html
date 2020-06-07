@@ -1,15 +1,21 @@
-<!-- START Add Exercise Heading START -->
-<div class="content-heading">
-    <div>{{ 'log-entry.AddExercise' | translate }}</div>
-    <div id="exercise-btns">
-        <button class="mb-1 mr-1 btn btn-primary" type="button" (click)="addExerciseFormControl()">+ <em class="fa fa-dumbbell"></em></button>
-        <button class="mb-1 mr-1 btn btn-primary" type="button" (click)="addCardioExerciseFormControl()">+ <em class="fa fa-running"></em></button>
+<form [formGroup]="simpleLogForm" class="form-validate" novalidate="">
+    <!-- START Add Exercise Heading START -->
+    <div class="content-heading">
+        <div class="mda-form-group float-label first-fg">
+            <input class="mda-form-control" name="title" formControlName="title" tabindex="0" aria-invalid="false" (blur)="checkForTitleValue()" />
+            <label>{{ 'log-entry.WorkoutTitle' | translate }}</label>
+            <mat-error class="text-danger" *ngIf="simpleLogForm.get('title').hasError('required') && (simpleLogForm.get('title').dirty || simpleLogForm.get('title').touched)">{{ 'global.Required' | translate }}</mat-error>
+            <mat-error class="text-danger" *ngIf="simpleLogForm.get('title').hasError('maxlength') && (simpleLogForm.get('title').dirty || simpleLogForm.get('title').touched)">{{ 'global.CharacterLimit' | translate }} {{ titleCharLimit }}</mat-error>
+        </div>
+        <div>{{ 'log-entry.AddExercise' | translate }}</div>
+        <div id="exercise-btns">
+            <button class="mb-1 mr-1 btn btn-primary" type="button" (click)="addExerciseFormControl()">+ <em class="fa fa-dumbbell"></em></button>
+            <button class="mb-1 mr-1 btn btn-primary" type="button" (click)="addCardioExerciseFormControl()">+ <em class="fa fa-running"></em></button>
+        </div>
     </div>
-</div>
-<!-- END Add Exercise Heading END -->
-<!-- START Active Row Container START -->
-<div *ngIf="currentLog.exercises.length > 0 || currentLog.cardioExercises.length > 0" class="container-lg">
-    <form [formGroup]="simpleLogForm" class="form-validate" novalidate="">
+    <!-- END Add Exercise Heading END -->
+    <!-- START Active Row Container START -->
+    <div *ngIf="currentLog.exercises.length > 0 || currentLog.cardioExercises.length > 0" class="container-lg">
         <div class="md-card">
             <div class="container">
                 <!-- START Active Rows START -->
@@ -74,7 +80,7 @@
                         <div class="col-2">
                             <div class="mda-form-group">
                                 <label class="duration-label">{{ 'log-entry.ExerciseDuration' | translate }}</label>
-                                <button type="button" *ngIf="!exercise.exerciseDuration" mat-button (click)="openDialog(exercise)">+ <em class="far fa-clock"></em></button> 
+                                <button type="button" *ngIf="!exercise.exerciseDuration" mat-button (click)="openDialog(exercise)">+ <em class="far fa-clock"></em></button>
                                 <label matTooltip="{{ 'log-entry.EditDuration' | translate }}" [matTooltipPosition]="'below'" class="duration-display-label" *ngIf="exercise.exerciseDuration" (click)="openDialog(exercise)">{{ exercise.exerciseDuration.get('hours') }}h {{ exercise.exerciseDuration.get('minutes') }}m {{ exercise.exerciseDuration.get('seconds') }}s</label>
                             </div>
                         </div>
@@ -108,8 +114,8 @@
             </div>
         </div>
         <!-- END Submit Buttons END -->
-    </form>
-</div>
+    </div>
+</form>
 <!-- END Active Row Container END -->
 <!-- START Exercise PDF Table START -->
 <div id="exerciseTable" #exerciseTable>
