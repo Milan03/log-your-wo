@@ -15,7 +15,7 @@
 }
 
 .container-lg {
-    margin-top: 10em;
+    margin-top: 12em;
 }
 
 #exercise-btns {
@@ -94,10 +94,13 @@ table {
     }
 }
 
-@media only screen and (max-width: 812px) {
+@media only screen and (max-width: 823px) {
     /* phones */
-    // .container-lg {
-    //     margin-top: 9em;
-    // }
+    .content-heading {
+        font-size: 20px;
+        button {
+            width: 100%;
+        }
+    }
 }
 
