@@ -4,7 +4,6 @@
         <div class="mda-form-group float-label first-fg">
             <input class="mda-form-control" name="title" formControlName="title" tabindex="0" aria-invalid="false" (blur)="checkForTitleValue()" />
             <label>{{ 'log-entry.WorkoutTitle' | translate }}</label>
-            <mat-error class="text-danger" *ngIf="simpleLogForm.get('title').hasError('required') && (simpleLogForm.get('title').dirty || simpleLogForm.get('title').touched)">{{ 'global.Required' | translate }}</mat-error>
             <mat-error class="text-danger" *ngIf="simpleLogForm.get('title').hasError('maxlength') && (simpleLogForm.get('title').dirty || simpleLogForm.get('title').touched)">{{ 'global.CharacterLimit' | translate }} {{ titleCharLimit }}</mat-error>
         </div>
         <div>{{ 'log-entry.AddExercise' | translate }}</div>
@@ -120,6 +119,7 @@
 <!-- START Exercise PDF Table START -->
 <div id="exerciseTable" #exerciseTable>
     <h1 *ngIf="currentLog.exercises.length > 0 || currentLog.cardioExercises.length > 0">{{ 'global.LogYourWorkout' | translate }} - {{ currentLog.startDatim | date: 'MM/dd/yyyy h:mm a' }}</h1>
+    <h2 *ngIf="currentLog.exercises.length > 0 && currentLog.title">{{ currentLog.title }}</h2>
     <h2 *ngIf="currentLog.exercises.length > 0">{{ 'global.ExercisesTitle' | translate }}</h2>
     <table *ngIf="currentLog.exercises.length > 0">
         <tr>

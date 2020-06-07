@@ -56,7 +56,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         private _emailService: EmailService
     ) {
         this.simpleLogForm = this._formBuilder.group({
-            'title': ['', Validators.compose([Validators.required, Validators.maxLength(75)])]
+            'title': ['', Validators.compose([Validators.maxLength(75)])]
         });
     }
 
