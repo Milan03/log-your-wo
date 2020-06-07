@@ -243,6 +243,12 @@ body {
             }
         }
 
+        .wrapper {
+            .section-container {
+                transform: unset;
+            }
+        }
+
         .aside-toggled {
             .wrapper {
                 .section-container,
@@ -473,9 +479,9 @@ body {
                 bottom: 0;
             }
         }
-        .section-container {
-            margin-top: $navbar-hg;
-        }
+        // .section-container {
+        //     margin-top: $navbar-hg;
+        // }
     }
 }
 

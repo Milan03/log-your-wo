@@ -1,5 +1,16 @@
 @import '../../../shared/styles/common.scss';
 
+.content-heading {
+    position: fixed;
+    z-index: 121;
+    width: 100%;
+    top: 80px;
+}
+
+.container-lg {
+    margin-top: 9em;
+}
+
 #exercise-btns {
   margin-left: 2em;
 }
@@ -78,6 +89,8 @@ table {
 
 @media only screen and (max-width: 812px) {
     /* phones */
-
+    // .container-lg {
+    //     margin-top: 9em;
+    // }
 }
 
