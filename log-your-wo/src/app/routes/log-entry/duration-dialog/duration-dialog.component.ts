@@ -8,28 +8,18 @@ import { SharedService } from '../../../shared/services/shared.service';
 import * as moment from 'moment';
 
 @Component({
-    selector: 'duration-dialog',
-    template: `
-        <h1 mat-dialog-title>{{ 'log-entry.ExerciseDuration' | translate }}</h1>
-        <div mat-dialog-content>{{ 'log-entry.DurationDialogDescription' | translate }}:</div>
-        <div mat-dialog-actions>
-            <timepicker [ngModel]="durationValue" aria-invalid="false" [showMeridian]="false" [showSpinners]="true" [showSeconds]="true" [hoursPlaceholder]="'hh'" [minutesPlaceholder]="'mm'" [secondsPlaceholder]="'ss'" (ngModelChange)="onDurationChange($event)"></timepicker>
-        </div>
-        <br>
-        <div class="row">
-            <button mat-button (click)="dialogRef.close(currentCardioExercise)">{{ 'global.OkLabel' | translate }}</button>
-        </div>
-    `,
-    styles: ['button { display: block; margin-right: 0; margin-left: auto }']
+  selector: 'app-duration-dialog',
+  templateUrl: './duration-dialog.component.html',
+  styleUrls: ['./duration-dialog.component.scss']
 })
-export class DurationDialog implements OnDestroy {
+export class DurationDialogComponent implements OnDestroy {
     public durationValue: Date;
     private currentCardioExercise: CardioExercise;
 
     private cvExerciseSub: Subscription;
 
     constructor(
-        public dialogRef: MatDialogRef<DurationDialog>,
+        public dialogRef: MatDialogRef<DurationDialogComponent>,
         private sharedService: SharedService
     ) {
         this.subToCurrentCardioExercise();

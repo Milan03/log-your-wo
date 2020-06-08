@@ -2,7 +2,7 @@ import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
 
 import { SimpleLogComponent } from './simple-log/simple-log.component'
-import { DurationDialog } from './simple-log/duration-dialog.component';
+import { DurationDialogComponent } from './duration-dialog/duration-dialog.component';
 
 import { SharedModule } from '../../shared/shared.module';
 
@@ -17,7 +17,7 @@ const routes: Routes = [
     ],
     declarations: [
         SimpleLogComponent,
-        DurationDialog
+        DurationDialogComponent
     ],
     exports: [
         RouterModule

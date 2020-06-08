@@ -3,7 +3,7 @@ import { FormGroup, FormBuilder, FormControl, Validators } from '@angular/forms'
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { Subscription } from 'rxjs';
 
-import { DurationDialog } from './duration-dialog.component';
+import { DurationDialogComponent } from '../duration-dialog/duration-dialog.component';
 import { Exercise } from 'src/app/shared/models/exercise.model';
 import { CardioExercise } from 'src/app/shared/models/cardio-exercise.model';
 import { SimpleLog } from '../../../shared/models/simple-log.model';
@@ -293,7 +293,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     }
 
     public openDialog(exercise: CardioExercise): void {
-        let dialogRef = this._dialog.open(DurationDialog);
+        let dialogRef = this._dialog.open(DurationDialogComponent);
         this.currentCardioExercise = this.currentLog.cardioExercises.find(x => x.exerciseId == exercise.exerciseId);
         this._sharedService.emitCvExercise(this.currentCardioExercise);
         dialogRef.afterClosed().subscribe(result => {
