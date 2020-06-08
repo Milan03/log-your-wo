@@ -41,8 +41,8 @@ app.post("/sendmail", function (req, res) {
             let pathToPDF = `${process.cwd()}\\Log Your Workout - ${request.date}.pdf`;
             // setup email
             let mailOptions = {
-                from: request.from,
-                to: request.to,
+                from: request.fromEmailAddress,
+                to: request.toEmailAddress,
                 subject: request.subject,
                 attachments: [{
                     filename: `Log Your Workout - ${request.date}.pdf`,

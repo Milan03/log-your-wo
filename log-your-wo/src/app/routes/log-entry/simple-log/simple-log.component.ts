@@ -7,6 +7,7 @@ import { DurationDialogComponent } from '../duration-dialog/duration-dialog.comp
 import { Exercise } from 'src/app/shared/models/exercise.model';
 import { CardioExercise } from 'src/app/shared/models/cardio-exercise.model';
 import { SimpleLog } from '../../../shared/models/simple-log.model';
+import { EmailRequest } from '../../../shared/models/email-request.model';
 import { SharedService } from '../../../shared/services/shared.service';
 import { TranslatorService } from '../../../core/translator/translator.service';
 import { EmailService } from 'src/app/shared/services/email.service';
@@ -15,6 +16,7 @@ import { LogTypes, FormValues } from '../../../shared/common/common.constants';
 
 import * as moment from 'moment';
 import * as jsPDF from 'jspdf'
+import { EmailDialogComponent } from '../email-dialog/email-dialog.component';
 
 const swal = require('sweetalert');
 
@@ -101,7 +103,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             this.simpleLogForm.controls[c].markAsTouched();
         }
         if (this.simpleLogForm.valid) {
-            this.emailAsPDF();
+           // this.emailAsPDF();
         }
     }
 
@@ -128,7 +130,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         doc.save('tableToPdf.pdf');
     }
 
-    public emailAsPDF(): void {
+    public emailAsPDF(recipientEmailAddress: string): void {
         let orientation = {
             orientation: 'p',
             unit: 'mm',
@@ -148,17 +150,17 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         doc.setFontSize(12);
         doc.fromHTML(exerciseTable.innerHTML, 10, 10);
         this.currentPDF = btoa(doc.output());
-        let request = {
-            from: "milansobat03@gmail.com",
-            to: "milan.sobat@sykes.com",
+        let request: EmailRequest = {
+            fromEmailAddress: "milansobat03@gmail.com",
+            toEmailAddress: recipientEmailAddress,
             subject: "Test Subject",
             attachments: [this.currentPDF],
             body: "<h1>This is a test</h1>",
             date: this.currentLog.startDatim.toDateString()
         }
         this._emailService.sendMail(request).subscribe(
-            data => console.log(data),
-            err => console.error(err)
+            data => this.swalEmailSent(),
+            err => this.swalEmailError()
         );
     }
 
@@ -302,6 +304,16 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         }); 
     }
 
+    public openEmailDialog(): void {
+        let dialogRef = this._dialog.open(EmailDialogComponent);
+        dialogRef.afterClosed().subscribe(result => {
+            if (result) {
+                this.swalEmailSending();
+                this.emailAsPDF(result);
+            }
+        });
+    }
+
     public onCvEmit(exercise: CardioExercise): void {
         console.log(exercise);
     }
@@ -342,6 +354,66 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             swal('Complete Current Row', 'Please complete the current row before trying to add another.', 'info');
         } else {
             swal('Compl\u00E9ter la ligne actuelle', 'Veuillez compl\u00E9ter la ligne actuelle avant d\'essayer d\'en ajouter une autre.', 'info');
+        }
+    }
+
+    private swalEmailSending(): void {
+        if (this.currentLanguage == FormValues.ENCode) {
+            swal({
+                title: 'Sending email...',
+                text: 'Please wait',
+                icon: 'info',
+                buttons: false,
+                closeOnClickOutside: false
+            });
+        } else {
+            swal({
+                title: 'Envoi d\'un e-mail ...',
+                text: 'S\'il vous pla\u00EEt, attendez',
+                icon: 'info',
+                buttons: false,
+                closeOnClickOutside: false
+            });
+        }
+    }
+
+    private swalEmailSent(): void {
+        if (this.currentLanguage == FormValues.ENCode) {
+            swal({
+                title: 'Email Sent',
+                text: 'Email has been sent to the provided email address.',
+                icon: 'success',
+                buttons: false,
+                timer: 1500
+            });
+        } else {
+            swal({
+                title: 'Email envoy\u00E9',
+                text: 'Un e-mail a \u00E9t\u00E9 envoy\u00E9 \u00E0 l\'adresse e-mail fournie.',
+                icon: 'success',
+                buttons: false,
+                timer: 1500
+            });
+        }
+    }
+
+    private swalEmailError(): void {
+        if (this.currentLanguage == FormValues.ENCode) {
+            swal({
+                title: 'Problem Sending Email',
+                text: 'There was a problem trying to send to the provided email address. Please try again.',
+                icon: 'success',
+                buttons: false,
+                timer: 1500
+            });
+        } else {
+            swal({
+                title: 'Probl\u00E9me d\'envoi d\'e-mail',
+                text: `Un probl\u00E8me est survenu lors de l'envoi à l'adresse e-mail fournie. Veuillez r\u00E9essayer.`,
+                icon: 'success',
+                buttons: false,
+                timer: 1500
+            });
         }
     }
 }

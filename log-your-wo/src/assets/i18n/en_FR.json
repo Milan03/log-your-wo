@@ -7,7 +7,9 @@
         "NumericOnly": "Chiffres uniquement",
         "OkLabel": "D'accord",
         "ExercisesTitle": "Des exercices",
-        "CardioExercisesTitle": "Exercices cardiovasculaires"
+        "CardioExercisesTitle": "Exercices cardiovasculaires",
+        "InvalidEmailFormat": "Format d'email invalide",
+        "CancelLabel": "Annuler"
     },
     "header": {
         "search": {
@@ -46,6 +48,7 @@
         "DurationDialogDescription": "Entrez la durée de votre exercice",
         "EditDuration": "Cliquez pour modifier la durée",
         "SaveAsPDF": "Enregistrer au format PDF",
-        "EmailAsPDF": "Courriel au format PDF"
+        "EmailAsPDF": "Courriel au format PDF",
+        "EmailAddressLabel": "Adresse électronique"
     }
 }

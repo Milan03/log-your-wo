@@ -4,6 +4,6 @@
     <timepicker [ngModel]="durationValue" aria-invalid="false" [showMeridian]="false" [showSpinners]="true" [showSeconds]="true" [hoursPlaceholder]="'hh'" [minutesPlaceholder]="'mm'" [secondsPlaceholder]="'ss'" (ngModelChange)="onDurationChange($event)"></timepicker>
 </div>
 <br>
-<div class="row">
-    <button mat-button (click)="dialogRef.close(currentCardioExercise)">{{ 'global.OkLabel' | translate }}</button>
+<div class="row float-right">
+    <button mat-button (click)="_dialogRef.close(currentCardioExercise)">{{ 'global.OkLabel' | translate }}</button>
 </div>

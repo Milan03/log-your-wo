@@ -1,0 +1,14 @@
+<h1 mat-dialog-title>{{ 'log-entry.EmailAsPDF' | translate }}</h1>
+<form [formGroup]="emailForm" class="form-validate" novalidate="">
+    <div class="mda-form-group float-label">
+        <input class="mda-form-control" name="emailAddress" formControlName="emailAddress" tabindex="0" aria-invalid="false" />
+        <label>{{ 'log-entry.EmailAddressLabel' | translate }}</label>
+        <mat-error class="text-danger" *ngIf="emailForm.get('emailAddress').hasError('required') && (emailForm.get('emailAddress').dirty || emailForm.get('emailAddress').touched)">{{ 'global.Required' | translate }}</mat-error>
+        <mat-error class="text-danger" *ngIf="emailForm.get('emailAddress').hasError('email') && (emailForm.get('emailAddress').dirty || emailForm.get('emailAddress').touched)">{{ 'global.InvalidEmailFormat' | translate }}</mat-error>
+    </div>
+</form>
+<br>
+<div class="row float-right">
+    <button mat-button (click)="_dialogRef.close(emailForm.get('emailAddress').value)">{{ 'global.OkLabel' | translate }}</button>
+    <button mat-button (click)="_dialogRef.close()">{{ 'global.CancelLabel' | translate }}</button>
+</div>

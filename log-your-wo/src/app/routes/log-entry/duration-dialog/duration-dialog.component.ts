@@ -19,8 +19,8 @@ export class DurationDialogComponent implements OnDestroy {
     private cvExerciseSub: Subscription;
 
     constructor(
-        public dialogRef: MatDialogRef<DurationDialogComponent>,
-        private sharedService: SharedService
+        public _dialogRef: MatDialogRef<DurationDialogComponent>,
+        private _sharedService: SharedService
     ) {
         this.subToCurrentCardioExercise();
     }
@@ -34,7 +34,7 @@ export class DurationDialogComponent implements OnDestroy {
      * Track exercise being editted. If the exercise has a duration defined, set it in the control.
      */
     private subToCurrentCardioExercise(): void {
-        this.cvExerciseSub = this.sharedService.cvExerciseEmitted$.subscribe(
+        this.cvExerciseSub = this._sharedService.cvExerciseEmitted$.subscribe(
             data => { 
                 this.currentCardioExercise = data;
                 if (this.currentCardioExercise.exerciseDuration) {
