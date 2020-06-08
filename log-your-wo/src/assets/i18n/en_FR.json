@@ -9,6 +9,7 @@
         "ExercisesTitle": "Des exercices",
         "CardioExercisesTitle": "Exercices cardiovasculaires",
         "InvalidEmailFormat": "Format d'email invalide",
+        "SendLabel": "Envoyer",
         "CancelLabel": "Annuler"
     },
     "header": {

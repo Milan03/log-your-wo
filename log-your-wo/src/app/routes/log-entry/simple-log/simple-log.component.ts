@@ -402,17 +402,15 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             swal({
                 title: 'Problem Sending Email',
                 text: 'There was a problem trying to send to the provided email address. Please try again.',
-                icon: 'success',
-                buttons: false,
-                timer: 1500
+                icon: 'error',
+                showConfirmButton: true
             });
         } else {
             swal({
                 title: 'Probl\u00E9me d\'envoi d\'e-mail',
                 text: `Un probl\u00E8me est survenu lors de l'envoi à l'adresse e-mail fournie. Veuillez r\u00E9essayer.`,
-                icon: 'success',
-                buttons: false,
-                timer: 1500
+                icon: 'error',
+                showConfirmButton: true
             });
         }
     }
