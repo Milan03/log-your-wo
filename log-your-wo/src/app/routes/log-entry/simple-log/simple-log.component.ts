@@ -156,12 +156,13 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
      * @param recipientEmailAddress - email to send to
      */
     private createEmailRequest(recipientEmailAddress: string): EmailRequest {
+        var options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
         if (this.currentLanguage == FormValues.ENCode) {
             if (this.currentLog.title) {
                 return new EmailRequest(
                     'milansobat03@gmail.com',
                     recipientEmailAddress,
-                    `${this.currentLog.title} - ${this.currentLog.startDatim.toLocaleDateString(FormValues.ENCode)}`,
+                    `${this.currentLog.title} - ${this.currentLog.startDatim.toLocaleDateString(FormValues.ENCode, options)}`,
                     [this.currentPDF],
                     FormValues.EmailBody,
                     this.currentLog.startDatim.toDateString()
@@ -170,7 +171,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
                 return new EmailRequest(
                     'milansobat03@gmail.com',
                     recipientEmailAddress,
-                    `${FormValues.LogYourWorkout} - ${this.currentLog.startDatim.toLocaleDateString(FormValues.ENCode)}`,
+                    `${FormValues.LogYourWorkout} - ${this.currentLog.startDatim.toLocaleDateString(FormValues.ENCode, options)}`,
                     [this.currentPDF],
                     FormValues.EmailBody,
                     this.currentLog.startDatim.toDateString()
@@ -181,7 +182,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
                 return new EmailRequest(
                     'milansobat03@gmail.com',
                     recipientEmailAddress,
-                    `${this.currentLog.title} - ${this.currentLog.startDatim.toLocaleDateString(FormValues.FRCode)}`,
+                    `${this.currentLog.title} - ${this.currentLog.startDatim.toLocaleDateString(FormValues.FRCode, options)}`,
                     [this.currentPDF],
                     FormValues.EmailBodyFR,
                     this.currentLog.startDatim.toDateString()
@@ -190,7 +191,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
                 return new EmailRequest(
                     'milansobat03@gmail.com',
                     recipientEmailAddress,
-                    `${FormValues.LogYourWorkout} - ${this.currentLog.startDatim.toLocaleDateString(FormValues.FRCode)}`,
+                    `${FormValues.LogYourWorkout} - ${this.currentLog.startDatim.toLocaleDateString(FormValues.FRCode, options)}`,
                     [this.currentPDF],
                     FormValues.EmailBodyFR,
                     this.currentLog.startDatim.toDateString()
