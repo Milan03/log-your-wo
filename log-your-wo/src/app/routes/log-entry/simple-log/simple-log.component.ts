@@ -108,60 +108,94 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     }
 
     private downloadAsPDF(): void {  
-        let orientation = {
-            orientation: 'p',
-            unit: 'mm',
-            format: 'a3',
-            compress: true,
-            fontSize: 8,
-            lineHeight: 0.5,
-            autoSize: false,
-            printHeaders: true
-        };
-        const doc = new jsPDF(orientation);
-        doc.setProperties({
-            title: 'Log Your Workout'
-        });
-        const exerciseTable = this.exerciseTable.nativeElement;
-
-        doc.setFontSize(12);
-        doc.fromHTML(exerciseTable.innerHTML, 10, 10);
-
-        doc.save('tableToPdf.pdf');
+        let createdPDF = this.createPDF('save');
+        createdPDF.save('tableToPdf.pdf');
     }
 
     public emailAsPDF(recipientEmailAddress: string): void {
-        let orientation = {
-            orientation: 'p',
-            unit: 'mm',
-            format: 'a3',
-            compress: true,
-            fontSize: 8,
-            lineHeight: 0.5,
-            autoSize: false,
-            printHeaders: true
-        };
-        const doc = new jsPDF(orientation);
-        doc.setProperties({
-            title: 'Log Your Workout'
-        });
-        const exerciseTable = this.exerciseTable.nativeElement;
-
-        doc.setFontSize(12);
-        doc.fromHTML(exerciseTable.innerHTML, 10, 10);
-        this.currentPDF = btoa(doc.output());
-        let request: EmailRequest = {
-            fromEmailAddress: "milansobat03@gmail.com",
-            toEmailAddress: recipientEmailAddress,
-            subject: "Test Subject",
-            attachments: [this.currentPDF],
-            body: "<h1>This is a test</h1>",
-            date: this.currentLog.startDatim.toDateString()
-        }
+        let createdPDF = this.createPDF('email');
+        this.currentPDF = btoa(createdPDF);
+        let request = this.createEmailRequest(recipientEmailAddress);
         this._emailService.sendMail(request).subscribe(
             data => this.swalEmailSent(),
             err => this.swalEmailError()
         );
+    }
+
+    /**
+     * Create the PDF using jsPDF and the exercise HTML table.
+     */
+    private createPDF(type: string): any {
+        let orientation = {
+            orientation: 'p',
+            unit: 'mm',
+            format: 'a3',
+            compress: true,
+            fontSize: 8,
+            lineHeight: 0.5,
+            autoSize: false,
+            printHeaders: true
+        };
+        const doc = new jsPDF(orientation);
+        doc.setProperties({
+            title: 'Log Your Workout'
+        });
+        const exerciseTable = this.exerciseTable.nativeElement;
+        doc.setFontSize(12);
+        doc.fromHTML(exerciseTable.innerHTML, 10, 10);
+        if (type == 'save')
+            return doc;
+        else 
+            return doc.output()
+    }
+
+    /**
+     * Create the email request to be sent to the server depending on if log title is present and
+     * the current language.
+     * @param recipientEmailAddress - email to send to
+     */
+    private createEmailRequest(recipientEmailAddress: string): EmailRequest {
+        if (this.currentLanguage == FormValues.ENCode) {
+            if (this.currentLog.title) {
+                return new EmailRequest(
+                    'milansobat03@gmail.com',
+                    recipientEmailAddress,
+                    `${this.currentLog.title} - ${this.currentLog.startDatim.toLocaleDateString(FormValues.ENCode)}`,
+                    [this.currentPDF],
+                    FormValues.EmailBody,
+                    this.currentLog.startDatim.toDateString()
+                );
+            } else {
+                return new EmailRequest(
+                    'milansobat03@gmail.com',
+                    recipientEmailAddress,
+                    `${FormValues.LogYourWorkout} - ${this.currentLog.startDatim.toLocaleDateString(FormValues.ENCode)}`,
+                    [this.currentPDF],
+                    FormValues.EmailBody,
+                    this.currentLog.startDatim.toDateString()
+                );
+            }
+        } else {
+            if (this.currentLog.title) {
+                return new EmailRequest(
+                    'milansobat03@gmail.com',
+                    recipientEmailAddress,
+                    `${this.currentLog.title} - ${this.currentLog.startDatim.toLocaleDateString(FormValues.FRCode)}`,
+                    [this.currentPDF],
+                    FormValues.EmailBodyFR,
+                    this.currentLog.startDatim.toDateString()
+                );
+            } else {
+                return new EmailRequest(
+                    'milansobat03@gmail.com',
+                    recipientEmailAddress,
+                    `${FormValues.LogYourWorkout} - ${this.currentLog.startDatim.toLocaleDateString(FormValues.FRCode)}`,
+                    [this.currentPDF],
+                    FormValues.EmailBodyFR,
+                    this.currentLog.startDatim.toDateString()
+                );
+            }
+        }
     }
 
     /**
@@ -340,7 +374,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
                 if (this.currentLanguage == FormValues.ENCode) {
                     this.intensities = FormValues.ExerciseIntensities;
                 } else {
-                    this.intensities = FormValues.FRExerciseIntensities;
+                    this.intensities = FormValues.ExerciseIntensitiesFR;
                 }
             }
         );
