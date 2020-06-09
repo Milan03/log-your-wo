@@ -94,7 +94,8 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             this.simpleLogForm.controls[c].markAsTouched();
         }
         if (this.simpleLogForm.valid) {
-            this.downloadAsPDF();
+            let createdPDF = this.createPDF('save');
+            createdPDF.save('tableToPdf.pdf');
         }
     }
 
@@ -103,15 +104,15 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             this.simpleLogForm.controls[c].markAsTouched();
         }
         if (this.simpleLogForm.valid) {
-           // this.emailAsPDF();
+           this.openEmailDialog();
         }
     }
 
-    private downloadAsPDF(): void {  
-        let createdPDF = this.createPDF('save');
-        createdPDF.save('tableToPdf.pdf');
-    }
-
+    /**
+     * Using the email address retrieved from email dialog, create an email request and 
+     * initiate call the email service.
+     * @param recipientEmailAddress 
+     */
     public emailAsPDF(recipientEmailAddress: string): void {
         let createdPDF = this.createPDF('email');
         this.currentPDF = btoa(createdPDF);
@@ -328,6 +329,9 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         this.simpleLogForm.removeControl(cardioExerciseToRemove.formControlNames.get('name'));
     }
 
+    /**
+     * Mat dialog click events to open respective dialogs.
+     */
     public openDialog(exercise: CardioExercise): void {
         let dialogRef = this._dialog.open(DurationDialogComponent);
         this.currentCardioExercise = this.currentLog.cardioExercises.find(x => x.exerciseId == exercise.exerciseId);
@@ -346,10 +350,6 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
                 this.emailAsPDF(result);
             }
         });
-    }
-
-    public onCvEmit(exercise: CardioExercise): void {
-        console.log(exercise);
     }
 
     /**
