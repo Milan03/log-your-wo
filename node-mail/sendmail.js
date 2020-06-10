@@ -15,14 +15,14 @@ app.listen(3000, () => {
     console.log("The server started on port 3000");
 });
 
-let myEmail = "milansobat03@gmail.com";
+let myEmail = "noreply@logyourworkout.app";
 
 // setup nodemailer transport object
 let transport = nodemailer.createTransport({
     service: 'gmail',
     auth: {
         user: myEmail,
-        pass: 'a34DJ8@8'
+        pass: 'a34DJ8`8'
     }
 });
 
