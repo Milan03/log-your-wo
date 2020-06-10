@@ -1,22 +1,23 @@
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { FormGroup, FormBuilder, FormControl, Validators } from '@angular/forms';
-import { MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { MatDialog } from '@angular/material/dialog';
 import { Subscription } from 'rxjs';
 
 import { DurationDialogComponent } from '../duration-dialog/duration-dialog.component';
-import { Exercise } from 'src/app/shared/models/exercise.model';
-import { CardioExercise } from 'src/app/shared/models/cardio-exercise.model';
+import { EmailDialogComponent } from '../email-dialog/email-dialog.component';
+import { Exercise } from '../../../shared/models/exercise.model';
+import { CardioExercise } from '../../../shared/models/cardio-exercise.model';
 import { SimpleLog } from '../../../shared/models/simple-log.model';
 import { EmailRequest } from '../../../shared/models/email-request.model';
 import { SharedService } from '../../../shared/services/shared.service';
 import { TranslatorService } from '../../../core/translator/translator.service';
-import { EmailService } from 'src/app/shared/services/email.service';
+import { EmailService } from '../../../shared/services/email.service';
+import { GoogleAnalyticsService } from '../../../shared/services/google-analytics.service';
 
 import { LogTypes, FormValues } from '../../../shared/common/common.constants';
 
 import * as moment from 'moment';
 import * as jsPDF from 'jspdf'
-import { EmailDialogComponent } from '../email-dialog/email-dialog.component';
 
 const swal = require('sweetalert');
 
@@ -55,7 +56,8 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         private _sharedService: SharedService,
         private _translatorService: TranslatorService,
         private _dialog: MatDialog,
-        private _emailService: EmailService
+        private _emailService: EmailService,
+        private _googleAnalyticsService: GoogleAnalyticsService
     ) {
         this.simpleLogForm = this._formBuilder.group({
             'title': ['', Validators.compose([Validators.maxLength(75)])]
@@ -96,6 +98,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         if (this.simpleLogForm.valid) {
             let createdPDF = this.createPDF('save');
             createdPDF.save('tableToPdf.pdf');
+            this._googleAnalyticsService.eventEmitter(`pdf_saved_success`, 'general', 'engagement');
         }
     }
 
@@ -118,7 +121,10 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         this.currentPDF = btoa(createdPDF);
         let request = this.createEmailRequest(recipientEmailAddress);
         this._emailService.sendMail(request).subscribe(
-            data => this.swalEmailSent(),
+            data => { 
+                this.swalEmailSent();
+                this._googleAnalyticsService.eventEmitter(`email_sent_success`, 'general', 'engagement');
+            },
             err => this.swalEmailError()
         );
     }
