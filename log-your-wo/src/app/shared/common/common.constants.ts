@@ -4,6 +4,7 @@ export const LogTypes = {
 export const FormValues = {
     LogYourWorkout: "Log Your Workout",
     LogYourWorkoutFR: "Enregistrez votre entraînement",
+    NoReplyEmailAddress: "noreply@logyourworkout.app",
     ENCode: "en-ca",
     FRCode: "fr-ca",
     English: "English",

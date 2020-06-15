@@ -139,7 +139,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             format: 'a3',
             compress: true,
             fontSize: 8,
-            lineHeight: 0.5,
+            lineHeight: 0.75,
             autoSize: false,
             printHeaders: true
         };
@@ -148,8 +148,9 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             title: 'Log Your Workout'
         });
         const exerciseTable = this.exerciseTable.nativeElement;
-        doc.setFontSize(12);
-        doc.fromHTML(exerciseTable.innerHTML, 10, 10);
+       // doc.setFontSize(12);
+        doc.fromHTML(exerciseTable.innerHTML, 40, 20, {'width': 522 });
+        console.log(exerciseTable);
         if (type == 'save')
             return doc;
         else 
@@ -166,7 +167,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         if (this.currentLanguage == FormValues.ENCode) {
             if (this.currentLog.title) {
                 return new EmailRequest(
-                    'milansobat03@gmail.com',
+                    FormValues.NoReplyEmailAddress,
                     recipientEmailAddress,
                     `${this.currentLog.title} - ${this.currentLog.startDatim.toLocaleDateString(FormValues.ENCode, options)}`,
                     [this.currentPDF],
@@ -175,7 +176,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
                 );
             } else {
                 return new EmailRequest(
-                    'milansobat03@gmail.com',
+                    FormValues.NoReplyEmailAddress,
                     recipientEmailAddress,
                     `${FormValues.LogYourWorkout} - ${this.currentLog.startDatim.toLocaleDateString(FormValues.ENCode, options)}`,
                     [this.currentPDF],
@@ -186,7 +187,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         } else {
             if (this.currentLog.title) {
                 return new EmailRequest(
-                    'milansobat03@gmail.com',
+                    FormValues.NoReplyEmailAddress,
                     recipientEmailAddress,
                     `${this.currentLog.title} - ${this.currentLog.startDatim.toLocaleDateString(FormValues.FRCode, options)}`,
                     [this.currentPDF],
@@ -195,7 +196,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
                 );
             } else {
                 return new EmailRequest(
-                    'milansobat03@gmail.com',
+                    FormValues.NoReplyEmailAddress,
                     recipientEmailAddress,
                     `${FormValues.LogYourWorkout} - ${this.currentLog.startDatim.toLocaleDateString(FormValues.FRCode, options)}`,
                     [this.currentPDF],

@@ -121,9 +121,9 @@
     <h1 *ngIf="currentLog.exercises.length > 0 || currentLog.cardioExercises.length > 0">{{ 'global.LogYourWorkout' | translate }} - {{ currentLog.startDatim | date: 'MM/dd/yyyy h:mm a' }}</h1>
     <h2 *ngIf="currentLog.exercises.length > 0 && currentLog.title">{{ currentLog.title }}</h2>
     <h2 *ngIf="currentLog.exercises.length > 0">{{ 'global.ExercisesTitle' | translate }}</h2>
-    <table *ngIf="currentLog.exercises.length > 0">
+    <table style="width: 100%" *ngIf="currentLog.exercises.length > 0">
         <tr>
-            <th>{{ 'log-entry.ExerciseName' | translate }}</th>
+            <th class="wide-column">{{ 'log-entry.ExerciseName' | translate }}</th>
             <th>{{ 'log-entry.ExerciseSets' | translate }}</th>
             <th>{{ 'log-entry.ExerciseReps' | translate }}</th>
             <th>{{ 'log-entry.ExerciseWeight' | translate }}</th>
