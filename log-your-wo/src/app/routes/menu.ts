@@ -5,6 +5,12 @@ const Home = {
     icon: 'icon-home'
 };
 
+const SimpleLog = {
+    text: 'Simple Log',
+    link: '/log-entry/simple-log',
+    icon: 'icon-notebook'
+};
+
 const headingMain = {
     text: 'Main Navigation',
     heading: true
@@ -12,5 +18,6 @@ const headingMain = {
 
 export const menu = [
     headingMain,
-    Home
+    Home,
+    SimpleLog
 ];
