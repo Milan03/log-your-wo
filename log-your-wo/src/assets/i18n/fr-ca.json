@@ -10,7 +10,8 @@
         "CardioExercisesTitle": "Exercices cardiovasculaires",
         "InvalidEmailFormat": "Format d'email invalide",
         "SendLabel": "Envoyer",
-        "CancelLabel": "Annuler"
+        "CancelLabel": "Annuler",
+        "Language": "Langue"
     },
     "header": {
         "search": {

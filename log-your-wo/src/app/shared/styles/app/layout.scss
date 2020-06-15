@@ -102,6 +102,7 @@ body {
         height: $footer-hg;
         border-top: 1px solid $gray-light;
         padding: $content-padding;
+        padding-top: 15px; 
         z-index: $z-index-main-section - 2;
         font-size: .875rem;
         p {

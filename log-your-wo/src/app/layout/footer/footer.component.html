@@ -1,1 +1,12 @@
-<span>&copy; {{settings.getAppSetting('year')}} - {{ settings.getAppSetting('name') }}</span>
+<div class="row">
+    <span id="app-info">&copy; {{_settings.getAppSetting('year')}} - {{ _settings.getAppSetting('name') }}</span>
+    <div class="ml-auto">
+        <mat-form-field>
+            <mat-select placeholder="{{ 'global.Language' | translate }}" (selectionChange)="setLang($event)" [(ngModel)]="selectedLanguage">
+                <mat-option *ngFor="let lang of getLangs()" [value]="lang.code">
+                    {{ lang.text }}
+                </mat-option>
+            </mat-select>
+        </mat-form-field>
+    </div>
+</div>
