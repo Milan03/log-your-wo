@@ -150,7 +150,6 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         const exerciseTable = this.exerciseTable.nativeElement;
        // doc.setFontSize(12);
         doc.fromHTML(exerciseTable.innerHTML, 40, 20, {'width': 522 });
-        console.log(exerciseTable);
         if (type == 'save')
             return doc;
         else 
