@@ -11,7 +11,9 @@
         "InvalidEmailFormat": "Format d'email invalide",
         "SendLabel": "Envoyer",
         "CancelLabel": "Annuler",
-        "Language": "Langue"
+        "Language": "Langue",
+        "Home": "Accueil",
+        "MainNavigation": "Navigation principale"
     },
     "header": {
         "search": {
