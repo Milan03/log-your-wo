@@ -102,10 +102,6 @@
             "scripts": [
               "src/app/core/wrapper/wrapper.js",
               "src/app/core/preloader/preloader.js"
-            ],
-            "assets": [
-              "src/favicon.ico",
-              "src/assets"
             ]
           }
         },
