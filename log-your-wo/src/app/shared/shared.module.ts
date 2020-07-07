@@ -38,33 +38,6 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
-import { AccordionModule } from 'ngx-bootstrap/accordion';
-import { AlertModule } from 'ngx-bootstrap/alert';
-import { ButtonsModule } from 'ngx-bootstrap/buttons';
-import { CarouselModule } from 'ngx-bootstrap/carousel';
-import { CollapseModule } from 'ngx-bootstrap/collapse';
-import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
-import { ModalModule } from 'ngx-bootstrap/modal';
-import { PaginationModule } from 'ngx-bootstrap/pagination';
-import { ProgressbarModule } from 'ngx-bootstrap/progressbar';
-import { RatingModule } from 'ngx-bootstrap/rating';
-import { TabsModule } from 'ngx-bootstrap/tabs';
-import { TimepickerModule } from 'ngx-bootstrap/timepicker';
-import { TooltipModule } from 'ngx-bootstrap/tooltip';
-import { PopoverModule } from 'ngx-bootstrap/popover';
-import { TypeaheadModule } from 'ngx-bootstrap/typeahead';
-import { DatepickerModule } from 'ngx-bootstrap/datepicker';
-import { BsDatepickerModule } from 'ngx-bootstrap/datepicker';
-
-import { FlotDirective } from './directives/flot/flot.directive';
-import { SparklineDirective } from './directives/sparkline/sparkline.directive';
-import { EasypiechartDirective } from './directives/easypiechart/easypiechart.directive';
-import { ColorsService } from './colors/colors.service';
-import { CheckallDirective } from './directives/checkall/checkall.directive';
-import { VectormapDirective } from './directives/vectormap/vectormap.directive';
-import { NowDirective } from './directives/now/now.directive';
-import { ScrollableDirective } from './directives/scrollable/scrollable.directive';
-import { JqcloudDirective } from './directives/jqcloud/jqcloud.directive';
 import { EmailService } from './services/email.service';
 
 // https://angular.io/styleguide#!#04-10
@@ -74,23 +47,6 @@ import { EmailService } from './services/email.service';
         FormsModule,
         ReactiveFormsModule,
         TranslateModule,
-        AccordionModule.forRoot(),
-        AlertModule.forRoot(),
-        ButtonsModule.forRoot(),
-        CarouselModule.forRoot(),
-        CollapseModule.forRoot(),
-        DatepickerModule.forRoot(),
-        BsDatepickerModule.forRoot(),
-        BsDropdownModule.forRoot(),
-        ModalModule.forRoot(),
-        PaginationModule.forRoot(),
-        ProgressbarModule.forRoot(),
-        RatingModule.forRoot(),
-        TabsModule.forRoot(),
-        TimepickerModule.forRoot(),
-        TooltipModule.forRoot(),
-        PopoverModule.forRoot(),
-        TypeaheadModule.forRoot(),
         ToastrModule.forRoot(),
         // Material Modules
         MatAutocompleteModule,
@@ -127,18 +83,9 @@ import { EmailService } from './services/email.service';
         MatStepperModule
     ],
     providers: [
-        ColorsService,
         EmailService
     ],
     declarations: [
-        FlotDirective,
-        SparklineDirective,
-        EasypiechartDirective,
-        CheckallDirective,
-        VectormapDirective,
-        NowDirective,
-        ScrollableDirective,
-        JqcloudDirective
     ],
     exports: [
         CommonModule,
@@ -146,33 +93,7 @@ import { EmailService } from './services/email.service';
         ReactiveFormsModule,
         TranslateModule,
         RouterModule,
-        AccordionModule,
-        AlertModule,
-        ButtonsModule,
-        CarouselModule,
-        CollapseModule,
-        DatepickerModule,
-        BsDatepickerModule,
-        BsDropdownModule,
-        ModalModule,
-        PaginationModule,
-        ProgressbarModule,
-        RatingModule,
-        TabsModule,
-        TimepickerModule,
-        TooltipModule,
-        PopoverModule,
-        TypeaheadModule,
         ToastrModule,
-        FlotDirective,
-        SparklineDirective,
-        EasypiechartDirective,
-        CheckallDirective,
-        VectormapDirective,
-        NowDirective,
-        ScrollableDirective,
-        JqcloudDirective,
-        // Material Modules
         MatAutocompleteModule,
         MatButtonModule,
         MatButtonToggleModule,
