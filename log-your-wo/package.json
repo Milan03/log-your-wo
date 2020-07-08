@@ -29,7 +29,7 @@
     "@angular/router": "10.0.2",
     "@fortawesome/fontawesome-free": "5.5.0",
     "@ngx-translate/core": "13.0.0",
-    "@ngx-translate/http-loader": "4.0.0",
+    "@ngx-translate/http-loader": "6.0.0",
     "bootstrap": "4.4.1",
     "codemirror": "5.42.0",
     "guid-typescript": "^1.0.9",
