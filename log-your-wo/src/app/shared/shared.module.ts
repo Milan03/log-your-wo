@@ -4,6 +4,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { ToastrModule } from 'ngx-toastr';
+import { TabsModule } from 'ngx-bootstrap/tabs';
 
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
@@ -48,6 +49,7 @@ import { EmailService } from './services/email.service';
         ReactiveFormsModule,
         TranslateModule,
         ToastrModule.forRoot(),
+        TabsModule.forRoot(),
         // Material Modules
         MatAutocompleteModule,
         MatButtonModule,
@@ -94,6 +96,7 @@ import { EmailService } from './services/email.service';
         TranslateModule,
         RouterModule,
         ToastrModule,
+        TabsModule,
         MatAutocompleteModule,
         MatButtonModule,
         MatButtonToggleModule,
