@@ -27,6 +27,10 @@
     "@angular/platform-browser": "10.0.2",
     "@angular/platform-browser-dynamic": "10.0.2",
     "@angular/router": "10.0.2",
+    "@angular-devkit/build-angular": "0.1000.1",
+    "@angular/cli": "10.0.1",
+    "@angular/compiler-cli": "10.0.2",
+    "@angular/language-service": "10.0.2",
     "@fortawesome/fontawesome-free": "5.5.0",
     "@ngx-translate/core": "13.0.0",
     "@ngx-translate/http-loader": "6.0.0",
@@ -51,13 +55,10 @@
     "ts-helpers": "1.1.2",
     "tslib": "^2.0.0",
     "web-animations-js": "2.3.2",
+    "typescript": "3.9.6",
     "zone.js": "0.10.3"
   },
   "devDependencies": {
-    "@angular-devkit/build-angular": "0.1000.1",
-    "@angular/cli": "10.0.1",
-    "@angular/compiler-cli": "10.0.2",
-    "@angular/language-service": "10.0.2",
     "@types/jasmine": "3.5.11",
     "@types/jasminewd2": "2.0.8",
     "@types/node": "14.0.19",
@@ -75,7 +76,6 @@
     "protractor": "~7.0.0",
     "ts-node": "8.10.2",
     "tslint": "~6.1.0",
-    "typescript": "3.9.6",
     "webdriver-manager": "12.1.7"
   }
 }
