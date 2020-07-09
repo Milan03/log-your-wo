@@ -1,5 +1,6 @@
 export const LogTypes = {
-    SimpleLog: "Simple Log"
+    SimpleLog: "Simple Log",
+    SimpleLogFR: "Journal simple"
 }
 export const FormValues = {
     LogYourWorkout: "Log Your Workout",

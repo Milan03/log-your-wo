@@ -7,6 +7,8 @@ import { SettingsService } from '../../core/settings/settings.service';
 import { MenuService } from '../../core/menu/menu.service';
 import { SharedService } from '../../shared/services/shared.service';
 import { Subscription } from 'rxjs';
+import { FormValues, LogTypes } from 'src/app/shared/common/common.constants';
+import { TranslatorService } from 'src/app/core/translator/translator.service';
 
 @Component({
     selector: 'app-header',
@@ -14,6 +16,7 @@ import { Subscription } from 'rxjs';
     styleUrls: ['./header.component.scss']
 })
 export class HeaderComponent implements OnInit, OnDestroy {
+    private currentLanguage: string;
 
     navCollapsed = true; // for horizontal layout
     menuItems = []; // for horizontal layout
@@ -26,18 +29,21 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
     logTypeSub: Subscription;
     logStartDatimSub: Subscription;
+    langSub: Subscription;
 
     constructor(
         public menu: MenuService,
         public userblockService: UserblockService,
         public settings: SettingsService,
         public injector: Injector,
-        private sharedService: SharedService
+        private sharedService: SharedService,
+        private translatorService: TranslatorService
     ) {
         // show only a few items on demo
         this.menuItems = menu.getMenu().slice(0, 4); // for horizontal layout
         this.subToLogType();
         this.subToLogStartDatim();
+        this.subToLanguageChange();
     }
 
     ngOnInit() {
@@ -84,6 +90,27 @@ export class HeaderComponent implements OnInit, OnDestroy {
         this.logStartDatimSub = this.sharedService.logStartDatimEmitted$.subscribe(
             data => this.logStartDatim = data
         )
+    }
+
+    subToLanguageChange(): void {
+        this.langSub = this.translatorService.languageChangeEmitted$.subscribe(
+            data => {
+                this.currentLanguage = data;
+                if (this.currentLanguage == FormValues.ENCode) {
+                    switch(this.currentLogType) {
+                        case LogTypes.SimpleLogFR:
+                            this.currentLogType = LogTypes.SimpleLog;
+                            break;
+                    }
+                } else {
+                    switch(this.currentLogType) {
+                        case LogTypes.SimpleLog:
+                            this.currentLogType = LogTypes.SimpleLogFR;
+                            break;
+                    }
+                }
+            }
+        );
     }
 
     toggleUserBlock(event) {
