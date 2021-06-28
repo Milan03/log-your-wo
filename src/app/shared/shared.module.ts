@@ -5,6 +5,7 @@ import { RouterModule } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { ToastrModule } from 'ngx-toastr';
 import { TabsModule } from 'ngx-bootstrap/tabs';
+import { TimepickerModule } from 'ngx-bootstrap/timepicker';
 
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
@@ -50,6 +51,7 @@ import { EmailService } from './services/email.service';
         TranslateModule,
         ToastrModule.forRoot(),
         TabsModule.forRoot(),
+        TimepickerModule.forRoot(),
         // Material Modules
         MatAutocompleteModule,
         MatButtonModule,
@@ -97,6 +99,7 @@ import { EmailService } from './services/email.service';
         RouterModule,
         ToastrModule,
         TabsModule,
+        TimepickerModule,
         MatAutocompleteModule,
         MatButtonModule,
         MatButtonToggleModule,
