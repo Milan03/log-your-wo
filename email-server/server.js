@@ -21,7 +21,6 @@ app.listen(3000, () => {
 app.post("/sendmail", (req, res) => {
     console.log("request came");
     let emailReq = req.body;
-    //console.log(req.body);
     sendMail(emailReq, (err, info) => {
         if (err) {
             console.log(err);
@@ -66,17 +65,4 @@ const sendMail = (emailReq, callback) => {
     }
 
     transporter.sendMail(mailOptions, callback);
-
-    // const mailOptions = {
-    //   from: 'foo@bar.com',
-    //   to: 'bar@foo.com',
-    //   subject: 'An Attached File',
-    //   text: 'Check out this attached pdf file',
-    //   attachments: [{
-    //     filename: 'file.pdf',
-    //     path: 'C:/Users/Username/Desktop/somefile.pdf',
-    //     contentType: 'application/pdf'
-    //   }]
 };
-  
-  //transporter.sendMail(mailOptions, callback);
