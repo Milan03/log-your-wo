@@ -21,7 +21,7 @@ app.listen(3000, () => {
 app.post("/sendmail", (req, res) => {
     console.log("request came");
     let emailReq = req.body;
-    console.log(req.body);
+    //console.log(req.body);
     sendMail(emailReq, (err, info) => {
         if (err) {
             console.log(err);
@@ -45,7 +45,7 @@ const sendMail = (emailReq, callback) => {
         }
     });
 
-    fs.writeFile('file.pdf', emailReq.attachments[0], 'base64', error => {
+    fs.writeFile(`${emailReq.subject}.pdf`, emailReq.attachments[0], 'base64', error => {
         if (error) {
             throw error;
         } else {
@@ -57,10 +57,10 @@ const sendMail = (emailReq, callback) => {
         from: emailReq.fromEmailAddress,
         to: emailReq.toEmailAddress,
         subject: emailReq.subject,
-        text: emailReq.body,
+        html: emailReq.body,
         attachments: [{
-            filename: 'file.pdf',
-            path: '\./file.pdf',
+            filename: `${emailReq.subject}.pdf`,
+            path: '\./' + `${emailReq.subject}.pdf`,
             contentType: 'application/pdf'
         }]
     }
