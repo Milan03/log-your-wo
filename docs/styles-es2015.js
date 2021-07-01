@@ -486,8 +486,8 @@ module.exports = content.locals || {};
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__(/*! C:\Dev\log-your-wo\log-your-wo\src\app\core\preloader\preloader.scss */"./src/app/core/preloader/preloader.scss");
-module.exports = __webpack_require__(/*! C:\Dev\log-your-wo\log-your-wo\src\styles.scss */"./src/styles.scss");
+__webpack_require__(/*! c:\Dev\log-your-wo\log-your-wo\src\app\core\preloader\preloader.scss */"./src/app/core/preloader/preloader.scss");
+module.exports = __webpack_require__(/*! c:\Dev\log-your-wo\log-your-wo\src\styles.scss */"./src/styles.scss");
 
 
 /***/ })

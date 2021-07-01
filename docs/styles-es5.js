@@ -525,11 +525,11 @@
   /***/
   function _(module, exports, __webpack_require__) {
     __webpack_require__(
-    /*! C:\Dev\log-your-wo\log-your-wo\src\app\core\preloader\preloader.scss */
+    /*! c:\Dev\log-your-wo\log-your-wo\src\app\core\preloader\preloader.scss */
     "./src/app/core/preloader/preloader.scss");
 
     module.exports = __webpack_require__(
-    /*! C:\Dev\log-your-wo\log-your-wo\src\styles.scss */
+    /*! c:\Dev\log-your-wo\log-your-wo\src\styles.scss */
     "./src/styles.scss");
     /***/
   }

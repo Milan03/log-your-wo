@@ -4952,7 +4952,7 @@ function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _d
   /***/
   function _(module, exports, __webpack_require__) {
     module.exports = __webpack_require__(
-    /*! C:\Dev\log-your-wo\log-your-wo\src\main.ts */
+    /*! c:\Dev\log-your-wo\log-your-wo\src\main.ts */
     "./src/main.ts");
     /***/
   }
