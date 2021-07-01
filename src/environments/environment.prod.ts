@@ -1,4 +1,4 @@
 export const environment = {
     production: true,
-    apiBaseAddress: 'https://logyourworkout.app'
+    apiBaseAddress: 'https://log-your-wo-mail-server.herokuapp.com'
 };
