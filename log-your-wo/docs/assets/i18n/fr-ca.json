@@ -1,0 +1,58 @@
+{
+    "global": {
+        "LogYourWorkout": "Enregistrez votre entraînement",
+        "LogYourWorkoutDescription": "Un journal. Mobile et bureau.",
+        "Required": "Requis",
+        "CharacterLimit": "Limite de caractères: ",
+        "NumericOnly": "Chiffres uniquement",
+        "OkLabel": "D'accord",
+        "ExercisesTitle": "Des exercices",
+        "CardioExercisesTitle": "Exercices cardiovasculaires",
+        "InvalidEmailFormat": "Format d'email invalide",
+        "SendLabel": "Envoyer",
+        "CancelLabel": "Annuler",
+        "Language": "Langue",
+        "Home": "Accueil",
+        "MainNavigation": "Navigation principale"
+    },
+    "header": {
+        "search": {
+            "PLACEHOLDER": "Tapez et appuyez sur Entrée ..."
+        }
+    },
+    "offsidebar": {
+        "setting": {
+            "SETTINGS": "Réglages"
+        }
+    },
+    "sidebar": {
+        "WELCOME": "Bienvenu",
+        "heading": {
+            "HEADER": "Titre du menu"
+        },
+        "nav": {
+            "SINGLEVIEW": "Vue unique"
+        }
+    },
+    "dashboard": {
+        "WELCOME": "Bienvenu"
+    },
+    "log-entry": {
+        "SimpleLog": "Journal simple",
+        "SimpleLogDescription": "Journal simple pour démarrer rapidement votre séance d'entraînement!",
+        "WorkoutTitle": "Titre d'entraînement",
+        "AddExercise": "Ajouter de l'exercice",
+        "ExerciseName": "Nom de l'exercice",
+        "ExerciseSets": "Ensembles",
+        "ExerciseReps": "Reps",
+        "ExerciseWeight": "Poids",
+        "ExerciseDistance": "Distance",
+        "ExerciseDuration": "Temps",
+        "ExerciseIntensity": "Intensité",
+        "DurationDialogDescription": "Entrez la durée de votre exercice",
+        "EditDuration": "Cliquez pour modifier la durée",
+        "SaveAsPDF": "Enregistrer au format PDF",
+        "EmailAsPDF": "Courriel au format PDF",
+        "EmailAddressLabel": "Adresse électronique"
+    }
+}
