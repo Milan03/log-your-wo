@@ -14,7 +14,7 @@ const SimpleLog = {
 };
 
 const headingMain = {
-    text: 'Main Navigation',
+    text: '',
     heading: true,
     translate: 'global.MainNavigation'
 };
