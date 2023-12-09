@@ -19,7 +19,7 @@
   "dependencies": {
     "@angular-devkit/build-angular": "13.3.11",
     "@angular/animations": "13.4.0",
-    "@angular/cdk": "12.2.13",
+    "@angular/cdk": "13.3.9",
     "@angular/cli": "13.3.11",
     "@angular/common": "13.4.0",
     "@angular/compiler": "13.4.0",
@@ -27,7 +27,7 @@
     "@angular/core": "13.4.0",
     "@angular/forms": "13.4.0",
     "@angular/language-service": "13.4.0",
-    "@angular/material": "12.2.13",
+    "@angular/material": "13.3.9",
     "@angular/platform-browser": "13.4.0",
     "@angular/platform-browser-dynamic": "13.4.0",
     "@angular/router": "13.4.0",
@@ -60,7 +60,7 @@
   "devDependencies": {
     "@types/jasmine": "^5.1.4",
     "@types/jasminewd2": "^2.0.13",
-    "@types/node": "^20.6.0",
+    "@types/node": "^20.10.4",
     "codelyzer": "^6.0.2",
     "jasmine-core": "^5.1.1",
     "jasmine-spec-reporter": "^7.0.0",
