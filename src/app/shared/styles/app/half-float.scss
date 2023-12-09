@@ -16,21 +16,21 @@ $half-aligned-gutter : 5px;
 
 .half-float {
     position: relative;
-    margin-bottom: ($half-aligned-size/2) + $half-aligned-gutter;
+    margin-bottom: ($half-aligned-size*0.5) + $half-aligned-gutter;
 
     .half-float-bottom,
     .half-float-top {
         position: absolute;
         left: 50%;
-        bottom: -($half-aligned-size/2);
+        bottom: -($half-aligned-size*0.5);
         width: $half-aligned-size;
         height: $half-aligned-size;
-        margin-left: -($half-aligned-size/2);
+        margin-left: -($half-aligned-size*0.5);
         z-index: 2;
     }
 
     .half-float-top {
         bottom: auto;
-        top: -($half-aligned-size/2);
+        top: -($half-aligned-size*0.5);
     }
 }
