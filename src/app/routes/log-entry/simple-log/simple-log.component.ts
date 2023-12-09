@@ -29,14 +29,14 @@ const swal = require('sweetalert');
 export class SimpleLogComponent implements OnInit, OnDestroy {
     @ViewChild('exerciseTable', {static: false}) exerciseTable: ElementRef;
     
-    private simpleLogForm: FormGroup;
+    public simpleLogForm: FormGroup;
     private currentLanguage: string;
-    private currentLog: SimpleLog;
+    public currentLog: SimpleLog;
     private currentExercise: Exercise;
     private currentCardioExercise: CardioExercise;
     private exerciseRowCount: number;
     private cardioExerciseRowCount: number;
-    private activeRows: Array<Exercise | CardioExercise>;
+    public activeRows: Array<Exercise | CardioExercise>;
     private currentPDF: any;
 
     public selectedIntensity: string;
@@ -162,7 +162,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
      * @param recipientEmailAddress - email to send to
      */
     private createEmailRequest(recipientEmailAddress: string): EmailRequest {
-        var options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        const options: Intl.DateTimeFormatOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
         if (this.currentLanguage == FormValues.ENCode) {
             if (this.currentLog.title) {
                 return new EmailRequest(
