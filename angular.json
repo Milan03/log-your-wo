@@ -80,18 +80,18 @@
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "browserTarget": "log-your-wo:build"
+            "buildTarget": "log-your-wo:build"
           },
           "configurations": {
             "production": {
-              "browserTarget": "log-your-wo:build:production"
+              "buildTarget": "log-your-wo:build:production"
             }
           }
         },
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "log-your-wo:build"
+            "buildTarget": "log-your-wo:build"
           }
         },
         "test": {
