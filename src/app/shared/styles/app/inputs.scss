@@ -81,7 +81,7 @@ $ui-bg-color: #ddd;
 .c-checkbox,
 .c-radio {
     span:before {
-        //content: "\2713"; /* comment content to use custom icon classes */
+        //content: "\2713"; __<<ngThemingMigrationEscapedComment4>>__
         position: absolute;
         top: 0;
         left: 0;
@@ -149,8 +149,8 @@ $ui-bg-color: #ddd;
             height: $sz;
             top: 50%;
             left: 50%;
-            margin-top: -($sz/2);
-            margin-left: -($sz/2);
+            margin-top: -($sz*0.5);
+            margin-left: -($sz*0.5);
             border-radius: 500px;
         }
     }
@@ -195,13 +195,13 @@ $ui-bg-color: #ddd;
 //
 
 $switch-wd: 40px;
-$switch-hg: $switch-wd/2;
+$switch-hg: $switch-wd*0.5;
 
 $switch-lg-wd: 50px;
-$switch-lg-hg: $switch-lg-wd/2;
+$switch-lg-hg: $switch-lg-wd*0.5;
 
 $switch-sm-wd: 30px;
-$switch-sm-hg: $switch-sm-wd/2;
+$switch-sm-hg: $switch-sm-wd*0.5;
 
 .switch {
     .form-control {

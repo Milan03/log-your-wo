@@ -3,7 +3,7 @@
 import { Injector } from '@angular/core';
 import { TranslateService, TranslateModule, TranslateLoader } from '@ngx-translate/core';
 import { HttpClientModule, HttpClient } from '@angular/common/http';
-import { TestBed, async, inject } from '@angular/core/testing';
+import { TestBed, inject, waitForAsync } from '@angular/core/testing';
 import { HeaderComponent } from './header.component';
 
 import { SettingsService } from '../../core/settings/settings.service';
@@ -28,7 +28,7 @@ describe('Component: Header', () => {
         }).compileComponents();
     });
 
-    it('should create an instance', async(
+    it('should create an instance', waitForAsync(
         inject(
             [MenuService, SettingsService, TranslatorService, Injector],
             (menuService, settingsService, translator, injector) => {

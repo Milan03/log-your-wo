@@ -24,7 +24,7 @@ export class OffsidebarComponent implements OnInit, OnDestroy {
     }
 
     setTheme() {
-        this.themes.setTheme(this.currentTheme);
+        //this.themes.setTheme(this.currentTheme);
     }
 
     getLangs() {

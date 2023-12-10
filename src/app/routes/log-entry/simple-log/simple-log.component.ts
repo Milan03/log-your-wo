@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
-import { FormGroup, FormBuilder, FormControl, Validators } from '@angular/forms';
+import { UntypedFormGroup, UntypedFormBuilder, UntypedFormControl, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { Subscription } from 'rxjs';
 
@@ -29,14 +29,14 @@ const swal = require('sweetalert');
 export class SimpleLogComponent implements OnInit, OnDestroy {
     @ViewChild('exerciseTable', {static: false}) exerciseTable: ElementRef;
     
-    private simpleLogForm: FormGroup;
+    public simpleLogForm: UntypedFormGroup;
     private currentLanguage: string;
-    private currentLog: SimpleLog;
+    public currentLog: SimpleLog;
     private currentExercise: Exercise;
     private currentCardioExercise: CardioExercise;
     private exerciseRowCount: number;
     private cardioExerciseRowCount: number;
-    private activeRows: Array<Exercise | CardioExercise>;
+    public activeRows: Array<Exercise | CardioExercise>;
     private currentPDF: any;
 
     public selectedIntensity: string;
@@ -52,7 +52,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     private langSub: Subscription;
 
     constructor(
-        private _formBuilder: FormBuilder,
+        private _formBuilder: UntypedFormBuilder,
         private _sharedService: SharedService,
         private _translatorService: TranslatorService,
         private _dialog: MatDialog,
@@ -162,7 +162,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
      * @param recipientEmailAddress - email to send to
      */
     private createEmailRequest(recipientEmailAddress: string): EmailRequest {
-        var options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        const options: Intl.DateTimeFormatOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
         if (this.currentLanguage == FormValues.ENCode) {
             if (this.currentLog.title) {
                 return new EmailRequest(
@@ -216,10 +216,10 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             let formControlName2 = `${FormValues.ExerciseSetsFormControl}${this.exerciseRowCount}`;
             let formControlName3 = `${FormValues.ExerciseRepsFormControl}${this.exerciseRowCount}`;
             let formControlName4 = `${FormValues.ExerciseWeightFormControl}${this.exerciseRowCount}`;
-            this.simpleLogForm.addControl(formControlName1, new FormControl('', Validators.compose([Validators.required, Validators.maxLength(50)])));
-            this.simpleLogForm.addControl(formControlName2, new FormControl('', Validators.compose([Validators.pattern("^[0-9]*$"), Validators.maxLength(5)])));
-            this.simpleLogForm.addControl(formControlName3, new FormControl('', Validators.compose([Validators.pattern("^[0-9]*$"), Validators.maxLength(5)])));
-            this.simpleLogForm.addControl(formControlName4, new FormControl('', Validators.compose([Validators.maxLength(15)])));
+            this.simpleLogForm.addControl(formControlName1, new UntypedFormControl('', Validators.compose([Validators.required, Validators.maxLength(50)])));
+            this.simpleLogForm.addControl(formControlName2, new UntypedFormControl('', Validators.compose([Validators.pattern("^[0-9]*$"), Validators.maxLength(5)])));
+            this.simpleLogForm.addControl(formControlName3, new UntypedFormControl('', Validators.compose([Validators.pattern("^[0-9]*$"), Validators.maxLength(5)])));
+            this.simpleLogForm.addControl(formControlName4, new UntypedFormControl('', Validators.compose([Validators.maxLength(15)])));
             ++this.exerciseRowCount;
             //console.log(this.simpleLogForm.get(formControlName1));
             // add exercise to log
@@ -243,10 +243,10 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             let formControlName2 = `${FormValues.CardioExerciseDistanceFormControl}${this.cardioExerciseRowCount}`;
             let formControlName3 = `${FormValues.CardioExerciseTimeFormControl}${this.cardioExerciseRowCount}`;
             let formControlName4 = `${FormValues.CardioExerciseIntensityFormControl}${this.cardioExerciseRowCount}`;
-            this.simpleLogForm.addControl(formControlName1, new FormControl('', Validators.compose([Validators.required, Validators.maxLength(50)])));
-            this.simpleLogForm.addControl(formControlName2, new FormControl('', Validators.compose([Validators.maxLength(15)])));
-            this.simpleLogForm.addControl(formControlName3, new FormControl());
-            this.simpleLogForm.addControl(formControlName4, new FormControl());
+            this.simpleLogForm.addControl(formControlName1, new UntypedFormControl('', Validators.compose([Validators.required, Validators.maxLength(50)])));
+            this.simpleLogForm.addControl(formControlName2, new UntypedFormControl('', Validators.compose([Validators.maxLength(15)])));
+            this.simpleLogForm.addControl(formControlName3, new UntypedFormControl());
+            this.simpleLogForm.addControl(formControlName4, new UntypedFormControl());
             ++this.cardioExerciseRowCount;
             // add cardio exercise to log
             let newCardioExercise = new CardioExercise();

@@ -1,5 +1,5 @@
 /* tslint:disable:no-unused-variable */
-import { TestBed, async, inject } from '@angular/core/testing';
+import { TestBed, inject, waitForAsync } from '@angular/core/testing';
 import { SidebarComponent } from './sidebar.component';
 import { RouterModule, Router } from '@angular/router';
 
@@ -20,7 +20,7 @@ describe('Component: Sidebar', () => {
         }).compileComponents();
     });
 
-    it('should create an instance', async(inject([MenuService, SettingsService, Router], (menuService, settingsService, router) => {
+    it('should create an instance', waitForAsync(inject([MenuService, SettingsService, Router], (menuService, settingsService, router) => {
         let component = new SidebarComponent(menuService, settingsService, router);
         expect(component).toBeTruthy();
     })));

@@ -1,7 +1,7 @@
 /* tslint:disable:no-unused-variable */
 
 import { ElementRef } from '@angular/core';
-import { TestBed, async, inject } from '@angular/core/testing';
+import { TestBed, inject, waitForAsync } from '@angular/core/testing';
 import { OffsidebarComponent } from './offsidebar.component';
 import { TranslateService, TranslateModule, TranslateLoader } from '@ngx-translate/core';
 import { HttpClientModule, HttpClient } from '@angular/common/http';
@@ -35,7 +35,7 @@ describe('Component: Offsidebar', () => {
         }).compileComponents();
     });
 
-    it('should create an instance', async(inject([SettingsService, ThemesService, TranslatorService, MockElementRef],
+    it('should create an instance', waitForAsync(inject([SettingsService, ThemesService, TranslatorService, MockElementRef],
         (settingsService, themesService, translatorService, mockElementRef) => {
             let component = new OffsidebarComponent(settingsService, themesService, translatorService, mockElementRef);
             expect(component).toBeTruthy();

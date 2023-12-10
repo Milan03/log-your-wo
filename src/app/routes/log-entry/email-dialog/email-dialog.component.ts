@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { FormGroup, FormBuilder, Validators } from '@angular/forms';
+import { UntypedFormGroup, UntypedFormBuilder, Validators } from '@angular/forms';
 import { MatDialogRef } from '@angular/material/dialog';
 
 @Component({
@@ -8,11 +8,11 @@ import { MatDialogRef } from '@angular/material/dialog';
     styleUrls: ['./email-dialog.component.scss']
 })
 export class EmailDialogComponent {
-    public emailForm: FormGroup;
+    public emailForm: UntypedFormGroup;
 
     constructor(
         public _dialogRef: MatDialogRef<EmailDialogComponent>,
-        private _formBuilder: FormBuilder
+        private _formBuilder: UntypedFormBuilder
     ) { 
         this.emailForm = this._formBuilder.group({
             'emailAddress': ['', Validators.compose([Validators.required, Validators.email])]
