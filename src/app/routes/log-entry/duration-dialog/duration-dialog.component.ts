@@ -14,7 +14,7 @@ import * as moment from 'moment';
 })
 export class DurationDialogComponent implements OnDestroy {
     public durationValue: Date;
-    private currentCardioExercise: CardioExercise;
+    public currentCardioExercise: CardioExercise;
 
     private cvExerciseSub: Subscription;
 
