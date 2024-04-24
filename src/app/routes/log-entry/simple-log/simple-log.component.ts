@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/co
 import { UntypedFormGroup, UntypedFormBuilder, UntypedFormControl, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { MatTable } from '@angular/material/table';
+import { DataSource } from '@angular/cdk/collections';
 import { Observable, ReplaySubject, Subscription } from 'rxjs';
 
 import { DurationDialogComponent } from '../duration-dialog/duration-dialog.component';
@@ -19,7 +20,6 @@ import { LogTypes, FormValues } from '../../../shared/common/common.constants';
 
 import * as moment from 'moment';
 import * as jsPDF from 'jspdf'
-import { DataSource } from '@angular/cdk/collections';
 
 const swal = require('sweetalert');
 

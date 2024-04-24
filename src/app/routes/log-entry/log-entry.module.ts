@@ -4,6 +4,7 @@ import { Routes, RouterModule } from '@angular/router';
 import { SimpleLogComponent } from './simple-log/simple-log.component'
 import { DurationDialogComponent } from './duration-dialog/duration-dialog.component';
 import { EmailDialogComponent } from './email-dialog/email-dialog.component';
+import { ExerciseDialogComponent } from './exercise-dialog/exercise-dialog.component';
 
 import { SharedModule } from '../../shared/shared.module';
 
@@ -19,7 +20,8 @@ const routes: Routes = [
     declarations: [
         SimpleLogComponent,
         DurationDialogComponent,
-        EmailDialogComponent
+        EmailDialogComponent,
+        ExerciseDialogComponent
     ],
     exports: [
         RouterModule
