@@ -1,4 +1,4 @@
-<form [formGroup]="simpleLogForm" class="form-validate" novalidate="">
+<div [formGroup]="simpleLogForm">
     <table mat-table *ngIf="currentLog.exercises.length > 0" [dataSource]="dataSource"
         class="container-lg mat-elevation-z8">
         <!-- Position Column -->
@@ -10,40 +10,17 @@
             <th mat-header-cell *matHeaderCellDef> {{ 'log-entry.ExerciseWeight' | translate }} </th>
             <td mat-cell *matCellDef="let exercise"> {{exercise.weight}} </td>
         </ng-container>
-        <ng-container matColumnDef="reps">
-            <th mat-header-cell *matHeaderCellDef> {{ 'log-entry.ExerciseReps' | translate }} </th>
-            <td mat-cell *matCellDef="let exercise"> {{exercise.reps}} </td>
-        </ng-container>
         <ng-container matColumnDef="sets">
             <th mat-header-cell *matHeaderCellDef> {{ 'log-entry.ExerciseSets' | translate }} </th>
             <td mat-cell *matCellDef="let exercise"> {{exercise.sets}} </td>
         </ng-container>
+        <ng-container matColumnDef="reps">
+            <th mat-header-cell *matHeaderCellDef> {{ 'log-entry.ExerciseReps' | translate }} </th>
+            <td mat-cell *matCellDef="let exercise"> {{exercise.reps}} </td>
+        </ng-container>
 
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
         <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-    </table>
-    <table mat-table *ngIf="currentLog.cardioExercises.length > 1" [dataSource]="ceDataSource"
-        class="container-lg mat-elevation-z8">
-        <!-- Position Column -->
-        <ng-container matColumnDef="Exercise Name">
-            <th mat-header-cell *matHeaderCellDef> {{ 'log-entry.ExerciseName' | translate }} </th>
-            <td mat-cell *matCellDef="let exercise"> {{exercise.exerciseName}} </td>
-        </ng-container>
-        <ng-container matColumnDef="Distance">
-            <th mat-header-cell *matHeaderCellDef> {{ 'log-entry.ExerciseDistance' | translate }} </th>
-            <td mat-cell *matCellDef="let exercise"> {{exercise.distance}} </td>
-        </ng-container>
-        <ng-container matColumnDef="Exercise Duration">
-            <th mat-header-cell *matHeaderCellDef> {{ 'log-entry.ExerciseDuration' | translate }} </th>
-            <td mat-cell *matCellDef="let exercise"> {{exercise.exerciseDuration | formatDuration }} </td>
-        </ng-container>
-        <ng-container matColumnDef="Intensity">
-            <th mat-header-cell *matHeaderCellDef> {{ 'log-entry.ExerciseIntensity' | translate }} </th>
-            <td mat-cell *matCellDef="let exercise"> {{exercise.intensity}} </td>
-        </ng-container>
-
-        <tr mat-header-row *matHeaderRowDef="ceDisplayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: ceDisplayedColumns;"></tr>
     </table>
 
     <!-- START Add Exercise Heading START -->
@@ -60,163 +37,15 @@
         <div id="exercise-btns">
             <button class="mb-1 mr-1 btn btn-primary" type="button" (click)="openExerciseDialog()">+ <em
                     class="fa fa-dumbbell"></em></button>
-            <button class="mb-1 mr-1 btn btn-primary" type="button" (click)="addCardioExerciseFormControl()">+ <em
-                    class="fa fa-running"></em></button>
+            <button class="mb-1 mr-1 btn btn-primary" type="button">+ <em class="fa fa-running"></em></button>
         </div>
     </div>
     <!-- END Add Exercise Heading END -->
-    <!-- START Active Row Container START -->
-    <div *ngIf="currentLog.cardioExercises.length > 0" class="container-lg">
-        <div class="md-card">
-            <div class="container">
-                <!-- START Active Rows START -->
-                <div class="row" *ngFor="let exercise of activeRows; let i = index">
-                    <!-- START Exercise Row START -->
-                    <!--<div class="div-inherit" *ngIf="exercise.formControlNames.get('name').includes(exerciseType)">
-                        <div class="col-4">
-                            <div class="mda-form-group float-label first-fg">
-                                <input class="mda-form-control" name="{{ exercise.formControlNames.get('name') }}"
-                                    formControlName="{{ exercise.formControlNames.get('name') }}" tabindex="0"
-                                    aria-invalid="false" (blur)="checkForExerciseValue(exercise, 'name')" />
-                                <label>{{ 'log-entry.ExerciseName' | translate }}</label>
-                                <mat-error class="text-danger"
-                                    *ngIf="simpleLogForm.get(exercise.formControlNames.get('name')).hasError('required') && (simpleLogForm.get(exercise.formControlNames.get('name')).dirty || simpleLogForm.get(exercise.formControlNames.get('name')).touched)">{{
-                                    'global.Required' | translate }}</mat-error>
-                                <mat-error class="text-danger"
-                                    *ngIf="simpleLogForm.get(exercise.formControlNames.get('name')).hasError('maxlength') && (simpleLogForm.get(exercise.formControlNames.get('name')).dirty || simpleLogForm.get(exercise.formControlNames.get('name')).touched)">{{
-                                    'global.CharacterLimit' | translate }} {{ exerciseNameCharLimit }}</mat-error>
-                            </div>
-                        </div>
-                        <div class="col">
-                            <div class="mda-form-group float-label">
-                                <input class="mda-form-control" name="{{ exercise.formControlNames.get('sets') }}"
-                                    formControlName="{{ exercise.formControlNames.get('sets') }}" tabindex="0"
-                                    aria-invalid="false" (blur)="checkForExerciseValue(exercise, 'sets')" />
-                                <label>{{ 'log-entry.ExerciseSets' | translate }}</label>
-                                <mat-error class="text-danger"
-                                    *ngIf="simpleLogForm.get(exercise.formControlNames.get('sets')).hasError('pattern') && (simpleLogForm.get(exercise.formControlNames.get('sets')).dirty || simpleLogForm.get(exercise.formControlNames.get('sets')).touched)">{{
-                                    'global.NumericOnly' | translate }}</mat-error>
-                                <mat-error class="text-danger"
-                                    *ngIf="simpleLogForm.get(exercise.formControlNames.get('sets')).hasError('maxlength') && (simpleLogForm.get(exercise.formControlNames.get('sets')).dirty || simpleLogForm.get(exercise.formControlNames.get('sets')).touched)">{{
-                                    'global.CharacterLimit' | translate }} {{ exerciseNumericCharLimit }}</mat-error>
-                            </div>
-                        </div>
-                        <div class="col">
-                            <div class="mda-form-group float-label">
-                                <input class="mda-form-control" name="{{ exercise.formControlNames.get('reps') }}"
-                                    formControlName="{{ exercise.formControlNames.get('reps') }}" tabindex="0"
-                                    aria-invalid="false" (blur)="checkForExerciseValue(exercise, 'reps')" />
-                                <label>{{ 'log-entry.ExerciseReps' | translate }}</label>
-                                <mat-error class="text-danger"
-                                    *ngIf="simpleLogForm.get(exercise.formControlNames.get('reps')).hasError('pattern') && (simpleLogForm.get(exercise.formControlNames.get('reps')).dirty || simpleLogForm.get(exercise.formControlNames.get('reps')).touched)">{{
-                                    'global.NumericOnly' | translate }}</mat-error>
-                                <mat-error class="text-danger"
-                                    *ngIf="simpleLogForm.get(exercise.formControlNames.get('reps')).hasError('maxlength') && (simpleLogForm.get(exercise.formControlNames.get('reps')).dirty || simpleLogForm.get(exercise.formControlNames.get('reps')).touched)">{{
-                                    'global.CharacterLimit' | translate }} {{ exerciseNumericCharLimit }}</mat-error>
-                            </div>
-                        </div>
-                        <div class="col">
-                            <div class="mda-form-group float-label">
-                                <input class="mda-form-control" name="{{ exercise.formControlNames.get('weight') }}"
-                                    formControlName="{{ exercise.formControlNames.get('weight') }}" tabindex="0"
-                                    aria-invalid="false" (blur)="checkForExerciseValue(exercise, 'weight')" />
-                                <label>{{ 'log-entry.ExerciseWeight' | translate }}</label>
-                                <mat-error class="text-danger"
-                                    *ngIf="simpleLogForm.get(exercise.formControlNames.get('weight')).hasError('maxlength') && (simpleLogForm.get(exercise.formControlNames.get('weight')).dirty || simpleLogForm.get(exercise.formControlNames.get('weight')).touched)">{{
-                                    'global.CharacterLimit' | translate }} {{ exerciseAlphaNumericCharLimit
-                                    }}</mat-error>
-                            </div>
-                        </div>
-                        <div class="col">
-                            <button type="button" class="btn-transparent btn-row-close"
-                                (click)="removeExerciseRow(exercise)">
-                                <em class="far fa-window-close"></em>
-                            </button>
-                        </div>
-                    </div>
-                    END Exercise Row END -->
-                    <!-- START Cardio Exercise Row START -->
-                    <div class="div-inherit" *ngIf="exercise.formControlNames.get('name').includes(cardioExerciseType)">
-                        <div class="first-col-cv col-4">
-                            <div class="mda-form-group float-label first-fg">
-                                <input class="mda-form-control" name="{{ exercise.formControlNames.get('name') }}"
-                                    formControlName="{{ exercise.formControlNames.get('name') }}" tabindex="0"
-                                    aria-invalid="false" (blur)="checkForExerciseValue(exercise, 'name')" />
-                                <label>{{ 'log-entry.ExerciseName' | translate }}</label>
-                                <mat-error class="text-danger"
-                                    *ngIf="simpleLogForm.get(exercise.formControlNames.get('name')).hasError('required') && (simpleLogForm.get(exercise.formControlNames.get('name')).dirty || simpleLogForm.get(exercise.formControlNames.get('name')).touched)">{{
-                                    'global.Required' | translate }}</mat-error>
-                                <mat-error class="text-danger"
-                                    *ngIf="simpleLogForm.get(exercise.formControlNames.get('name')).hasError('maxlength') && (simpleLogForm.get(exercise.formControlNames.get('name')).dirty || simpleLogForm.get(exercise.formControlNames.get('name')).touched)">{{
-                                    'global.CharacterLimit' | translate }} {{ exerciseNameCharLimit }}</mat-error>
-                            </div>
-                        </div>
-                        <div class="second-col-cv col-2">
-                            <div class="mda-form-group float-label">
-                                <input class="mda-form-control" name="{{ exercise.formControlNames.get('distance') }}"
-                                    formControlName="{{ exercise.formControlNames.get('distance') }}" tabindex="0"
-                                    aria-invalid="false" (blur)="checkForExerciseValue(exercise, 'distance')" />
-                                <label>{{ 'log-entry.ExerciseDistance' | translate }}</label>
-                                <mat-error class="text-danger"
-                                    *ngIf="simpleLogForm.get(exercise.formControlNames.get('distance')).hasError('maxlength') && (simpleLogForm.get(exercise.formControlNames.get('distance')).dirty || simpleLogForm.get(exercise.formControlNames.get('distance')).touched)">{{
-                                    'global.CharacterLimit' | translate }} {{ exerciseAlphaNumericCharLimit
-                                    }}</mat-error>
-                            </div>
-                        </div>
-                        <div class="col-2">
-                            <div class="mda-form-group">
-                                <label class="duration-label">{{ 'log-entry.ExerciseDuration' | translate }}</label>
-                                <button type="button" *ngIf="!exercise.exerciseDuration" mat-button
-                                    (click)="openDialog(exercise)">+ <em class="far fa-clock"></em></button>
-                                <label matTooltip="{{ 'log-entry.EditDuration' | translate }}"
-                                    [matTooltipPosition]="'below'" class="duration-display-label"
-                                    *ngIf="exercise.exerciseDuration" (click)="openDialog(exercise)">{{
-                                    exercise.exerciseDuration.get('hours') }}h {{
-                                    exercise.exerciseDuration.get('minutes') }}m {{
-                                    exercise.exerciseDuration.get('seconds') }}s</label>
-                            </div>
-                        </div>
-                        <div class="col-2">
-                            <div class="mda-form-group">
-                                <mat-form-field>
-                                    <mat-select placeholder="{{ 'log-entry.ExerciseIntensity' | translate }}"
-                                        (selectionChange)="onIntensityChange($event, exercise)"
-                                        formControlName="{{ exercise.formControlNames.get('intensity') }}">
-                                        <mat-option *ngFor="let intensity of intensities" [value]="intensity.value">
-                                            {{ intensity.viewValue }}
-                                        </mat-option>
-                                    </mat-select>
-                                </mat-form-field>
-                            </div>
-                        </div>
-                        <div class="col-2">
-                            <button type="button" class="btn-transparent btn-row-close close-btn-cv"
-                                (click)="removeCardioExerciseRow(exercise)">
-                                <em class="far fa-window-close"></em>
-                            </button>
-                        </div>
-                    </div>
-                    <!-- END Cardio Exercise Row END -->
-                </div>
-                <!-- END Active Rows END -->
-            </div>
-        </div>
-        <!-- START Submit Buttons START -->
-        <div class="row">
-            <div class="col-md-12 text-right">
-                <button class="mb-1 mr-1 btn btn-primary" type="button" (click)="submit('save')">{{
-                    'log-entry.SaveAsPDF' | translate }}</button>
-                <button class="mb-1 mr-1 btn btn-primary" type="button" (click)="submit('email')">{{
-                    'log-entry.EmailAsPDF' | translate }}</button>
-            </div>
-        </div>
-        <!-- END Submit Buttons END -->
-    </div>
-</form>
-<!-- END Active Row Container END -->
+</div>
 <!-- START Exercise PDF Table START -->
 <div id="exerciseTable" #exerciseTable>
-    <h1 *ngIf="currentLog.exercises.length > 0 || currentLog.cardioExercises.length > 0">{{ 'global.LogYourWorkout' |
+    <h1 *ngIf="currentLog.exercises.length > 0 || currentLog.cardioExercises.length > 0">{{ 'global.LogYourWorkout'
+        |
         translate }} - {{ currentLog.startDatim | date: 'MM/dd/yyyy h:mm a' }}</h1>
     <h2 *ngIf="currentLog.exercises.length > 0 && currentLog.title">{{ currentLog.title }}</h2>
     <h2 *ngIf="currentLog.exercises.length > 0">{{ 'global.ExercisesTitle' | translate }}</h2>
