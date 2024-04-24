@@ -20,6 +20,7 @@ import { LogTypes, FormValues } from '../../../shared/common/common.constants';
 
 import * as moment from 'moment';
 import * as jsPDF from 'jspdf'
+import { ExerciseDialogComponent } from '../exercise-dialog/exercise-dialog.component';
 
 const swal = require('sweetalert');
 
@@ -29,8 +30,8 @@ const swal = require('sweetalert');
     styleUrls: ['./simple-log.component.scss']
 })
 export class SimpleLogComponent implements OnInit, OnDestroy {
-    @ViewChild('exerciseTable', {static: false}) exerciseTable: ElementRef;
-    
+    @ViewChild('exerciseTable', { static: false }) exerciseTable: ElementRef;
+
     public simpleLogForm: UntypedFormGroup;
     private currentLanguage: string;
     public currentLog: SimpleLog;
@@ -50,9 +51,8 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     public readonly exerciseType: string = FormValues.ExerciseNameFormControl;
     public readonly cardioExerciseType: string = FormValues.CardioExerciseNameFormControl;
     public intensities = FormValues.ExerciseIntensities;
-    public displayedColumns: string[] = ['Name', 'Weight', 'Reps', 'Sets'];
+    public displayedColumns: string[] = ['exerciseName', 'weight', 'reps', 'sets'];
     public ceDisplayedColumns: string[] = ['Exercise Name', 'Distance', 'Exercise Duration', 'Intensity'];
-    public dataToDisplay;
     public dataSource;
     public ceDataSource;
 
@@ -86,8 +86,8 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         this.cardioExerciseRowCount = 0;
         this.activeRows = new Array<Exercise | CardioExercise>();
         this.subToLanguageChange();
-        this.displayedColumns = ['Exercise Name', 'Weight', 'Sets', 'Reps'];
-        this.ceDisplayedColumns = ['Exercise Name', 'Distance', 'Exercise Duration', 'Intensity'];
+        this.displayedColumns = ['exerciseName', 'weight', 'reps', 'sets']
+        //this.ceDisplayedColumns = ['Exercise Name', 'Distance', 'Exercise Duration', 'Intensity'];
     }
 
     ngOnDestroy(): void {
@@ -100,7 +100,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
      * @param submitType - 'save' or 'email'
      */
     public submit(submitType: string): void {
-        if (submitType == 'save') 
+        if (submitType == 'save')
             this.savePDFSubmit();
         else
             this.emailPDFSubmit();
@@ -122,7 +122,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             this.simpleLogForm.controls[c].markAsTouched();
         }
         if (this.simpleLogForm.valid) {
-           this.openEmailDialog();
+            this.openEmailDialog();
         }
     }
 
@@ -136,7 +136,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         this.currentPDF = btoa(createdPDF);
         let request = this.createEmailRequest(recipientEmailAddress);
         this._emailService.sendMail(request).subscribe(
-            data => { 
+            data => {
                 this.swalEmailSent();
                 this._googleAnalyticsService.eventEmitter(`email_sent_success`, 'general', 'engagement');
             },
@@ -163,11 +163,11 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             title: 'Log Your Workout'
         });
         const exerciseTable = this.exerciseTable.nativeElement;
-       // doc.setFontSize(12);
-        doc.fromHTML(exerciseTable.innerHTML, 40, 20, {'width': 522 });
+        // doc.setFontSize(12);
+        doc.fromHTML(exerciseTable.innerHTML, 40, 20, { 'width': 522 });
         if (type == 'save')
             return doc;
-        else 
+        else
             return doc.output()
     }
 
@@ -225,7 +225,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
      * Adds an exercise row to the page. Inserts a new form control into form control group
      * and current log exercise array.
      */
-    public addExerciseFormControl(): void {
+    /*public addExerciseFormControl(): void {
         if (this.simpleLogForm.valid) {
             let formControlName1 = `${FormValues.ExerciseNameFormControl}${this.exerciseRowCount}`;
             let formControlName2 = `${FormValues.ExerciseSetsFormControl}${this.exerciseRowCount}`;
@@ -258,7 +258,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             }
         } else
             this.swalCompleteRowError();
-    }
+    }*/
 
     public addCardioExerciseFormControl(): void {
         if (this.simpleLogForm.valid) {
@@ -283,13 +283,13 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             // add to current active rows
             this.activeRows.push(newCardioExercise);
             // Add or update the currentCardioExercise in dataToDisplay
-            if (!this.dataToDisplay) {
+          /*  if (!this.dataToDisplay) {
                 this.dataToDisplay = [...this.currentLog.cardioExercises];
                 this.ceDataSource = new ExampleDataSource(this.dataToDisplay);
             } else {
                 this.dataToDisplay = [...this.dataToDisplay, this.currentCardioExercise];
                 this.ceDataSource.setData(this.dataToDisplay);
-            }
+            }*/
         } else
             this.swalCompleteRowError();
     }
@@ -303,13 +303,13 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         //if (!this.dataToDisplay) {
         //    this.dataToDisplay = [...this.currentLog.exercises];
         //    this.dataSource = new ExampleDataSource(this.dataToDisplay);
-       // }
+        // }
         if (exercise.formControlNames.get('name').includes(this.exerciseType)) {
             this.currentExercise = this.currentLog.exercises.find(x => x.exerciseId == exercise.exerciseId);
             let exerciseValue = this.simpleLogForm.get(this.currentExercise.formControlNames.get(formCtrlType)).value;
-            switch(formCtrlType) {
+            switch (formCtrlType) {
                 case 'name':
-                    exerciseValue.length > 0 ? this.currentExercise.exerciseName = exerciseValue : this.currentExercise.exerciseName =  null
+                    exerciseValue.length > 0 ? this.currentExercise.exerciseName = exerciseValue : this.currentExercise.exerciseName = null
                     break;
                 case 'sets':
                     exerciseValue > 0 ? this.currentExercise.sets = +exerciseValue : this.currentExercise.sets = null;
@@ -325,7 +325,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         } else {
             this.currentCardioExercise = this.currentLog.cardioExercises.find(x => x.exerciseId == exercise.exerciseId);
             let exerciseValue = this.simpleLogForm.get(this.currentCardioExercise.formControlNames.get(formCtrlType)).value;
-            switch(formCtrlType) {
+            switch (formCtrlType) {
                 case 'name':
                     exerciseValue.length > 0 ? this.currentCardioExercise.exerciseName = exerciseValue : null;
                     break;
@@ -360,8 +360,8 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         this.simpleLogForm.removeControl(exerciseToRemove.formControlNames.get('reps'));
         this.simpleLogForm.removeControl(exerciseToRemove.formControlNames.get('weight'));
 
-        this.dataToDisplay = [...this.currentLog.exercises];
-        this.dataSource = new ExampleDataSource(this.dataToDisplay);
+        //this.dataToDisplay = [...this.currentLog.exercises];
+        this.dataSource = new ExampleDataSource(this.currentLog.exercises);
     }
 
     public removeCardioExerciseRow(cardioExerciseToRemove: CardioExercise): void {
@@ -374,8 +374,8 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         // remove from form control group
         this.simpleLogForm.removeControl(cardioExerciseToRemove.formControlNames.get('name'));
 
-        this.dataToDisplay = [...this.currentLog.cardioExercises];
-        this.ceDataSource = new ExampleDataSource(this.dataToDisplay);
+        //this.dataToDisplay = [...this.currentLog.cardioExercises];
+        this.ceDataSource = new ExampleDataSource(this.currentLog.cardioExercises);
     }
 
     /**
@@ -388,7 +388,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         dialogRef.afterClosed().subscribe(result => {
             this.currentCardioExercise = result;
             //console.log(this.currentLog.cardioExercises.find(x => x.exerciseId == exercise.exerciseId));
-        }); 
+        });
     }
 
     public openEmailDialog(): void {
@@ -397,6 +397,29 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             if (result) {
                 this.swalEmailSending();
                 this.emailAsPDF(result);
+            }
+        });
+    }
+
+    public openExerciseDialog(): void {
+        let dialogRef = this._dialog.open(ExerciseDialogComponent);
+        dialogRef.afterClosed().subscribe(result => {
+            if (result) {
+                console.log(`exercise dialog: ${result}`);
+                let newExercise: Exercise = result;
+                if (!this.currentLog.exercises) {
+                    this.currentLog.exercises = new Array<Exercise>();
+                }
+                this.currentLog.exercises.push(newExercise);
+                this.currentExercise = newExercise;
+                // Add or update the currentExercise in dataToDisplay
+                if (this.currentLog.exercises) {
+                   // this.dataToDisplay = [...this.currentLog.exercises];
+                    this.dataSource = new ExampleDataSource(this.currentLog.exercises);
+                } else {
+                    //this.dataToDisplay = [...this.dataToDisplay, this.currentExercise];
+                    this.dataSource.setData(this.currentLog.exercises);
+                }
             }
         });
     }
@@ -501,19 +524,19 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
 
 class ExampleDataSource extends DataSource<Exercise> {
     private _dataStream = new ReplaySubject<Exercise[]>();
-  
+
     constructor(initialData: Exercise[]) {
-      super();
-      this.setData(initialData);
+        super();
+        this.setData(initialData);
     }
-  
+
     connect(): Observable<Exercise[]> {
-      return this._dataStream;
+        return this._dataStream;
     }
-  
-    disconnect() {}
-  
+
+    disconnect() { }
+
     setData(data: Exercise[]) {
-      this._dataStream.next(data);
+        this._dataStream.next(data);
     }
 }

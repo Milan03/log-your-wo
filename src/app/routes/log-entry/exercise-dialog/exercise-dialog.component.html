@@ -1,1 +1,62 @@
-<p>exercise-dialog works!</p>
+<h1 mat-dialog-title>{{ 'log-entry.AddExercise' | translate }}</h1>
+<div [formGroup]="exerciseLogForm" class="container">
+    <div class="row">
+        <div class="col-md-3">
+            <div class="mda-form-group float-label first-fg">
+                <input class="mda-form-control" name="exerciseName" formControlName="exerciseName" tabindex="0"
+                    aria-invalid="false" />
+                <label>{{ 'log-entry.ExerciseName' | translate }}</label>
+                <mat-error class="text-danger"
+                    *ngIf="exerciseLogForm.get('exerciseName').hasError('required') && (exerciseLogForm.get('exerciseName').dirty || exerciseLogForm.get('exerciseName').touched)">{{
+                    'global.Required' | translate }}</mat-error>
+                <mat-error class="text-danger"
+                    *ngIf="exerciseLogForm.get('exerciseName').hasError('maxlength') && (exerciseLogForm.get('exerciseName').dirty || exerciseLogForm.get('exerciseName').touched)">{{
+                    'global.CharacterLimit' | translate }} {{ exerciseNameCharLimit }}</mat-error>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="mda-form-group float-label">
+                <input class="mda-form-control" name="sets" formControlName="sets" tabindex="0"
+                    aria-invalid="false" />
+                <label>{{ 'log-entry.ExerciseSets' | translate }}</label>
+                <mat-error class="text-danger"
+                    *ngIf="exerciseLogForm.get('sets').hasError('pattern') && (exerciseLogForm.get('sets').dirty || exerciseLogForm.get('sets').touched)">{{
+                    'global.NumericOnly' | translate }}</mat-error>
+                <mat-error class="text-danger"
+                    *ngIf="exerciseLogForm.get('sets').hasError('maxlength') && (exerciseLogForm.get('sets').dirty || exerciseLogForm.get('sets').touched)">{{
+                    'global.CharacterLimit' | translate }} {{ exerciseNumericCharLimit }}</mat-error>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="mda-form-group float-label">
+                <input class="mda-form-control" name="reps" formControlName="reps" tabindex="0"
+                    aria-invalid="false" />
+                <label>{{ 'log-entry.ExerciseReps' | translate }}</label>
+                <mat-error class="text-danger"
+                    *ngIf="exerciseLogForm.get('reps').hasError('pattern') && (exerciseLogForm.get('reps').dirty || exerciseLogForm.get('reps').touched)">{{
+                    'global.NumericOnly' | translate }}</mat-error>
+                <mat-error class="text-danger"
+                    *ngIf="exerciseLogForm.get('reps').hasError('maxlength') && (exerciseLogForm.get('reps').dirty || exerciseLogForm.get('reps').touched)">{{
+                    'global.CharacterLimit' | translate }} {{ exerciseNumericCharLimit }}</mat-error>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="mda-form-group float-label">
+                <input class="mda-form-control" name="weight" formControlName="weight" tabindex="0"
+                    aria-invalid="false" />
+                <label>{{ 'log-entry.ExerciseWeight' | translate }}</label>
+                <mat-error class="text-danger"
+                    *ngIf="exerciseLogForm.get('weight').hasError('maxlength') && (exerciseLogForm.get('weight').dirty || exerciseLogForm.get('weight').touched)">{{
+                    'global.CharacterLimit' | translate }} {{ exerciseAlphaNumericCharLimit }}</mat-error>
+            </div>
+        </div>
+    </div>
+    <div class="row justify-content-end mt-4">
+        <div class="col-auto">
+            <button type="button" class="btn btn-secondary" (click)="onCancel()">Cancel</button>
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-primary" (click)="submitForm($event)">Add</button>
+        </div>
+    </div>
+</div>
