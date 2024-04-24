@@ -1,7 +1,8 @@
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { UntypedFormGroup, UntypedFormBuilder, UntypedFormControl, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
-import { Subscription } from 'rxjs';
+import { MatTable } from '@angular/material/table';
+import { Observable, ReplaySubject, Subscription } from 'rxjs';
 
 import { DurationDialogComponent } from '../duration-dialog/duration-dialog.component';
 import { EmailDialogComponent } from '../email-dialog/email-dialog.component';
@@ -18,6 +19,7 @@ import { LogTypes, FormValues } from '../../../shared/common/common.constants';
 
 import * as moment from 'moment';
 import * as jsPDF from 'jspdf'
+import { DataSource } from '@angular/cdk/collections';
 
 const swal = require('sweetalert');
 
@@ -48,8 +50,15 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     public readonly exerciseType: string = FormValues.ExerciseNameFormControl;
     public readonly cardioExerciseType: string = FormValues.CardioExerciseNameFormControl;
     public intensities = FormValues.ExerciseIntensities;
+    public displayedColumns: string[] = ['Name', 'Weight', 'Reps', 'Sets'];
+    public ceDisplayedColumns: string[] = ['Exercise Name', 'Distance', 'Exercise Duration', 'Intensity'];
+    public dataToDisplay;
+    public dataSource;
+    public ceDataSource;
 
     private langSub: Subscription;
+
+    @ViewChild(MatTable) table: MatTable<Exercise>;
 
     constructor(
         private _formBuilder: UntypedFormBuilder,
@@ -62,6 +71,10 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         this.simpleLogForm = this._formBuilder.group({
             'title': ['', Validators.compose([Validators.maxLength(75)])]
         });
+        /*this.currentLog = new SimpleLog();
+        this.currentLog.exercises = new Array<Exercise>();
+        this.dataToDisplay = [...this.currentLog.exercises];
+        this.dataSource = new ExampleDataSource(this.dataToDisplay);*/
     }
 
     ngOnInit(): void {
@@ -73,6 +86,8 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         this.cardioExerciseRowCount = 0;
         this.activeRows = new Array<Exercise | CardioExercise>();
         this.subToLanguageChange();
+        this.displayedColumns = ['Exercise Name', 'Weight', 'Sets', 'Reps'];
+        this.ceDisplayedColumns = ['Exercise Name', 'Distance', 'Exercise Duration', 'Intensity'];
     }
 
     ngOnDestroy(): void {
@@ -233,6 +248,14 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             this.currentExercise = newExercise;
             // add to current active rows
             this.activeRows.push(newExercise);
+            // Add or update the currentExercise in dataToDisplay
+            if (!this.dataToDisplay) {
+                this.dataToDisplay = [...this.currentLog.exercises];
+                this.dataSource = new ExampleDataSource(this.dataToDisplay);
+            } else {
+                this.dataToDisplay = [...this.dataToDisplay, this.currentExercise];
+                this.dataSource.setData(this.dataToDisplay);
+            }
         } else
             this.swalCompleteRowError();
     }
@@ -259,6 +282,14 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             this.currentCardioExercise = newCardioExercise;
             // add to current active rows
             this.activeRows.push(newCardioExercise);
+            // Add or update the currentCardioExercise in dataToDisplay
+            if (!this.dataToDisplay) {
+                this.dataToDisplay = [...this.currentLog.cardioExercises];
+                this.ceDataSource = new ExampleDataSource(this.dataToDisplay);
+            } else {
+                this.dataToDisplay = [...this.dataToDisplay, this.currentCardioExercise];
+                this.ceDataSource.setData(this.dataToDisplay);
+            }
         } else
             this.swalCompleteRowError();
     }
@@ -269,6 +300,10 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
      * @param formCtrlType - form control type to search for
      */
     public checkForExerciseValue(exercise: Exercise | CardioExercise, formCtrlType: string): void {
+        //if (!this.dataToDisplay) {
+        //    this.dataToDisplay = [...this.currentLog.exercises];
+        //    this.dataSource = new ExampleDataSource(this.dataToDisplay);
+       // }
         if (exercise.formControlNames.get('name').includes(this.exerciseType)) {
             this.currentExercise = this.currentLog.exercises.find(x => x.exerciseId == exercise.exerciseId);
             let exerciseValue = this.simpleLogForm.get(this.currentExercise.formControlNames.get(formCtrlType)).value;
@@ -286,6 +321,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
                     exerciseValue.length > 0 ? this.currentExercise.weight = exerciseValue : this.currentExercise.weight = null;
                     break;
             }
+
         } else {
             this.currentCardioExercise = this.currentLog.cardioExercises.find(x => x.exerciseId == exercise.exerciseId);
             let exerciseValue = this.simpleLogForm.get(this.currentCardioExercise.formControlNames.get(formCtrlType)).value;
@@ -323,6 +359,9 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         this.simpleLogForm.removeControl(exerciseToRemove.formControlNames.get('sets'));
         this.simpleLogForm.removeControl(exerciseToRemove.formControlNames.get('reps'));
         this.simpleLogForm.removeControl(exerciseToRemove.formControlNames.get('weight'));
+
+        this.dataToDisplay = [...this.currentLog.exercises];
+        this.dataSource = new ExampleDataSource(this.dataToDisplay);
     }
 
     public removeCardioExerciseRow(cardioExerciseToRemove: CardioExercise): void {
@@ -334,6 +373,9 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         this.activeRows.splice(n, 1);
         // remove from form control group
         this.simpleLogForm.removeControl(cardioExerciseToRemove.formControlNames.get('name'));
+
+        this.dataToDisplay = [...this.currentLog.cardioExercises];
+        this.ceDataSource = new ExampleDataSource(this.dataToDisplay);
     }
 
     /**
@@ -454,5 +496,24 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
                 showConfirmButton: true
             });
         }
+    }
+}
+
+class ExampleDataSource extends DataSource<Exercise> {
+    private _dataStream = new ReplaySubject<Exercise[]>();
+  
+    constructor(initialData: Exercise[]) {
+      super();
+      this.setData(initialData);
+    }
+  
+    connect(): Observable<Exercise[]> {
+      return this._dataStream;
+    }
+  
+    disconnect() {}
+  
+    setData(data: Exercise[]) {
+      this._dataStream.next(data);
     }
 }
