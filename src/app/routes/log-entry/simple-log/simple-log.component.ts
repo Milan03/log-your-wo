@@ -1,6 +1,7 @@
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { UntypedFormGroup, UntypedFormBuilder, UntypedFormControl, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
+import { MatTable } from '@angular/material/table';
 import { Subscription } from 'rxjs';
 
 import { DurationDialogComponent } from '../duration-dialog/duration-dialog.component';
@@ -13,11 +14,13 @@ import { SharedService } from '../../../shared/services/shared.service';
 import { TranslatorService } from '../../../core/translator/translator.service';
 import { EmailService } from '../../../shared/services/email.service';
 import { GoogleAnalyticsService } from '../../../shared/services/google-analytics.service';
+import { ExerciseDataSource } from '../../../shared/data-sources/exercise-data-source';
 
 import { LogTypes, FormValues } from '../../../shared/common/common.constants';
 
 import * as moment from 'moment';
 import * as jsPDF from 'jspdf'
+import { ExerciseDialogComponent } from '../exercise-dialog/exercise-dialog.component';
 
 const swal = require('sweetalert');
 
@@ -27,16 +30,13 @@ const swal = require('sweetalert');
     styleUrls: ['./simple-log.component.scss']
 })
 export class SimpleLogComponent implements OnInit, OnDestroy {
-    @ViewChild('exerciseTable', {static: false}) exerciseTable: ElementRef;
-    
+    @ViewChild('exerciseTable', { static: false }) exerciseTable: ElementRef;
+
     public simpleLogForm: UntypedFormGroup;
     private currentLanguage: string;
     public currentLog: SimpleLog;
     private currentExercise: Exercise;
     private currentCardioExercise: CardioExercise;
-    private exerciseRowCount: number;
-    private cardioExerciseRowCount: number;
-    public activeRows: Array<Exercise | CardioExercise>;
     private currentPDF: any;
 
     public selectedIntensity: string;
@@ -48,8 +48,12 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     public readonly exerciseType: string = FormValues.ExerciseNameFormControl;
     public readonly cardioExerciseType: string = FormValues.CardioExerciseNameFormControl;
     public intensities = FormValues.ExerciseIntensities;
+    public displayedColumns: string[] = ['exerciseName', 'weight', 'sets', 'reps'];
+    public dataSource: ExerciseDataSource;
 
     private langSub: Subscription;
+
+    @ViewChild(MatTable) table: MatTable<Exercise>;
 
     constructor(
         private _formBuilder: UntypedFormBuilder,
@@ -69,9 +73,6 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         this.currentLog = new SimpleLog();
         this._sharedService.emitLogType(LogTypes.SimpleLog);
         this._sharedService.emitLogStartDatim(this.currentLog.startDatim);
-        this.exerciseRowCount = 0;
-        this.cardioExerciseRowCount = 0;
-        this.activeRows = new Array<Exercise | CardioExercise>();
         this.subToLanguageChange();
     }
 
@@ -85,7 +86,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
      * @param submitType - 'save' or 'email'
      */
     public submit(submitType: string): void {
-        if (submitType == 'save') 
+        if (submitType == 'save')
             this.savePDFSubmit();
         else
             this.emailPDFSubmit();
@@ -107,7 +108,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             this.simpleLogForm.controls[c].markAsTouched();
         }
         if (this.simpleLogForm.valid) {
-           this.openEmailDialog();
+            this.openEmailDialog();
         }
     }
 
@@ -121,7 +122,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         this.currentPDF = btoa(createdPDF);
         let request = this.createEmailRequest(recipientEmailAddress);
         this._emailService.sendMail(request).subscribe(
-            data => { 
+            data => {
                 this.swalEmailSent();
                 this._googleAnalyticsService.eventEmitter(`email_sent_success`, 'general', 'engagement');
             },
@@ -148,11 +149,11 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             title: 'Log Your Workout'
         });
         const exerciseTable = this.exerciseTable.nativeElement;
-       // doc.setFontSize(12);
-        doc.fromHTML(exerciseTable.innerHTML, 40, 20, {'width': 522 });
+        // doc.setFontSize(12);
+        doc.fromHTML(exerciseTable.innerHTML, 40, 20, { 'width': 522 });
         if (type == 'save')
             return doc;
-        else 
+        else
             return doc.output()
     }
 
@@ -206,134 +207,10 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         }
     }
 
-    /**
-     * Adds an exercise row to the page. Inserts a new form control into form control group
-     * and current log exercise array.
-     */
-    public addExerciseFormControl(): void {
-        if (this.simpleLogForm.valid) {
-            let formControlName1 = `${FormValues.ExerciseNameFormControl}${this.exerciseRowCount}`;
-            let formControlName2 = `${FormValues.ExerciseSetsFormControl}${this.exerciseRowCount}`;
-            let formControlName3 = `${FormValues.ExerciseRepsFormControl}${this.exerciseRowCount}`;
-            let formControlName4 = `${FormValues.ExerciseWeightFormControl}${this.exerciseRowCount}`;
-            this.simpleLogForm.addControl(formControlName1, new UntypedFormControl('', Validators.compose([Validators.required, Validators.maxLength(50)])));
-            this.simpleLogForm.addControl(formControlName2, new UntypedFormControl('', Validators.compose([Validators.pattern("^[0-9]*$"), Validators.maxLength(5)])));
-            this.simpleLogForm.addControl(formControlName3, new UntypedFormControl('', Validators.compose([Validators.pattern("^[0-9]*$"), Validators.maxLength(5)])));
-            this.simpleLogForm.addControl(formControlName4, new UntypedFormControl('', Validators.compose([Validators.maxLength(15)])));
-            ++this.exerciseRowCount;
-            //console.log(this.simpleLogForm.get(formControlName1));
-            // add exercise to log
-            let newExercise = new Exercise();
-            newExercise.logId = this.currentLog.logId;
-            newExercise.formControlNames.set('name', formControlName1);
-            newExercise.formControlNames.set('sets', formControlName2);
-            newExercise.formControlNames.set('reps', formControlName3);
-            newExercise.formControlNames.set('weight', formControlName4);
-            this.currentLog.exercises.push(newExercise);
-            this.currentExercise = newExercise;
-            // add to current active rows
-            this.activeRows.push(newExercise);
-        } else
-            this.swalCompleteRowError();
-    }
-
-    public addCardioExerciseFormControl(): void {
-        if (this.simpleLogForm.valid) {
-            let formControlName1 = `${FormValues.CardioExerciseNameFormControl}${this.cardioExerciseRowCount}`;
-            let formControlName2 = `${FormValues.CardioExerciseDistanceFormControl}${this.cardioExerciseRowCount}`;
-            let formControlName3 = `${FormValues.CardioExerciseTimeFormControl}${this.cardioExerciseRowCount}`;
-            let formControlName4 = `${FormValues.CardioExerciseIntensityFormControl}${this.cardioExerciseRowCount}`;
-            this.simpleLogForm.addControl(formControlName1, new UntypedFormControl('', Validators.compose([Validators.required, Validators.maxLength(50)])));
-            this.simpleLogForm.addControl(formControlName2, new UntypedFormControl('', Validators.compose([Validators.maxLength(15)])));
-            this.simpleLogForm.addControl(formControlName3, new UntypedFormControl());
-            this.simpleLogForm.addControl(formControlName4, new UntypedFormControl());
-            ++this.cardioExerciseRowCount;
-            // add cardio exercise to log
-            let newCardioExercise = new CardioExercise();
-            newCardioExercise.logId = this.currentLog.logId;
-            newCardioExercise.formControlNames.set('name', formControlName1);
-            newCardioExercise.formControlNames.set('distance', formControlName2);
-            newCardioExercise.formControlNames.set('time', formControlName3);
-            newCardioExercise.formControlNames.set('intensity', formControlName4);
-            this.currentLog.cardioExercises.push(newCardioExercise);
-            this.currentCardioExercise = newCardioExercise;
-            // add to current active rows
-            this.activeRows.push(newCardioExercise);
-        } else
-            this.swalCompleteRowError();
-    }
-
-    /**
-     * On blur of form control check the value - if present and valid add to the @var currentExercise | @var currentCardioExercise model.
-     * Find correct @var currentExercise | @var currentCardioExercise first to determine which one to update based on @param formCtrlType.
-     * @param formCtrlType - form control type to search for
-     */
-    public checkForExerciseValue(exercise: Exercise | CardioExercise, formCtrlType: string): void {
-        if (exercise.formControlNames.get('name').includes(this.exerciseType)) {
-            this.currentExercise = this.currentLog.exercises.find(x => x.exerciseId == exercise.exerciseId);
-            let exerciseValue = this.simpleLogForm.get(this.currentExercise.formControlNames.get(formCtrlType)).value;
-            switch(formCtrlType) {
-                case 'name':
-                    exerciseValue.length > 0 ? this.currentExercise.exerciseName = exerciseValue : this.currentExercise.exerciseName =  null
-                    break;
-                case 'sets':
-                    exerciseValue > 0 ? this.currentExercise.sets = +exerciseValue : this.currentExercise.sets = null;
-                    break;
-                case 'reps':
-                    exerciseValue > 0 ? this.currentExercise.reps = +exerciseValue : this.currentExercise.reps = null;
-                    break;
-                case 'weight':
-                    exerciseValue.length > 0 ? this.currentExercise.weight = exerciseValue : this.currentExercise.weight = null;
-                    break;
-            }
-        } else {
-            this.currentCardioExercise = this.currentLog.cardioExercises.find(x => x.exerciseId == exercise.exerciseId);
-            let exerciseValue = this.simpleLogForm.get(this.currentCardioExercise.formControlNames.get(formCtrlType)).value;
-            switch(formCtrlType) {
-                case 'name':
-                    exerciseValue.length > 0 ? this.currentCardioExercise.exerciseName = exerciseValue : null;
-                    break;
-                case 'distance':
-                    exerciseValue.length > 0 ? this.currentCardioExercise.distance = exerciseValue : null;
-                    break;
-            }
-        }
-    }
-
     public checkForTitleValue(): void {
         let title = this.simpleLogForm.get('title').value;
         if (title)
             this.currentLog.title = title;
-    }
-
-    /**
-     * Remove the targetted row from the page. Removes from @var currentlog.exercises and
-     * @var simpleLogForm form group.
-     * @param exerciseToRemove - exercise to be removed
-     */
-    public removeExerciseRow(exerciseToRemove: Exercise): void {
-        // find in current log and remove
-        let i = this.currentLog.exercises.findIndex(x => x.exerciseId == exerciseToRemove.exerciseId);
-        this.currentLog.exercises.splice(i, 1);
-        // find in active rows and remove
-        let n = this.activeRows.findIndex(x => x.exerciseId == exerciseToRemove.exerciseId);
-        this.activeRows.splice(n, 1);
-        // remove from form control group
-        this.simpleLogForm.removeControl(exerciseToRemove.formControlNames.get('name'));
-        this.simpleLogForm.removeControl(exerciseToRemove.formControlNames.get('sets'));
-        this.simpleLogForm.removeControl(exerciseToRemove.formControlNames.get('reps'));
-        this.simpleLogForm.removeControl(exerciseToRemove.formControlNames.get('weight'));
-    }
-
-    public removeCardioExerciseRow(cardioExerciseToRemove: CardioExercise): void {
-        // find in current log and remove
-        let i = this.currentLog.cardioExercises.findIndex(x => x.exerciseId == cardioExerciseToRemove.exerciseId);
-        this.currentLog.cardioExercises.splice(i, 1);
-        // find in active rows and remove
-        let n = this.activeRows.findIndex(x => x.exerciseId == cardioExerciseToRemove.exerciseId);
-        this.activeRows.splice(n, 1);
-        // remove from form control group
-        this.simpleLogForm.removeControl(cardioExerciseToRemove.formControlNames.get('name'));
     }
 
     /**
@@ -346,7 +223,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         dialogRef.afterClosed().subscribe(result => {
             this.currentCardioExercise = result;
             //console.log(this.currentLog.cardioExercises.find(x => x.exerciseId == exercise.exerciseId));
-        }); 
+        });
     }
 
     public openEmailDialog(): void {
@@ -359,16 +236,25 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         });
     }
 
-    /**
-     * Track exercise intensity set for the particular cardio exercise row.
-     * @param intensity - i.e. easy, moderate, hard, maximal
-     * @param exercise - exercise to be updated
-     */
-    public onIntensityChange(intensity: any, exercise: CardioExercise): void {
-        if (intensity) {
-            this.currentCardioExercise = this.currentLog.cardioExercises.find(x => x.exerciseId == exercise.exerciseId);
-            this.currentCardioExercise.intensity = +intensity.value;
-        }
+    public openExerciseDialog(): void {
+        let dialogRef = this._dialog.open(ExerciseDialogComponent);
+        dialogRef.afterClosed().subscribe(result => {
+            if (result) {
+                //console.log(`exercise dialog: ${result}`);
+                let newExercise: Exercise = result;
+                if (!this.currentLog.exercises) {
+                    this.currentLog.exercises = new Array<Exercise>();
+                }
+                this.currentLog.exercises.push(newExercise);
+                this.currentExercise = newExercise;
+                // Add or update the currentExercise in dataToDisplay
+                if (this.currentLog.exercises) {
+                    this.dataSource = new ExerciseDataSource(this.currentLog.exercises);
+                } else {
+                    this.dataSource.setData(this.currentLog.exercises);
+                }
+            }
+        });
     }
 
     /**

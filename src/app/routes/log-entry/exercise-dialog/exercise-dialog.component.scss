@@ -1,0 +1,39 @@
+.mda-form-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px; /* Space between form groups */
+}
+
+.mda-form-control {
+    margin-top: 8px;
+    margin-bottom: 4px; /* Space for the label to float */
+}
+
+.float-label label {
+    color: #666; /* Label color */
+    transition: all 0.3s ease; /* Smooth transition for floating labels */
+}
+
+.float-label input:focus + label {
+    color: #0056b3; /* Highlight color when focused */
+    font-size: 0.85rem; /* Smaller size when the label floats */
+}
+
+.btn {
+    padding: 0.375rem 0.75rem; /* Padding for buttons */
+    margin: 0.375rem; /* Margin around buttons for spacing */
+    cursor: pointer; /* Cursor to indicate clickable */
+    border: 1px solid transparent; /* Border setup */
+}
+
+.btn-primary {
+    color: #fff; /* Text color */
+    background-color: #007bff; /* Primary button color */
+    border-color: #007bff; /* Border color to match */
+}
+
+.btn-secondary {
+    color: #fff; /* Text color */
+    background-color: #6c757d; /* Secondary button color */
+    border-color: #6c757d; /* Border color to match */
+}

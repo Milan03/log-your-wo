@@ -42,6 +42,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { EmailService } from './services/email.service';
 
+import { FormatDurationPipe } from './pipes/format-duration.pipe';
+
 // https://angular.io/styleguide#!#04-10
 @NgModule({
     imports: [
@@ -90,6 +92,7 @@ import { EmailService } from './services/email.service';
         EmailService
     ],
     declarations: [
+        FormatDurationPipe
     ],
     exports: [
         CommonModule,
@@ -131,7 +134,8 @@ import { EmailService } from './services/email.service';
         MatToolbarModule,
         MatTooltipModule,
         MatNativeDateModule,
-        MatStepperModule
+        MatStepperModule,
+        FormatDurationPipe
     ]
 })
 
