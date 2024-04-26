@@ -1,10 +1,12 @@
 @import '../../../shared/styles/common.scss';
 
 .content-heading {
-    position: fixed;
-    z-index: 121;
-    width: 100%;
-    top: 80px;
+    //position: fixed;
+    //z-index: 121;
+    //width: 100%;
+    margin-top: 30px;
+    display: flex;
+    justify-content: space-between;
 }
 
 .content-heading .mda-form-group {
@@ -14,8 +16,10 @@
     }
 }
 
-.container-lg {
-    margin-top: 12em;
+.right-content {
+    margin-top: 0.6em;
+    display: flex;
+    align-items: center; /* Centers items vertically */
 }
 
 #exercise-btns {
@@ -68,6 +72,7 @@ mat-form-field {
 
 table {
     width: 100%;
+    margin-bottom: 2em;
 }
 
 #exerciseTable {
@@ -101,6 +106,9 @@ table {
         button {
             width: 100%;
         }
+    }
+    .right-content {
+        margin-top: 1em;
     }
 }
 

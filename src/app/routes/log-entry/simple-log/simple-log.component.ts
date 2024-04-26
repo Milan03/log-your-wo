@@ -20,6 +20,7 @@ import { LogTypes, FormValues } from '../../../shared/common/common.constants';
 import * as moment from 'moment';
 import * as jsPDF from 'jspdf'
 import { ExerciseDialogComponent } from '../exercise-dialog/exercise-dialog.component';
+import { CardioExerciseDataSource } from 'src/app/shared/data-sources/cardio-exercises-data-source';
 
 const swal = require('sweetalert');
 
@@ -36,7 +37,9 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     public currentLog: SimpleLog;
     private currentExercise: Exercise;
     private currentCardioExercise: CardioExercise;
-    private currentPDF: any;
+    private currentPDF: any
+    public dataSource: ExerciseDataSource;
+    public cDataSource: CardioExerciseDataSource;
 
     public selectedIntensity: string;
 
@@ -48,7 +51,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     public readonly cardioExerciseType: string = FormValues.CardioExerciseNameFormControl;
     public intensities = FormValues.ExerciseIntensities;
     public displayedColumns: string[] = ['exerciseName', 'weight', 'sets', 'reps'];
-    public dataSource: ExerciseDataSource;
+    public cardioColumns: string[] = ['exerciseName', 'distance', 'duration', 'intensity'];
 
     private langSub: Subscription;
 
@@ -242,7 +245,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
                 //console.log(`exercise dialog: ${result}`);
                 let newExercise: Exercise = result;
                 this.currentLog.exercises.push(newExercise);
-                this.currentExercise = newExercise;
+                //this.currentExercise = newExercise;
                 // Add or update the currentExercise in dataToDisplay
                 if (this.currentLog.exercises) {
                     this.dataSource = new ExerciseDataSource(this.currentLog.exercises);
@@ -259,13 +262,13 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             if (result) {
                 //console.log(`exercise dialog: ${result}`);
                 let newExercise: Exercise = result;
-                this.currentLog.exercises.push(newExercise);
-                this.currentExercise = newExercise;
+                this.currentLog.cardioExercises.push(newExercise);
+                //this.currentExercise = newExercise;
                 // Add or update the currentExercise in dataToDisplay
-                if (this.currentLog.exercises) {
-                    this.dataSource = new ExerciseDataSource(this.currentLog.exercises);
+                if (this.currentLog.cardioExercises) {
+                    this.cDataSource = new CardioExerciseDataSource(this.currentLog.cardioExercises);
                 } else {
-                    this.dataSource.setData(this.currentLog.exercises);
+                    this.cDataSource.setData(this.currentLog.cardioExercises);
                 }
             }
         });

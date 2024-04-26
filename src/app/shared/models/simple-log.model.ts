@@ -9,12 +9,12 @@ export class SimpleLog {
         public endDatim?: Date,
         public title?: string,
         public exercises?: Array<Exercise>,
-        public cardioExercises?: Array<CardioExercise>,
+        public cardioExercises?: Array<Exercise>,
         public notes?: string
     ) { 
         this.logId = Guid.create();
         this.startDatim = new Date();
         this.exercises = new Array<Exercise>();
-        this.cardioExercises = new Array<CardioExercise>();
+        this.cardioExercises = new Array<Exercise>();
     }
 }

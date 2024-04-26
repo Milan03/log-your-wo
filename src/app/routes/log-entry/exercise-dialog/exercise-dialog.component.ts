@@ -49,6 +49,17 @@ export class ExerciseDialogComponent {
             'intensity': ['']
         });
         this.currentExercise = new Exercise();
+        this.exerciseLogForm.get('exerciseName').setValue('Snatch');
+        this.exerciseLogForm.get('weight').setValue('155lbs');
+        this.exerciseLogForm.get('sets').setValue(3);
+        this.exerciseLogForm.get('reps').setValue(5);
+        this.exerciseLogForm.get('distance').setValue('10km');
+        //this.exerciseLogForm.get('duration').setValue(moment.duration(60).toISOString());
+        this.exerciseLogForm.get('intensity').setValue(3);
+        this.exerciseLogForm.get('exerciseName').setValue('Snatch');
+        for (let c in this.exerciseLogForm.controls) {
+            this.exerciseLogForm.controls[c].markAsTouched();
+        }
         this.currentExercise.exerciseType = _exerciseType.exerciseType;
     }
 
