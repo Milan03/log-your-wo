@@ -4,7 +4,6 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatTable } from '@angular/material/table';
 import { Subscription } from 'rxjs';
 
-import { DurationDialogComponent } from '../duration-dialog/duration-dialog.component';
 import { EmailDialogComponent } from '../email-dialog/email-dialog.component';
 import { Exercise } from '../../../shared/models/exercise.model';
 import { CardioExercise } from '../../../shared/models/cardio-exercise.model';
@@ -216,7 +215,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     /**
      * Mat dialog click events to open respective dialogs.
      */
-    public openDialog(exercise: CardioExercise): void {
+   /* public openDialog(exercise: CardioExercise): void {
         let dialogRef = this._dialog.open(DurationDialogComponent);
         this.currentCardioExercise = this.currentLog.cardioExercises.find(x => x.exerciseId == exercise.exerciseId);
         this._sharedService.emitCvExercise(this.currentCardioExercise);
@@ -224,7 +223,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             this.currentCardioExercise = result;
             //console.log(this.currentLog.cardioExercises.find(x => x.exerciseId == exercise.exerciseId));
         });
-    }
+    }*/
 
     public openEmailDialog(): void {
         let dialogRef = this._dialog.open(EmailDialogComponent);
@@ -237,14 +236,29 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     }
 
     public openExerciseDialog(): void {
-        let dialogRef = this._dialog.open(ExerciseDialogComponent);
+        let dialogRef = this._dialog.open(ExerciseDialogComponent, {data: { exerciseType: 'strength' }});
         dialogRef.afterClosed().subscribe(result => {
             if (result) {
                 //console.log(`exercise dialog: ${result}`);
                 let newExercise: Exercise = result;
-                if (!this.currentLog.exercises) {
-                    this.currentLog.exercises = new Array<Exercise>();
+                this.currentLog.exercises.push(newExercise);
+                this.currentExercise = newExercise;
+                // Add or update the currentExercise in dataToDisplay
+                if (this.currentLog.exercises) {
+                    this.dataSource = new ExerciseDataSource(this.currentLog.exercises);
+                } else {
+                    this.dataSource.setData(this.currentLog.exercises);
                 }
+            }
+        });
+    }
+
+    public openCardioExerciseDialog(): void {
+        let dialogRef = this._dialog.open(ExerciseDialogComponent, {data: { exerciseType: 'cardio' }});
+        dialogRef.afterClosed().subscribe(result => {
+            if (result) {
+                //console.log(`exercise dialog: ${result}`);
+                let newExercise: Exercise = result;
                 this.currentLog.exercises.push(newExercise);
                 this.currentExercise = newExercise;
                 // Add or update the currentExercise in dataToDisplay

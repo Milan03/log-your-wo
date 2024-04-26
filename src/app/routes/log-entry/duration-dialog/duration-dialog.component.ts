@@ -2,7 +2,7 @@ import { Component, OnDestroy } from '@angular/core';
 import { MatDialogRef } from '@angular/material/dialog';
 import { Subscription } from 'rxjs';
 
-import { CardioExercise } from '../../../shared/models/cardio-exercise.model';
+import { Exercise } from '../../../shared/models/exercise.model';
 import { SharedService } from '../../../shared/services/shared.service';
 
 import * as moment from 'moment';
@@ -14,9 +14,9 @@ import * as moment from 'moment';
 })
 export class DurationDialogComponent implements OnDestroy {
     public durationValue: Date;
-    public currentCardioExercise: CardioExercise;
+    public currentExercise: Exercise;
 
-    private cvExerciseSub: Subscription;
+    private exerciseSub: Subscription;
 
     constructor(
         public _dialogRef: MatDialogRef<DurationDialogComponent>,
@@ -26,22 +26,22 @@ export class DurationDialogComponent implements OnDestroy {
     }
 
     ngOnDestroy(): void {
-        if (this.cvExerciseSub)
-            this.cvExerciseSub.unsubscribe();
+        if (this.exerciseSub)
+            this.exerciseSub.unsubscribe();
     }
 
     /**
      * Track exercise being editted. If the exercise has a duration defined, set it in the control.
      */
     private subToCurrentCardioExercise(): void {
-        this.cvExerciseSub = this._sharedService.cvExerciseEmitted$.subscribe(
+        this.exerciseSub = this._sharedService.exerciseEmitted$.subscribe(
             data => { 
-                this.currentCardioExercise = data;
-                if (this.currentCardioExercise.exerciseDuration) {
+                this.currentExercise = data;
+                if (this.currentExercise.duration) {
                     this.durationValue = new Date();
-                    this.durationValue.setHours(this.currentCardioExercise.exerciseDuration.get('hours'));
-                    this.durationValue.setMinutes(this.currentCardioExercise.exerciseDuration.get('minutes'));
-                    this.durationValue.setSeconds(this.currentCardioExercise.exerciseDuration.get('seconds'));
+                    this.durationValue.setHours(this.currentExercise.duration.get('hours'));
+                    this.durationValue.setMinutes(this.currentExercise.duration.get('minutes'));
+                    this.durationValue.setSeconds(this.currentExercise.duration.get('seconds'));
                 }
             }
         );
@@ -55,7 +55,7 @@ export class DurationDialogComponent implements OnDestroy {
     public onDurationChange(dateTime: Date): void {
         if (dateTime) {
             let duration = moment.duration({ hours: dateTime.getHours(), minutes: dateTime.getMinutes(), seconds: dateTime.getSeconds() });
-            this.currentCardioExercise.exerciseDuration = duration;
+            this.currentExercise.duration = duration;
             //console.log(this.currentCardioExercise);
         }
     }

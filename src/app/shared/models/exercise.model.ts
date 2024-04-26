@@ -1,16 +1,26 @@
 import { Guid } from 'guid-typescript';
+import * as moment from 'moment';
 
 export class Exercise {
     constructor(
         public exerciseId?: Guid,
         public logId?: Guid,
-        public formControlNames?: Map<string, string>,
         public exerciseName?: string,
+        public exerciseType?: string,
         public sets?: number,
         public reps?: number,
-        public weight?: string
+        public weight?: string,
+        public duration?: moment.Duration,
+        public distance?: number, // in kilometers
+        public intensity?: Intensity
     ) {
         this.exerciseId = Guid.create();
-        this.formControlNames = new Map<string, string>();
      }
+}
+
+enum Intensity {
+    Easy = 1, 
+    Moderate,
+    Hard,
+    Maximal
 }
