@@ -15,10 +15,11 @@ export class Exercise {
         public intensity?: Intensity
     ) {
         this.exerciseId = Guid.create();
+        this.duration = moment.duration();
      }
 }
 
-enum Intensity {
+export enum Intensity {
     Easy = 1, 
     Moderate,
     Hard,
