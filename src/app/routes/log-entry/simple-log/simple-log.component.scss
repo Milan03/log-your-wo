@@ -1,9 +1,6 @@
 @import '../../../shared/styles/common.scss';
 
 .content-heading {
-    //position: fixed;
-    //z-index: 121;
-    //width: 100%;
     margin-top: 30px;
     display: flex;
     justify-content: space-between;
@@ -20,6 +17,10 @@
     margin-top: 0.6em;
     display: flex;
     align-items: center; /* Centers items vertically */
+}
+
+input.mda-form-control[name="title"] {
+    width: 15em;
 }
 
 #exercise-btns {
@@ -109,6 +110,9 @@ table {
     }
     .right-content {
         margin-top: 1em;
+    }
+    input.mda-form-control[name="title"] {
+        width: 7em;
     }
 }
 

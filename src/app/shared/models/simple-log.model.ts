@@ -1,6 +1,5 @@
 import { Guid } from 'guid-typescript';
 import { Exercise } from './exercise.model';
-import { CardioExercise } from './cardio-exercise.model';
 
 export class SimpleLog {
     constructor(
