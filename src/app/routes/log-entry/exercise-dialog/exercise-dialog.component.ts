@@ -73,7 +73,12 @@ export class ExerciseDialogComponent {
             this.exerciseLogForm.controls[c].markAsTouched();
         }
         if (this.exerciseLogForm.valid) {
-            this._dialogRef.close(this.exerciseLogForm.value);
+            this.currentExercise.exerciseName = this.exerciseLogForm.get('exerciseName').value;
+            this.currentExercise.weight = this.exerciseLogForm.get('weight').value;
+            this.currentExercise.sets = this.exerciseLogForm.get('sets').value;
+            this.currentExercise.reps = this.exerciseLogForm.get('reps').value;
+            this.currentExercise.distance = this.exerciseLogForm.get('distance').value;
+            this._dialogRef.close(this.currentExercise);
         }
     }
 
@@ -96,8 +101,7 @@ export class ExerciseDialogComponent {
     */
     public onIntensityChange(intensity: any): void {
         if (intensity) {
-            //this.currentCardioExercise = this.current.cardioExercises.find(x => x.exerciseId == exercise.exerciseId);
-            this.currentExercise.intensity = +intensity.value;
+            this.currentExercise.intensity = intensity.value;
         }
     }
 

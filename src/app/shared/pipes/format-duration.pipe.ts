@@ -6,6 +6,6 @@ import * as moment from 'moment';
 })
 export class FormatDurationPipe implements PipeTransform {
   transform(value: any): any {
-    return moment.utc(value).format('HH:mm:ss');
+    return moment.utc(value.asMilliseconds()).format("HH[h] mm[m] ss[s]");
   }
 }
