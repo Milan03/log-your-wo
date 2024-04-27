@@ -1,28 +1,4 @@
 <div [formGroup]="simpleLogForm">
-    <table mat-table *ngIf="currentLog.exercises.length > 0" [dataSource]="dataSource"
-        class="container-lg mat-elevation-z8">
-        <!-- Position Column -->
-        <ng-container matColumnDef="exerciseName">
-            <th mat-header-cell *matHeaderCellDef> {{ 'log-entry.ExerciseName' | translate }} </th>
-            <td mat-cell *matCellDef="let exercise"> {{exercise.exerciseName}} </td>
-        </ng-container>
-        <ng-container matColumnDef="weight">
-            <th mat-header-cell *matHeaderCellDef> {{ 'log-entry.ExerciseWeight' | translate }} </th>
-            <td mat-cell *matCellDef="let exercise"> {{exercise.weight}} </td>
-        </ng-container>
-        <ng-container matColumnDef="sets">
-            <th mat-header-cell *matHeaderCellDef> {{ 'log-entry.ExerciseSets' | translate }} </th>
-            <td mat-cell *matCellDef="let exercise"> {{exercise.sets}} </td>
-        </ng-container>
-        <ng-container matColumnDef="reps">
-            <th mat-header-cell *matHeaderCellDef> {{ 'log-entry.ExerciseReps' | translate }} </th>
-            <td mat-cell *matCellDef="let exercise"> {{exercise.reps}} </td>
-        </ng-container>
-
-        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-    </table>
-
     <!-- START Add Exercise Heading START -->
     <div class="content-heading">
         <div class="mda-form-group float-label first-fg">
@@ -33,15 +9,67 @@
                 *ngIf="simpleLogForm.get('title').hasError('maxlength') && (simpleLogForm.get('title').dirty || simpleLogForm.get('title').touched)">{{
                 'global.CharacterLimit' | translate }} {{ titleCharLimit }}</mat-error>
         </div>
-        <div>{{ 'log-entry.AddExercise' | translate }}</div>
-        <div id="exercise-btns">
-            <button class="mb-1 mr-1 btn btn-primary" type="button" (click)="openExerciseDialog()">+ <em
-                    class="fa fa-dumbbell"></em></button>
-            <button class="mb-1 mr-1 btn btn-primary" type="button">+ <em class="fa fa-running"></em></button>
+        <div class="right-content">
+            <div>{{ 'log-entry.AddExercise' | translate }}</div>
+            <div id="exercise-btns">
+                <button class="mb-1 mr-1 btn btn-primary" type="button" (click)="openExerciseDialog()">+ <em
+                        class="fa fa-dumbbell"></em></button>
+                <button class="mb-1 mr-1 btn btn-primary" type="button" (click)="openCardioExerciseDialog()">+ <em
+                        class="fa fa-running"></em></button>
+            </div>
         </div>
     </div>
     <!-- END Add Exercise Heading END -->
-</div>
+    <div class="container-lg">
+        <!-- START Exercise Grid START -->
+        <table mat-table *ngIf="currentLog.exercises.length > 0" [dataSource]="dataSource" class="mat-elevation-z8">
+            <!-- Position Column -->
+            <ng-container matColumnDef="exerciseName">
+                <th mat-header-cell *matHeaderCellDef> {{ 'log-entry.ExerciseName' | translate }} </th>
+                <td mat-cell *matCellDef="let exercise"> {{ exercise.exerciseName }} </td>
+            </ng-container>
+            <ng-container matColumnDef="weight">
+                <th mat-header-cell *matHeaderCellDef> {{ 'log-entry.ExerciseWeight' | translate }} </th>
+                <td mat-cell *matCellDef="let exercise"> {{ exercise.weight }} </td>
+            </ng-container>
+            <ng-container matColumnDef="sets">
+                <th mat-header-cell *matHeaderCellDef> {{ 'log-entry.ExerciseSets' | translate }} </th>
+                <td mat-cell *matCellDef="let exercise"> {{ exercise.sets }} </td>
+            </ng-container>
+            <ng-container matColumnDef="reps">
+                <th mat-header-cell *matHeaderCellDef> {{ 'log-entry.ExerciseReps' | translate }} </th>
+                <td mat-cell *matCellDef="let exercise"> {{ exercise.reps }} </td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+        <!-- END Exercise Grid END -->
+        <!-- START Cardio Exercise Grid START -->
+        <table mat-table *ngIf="currentLog.cardioExercises.length > 0" [dataSource]="cDataSource"
+            class="mat-elevation-z8">
+            <!-- Position Column -->
+            <ng-container matColumnDef="exerciseName">
+                <th mat-header-cell *matHeaderCellDef> {{ 'log-entry.ExerciseName' | translate }} </th>
+                <td mat-cell *matCellDef="let exercise"> {{ exercise.exerciseName }} </td>
+            </ng-container>
+            <ng-container matColumnDef="distance">
+                <th mat-header-cell *matHeaderCellDef> {{ 'log-entry.ExerciseDistance' | translate }} </th>
+                <td mat-cell *matCellDef="let exercise"> {{ exercise.distance }} </td>
+            </ng-container>
+            <ng-container matColumnDef="duration">
+                <th mat-header-cell *matHeaderCellDef> {{ 'log-entry.ExerciseDuration' | translate }} </th>
+                <td mat-cell *matCellDef="let exercise"> {{ exercise.duration | formatDuration }} </td>
+            </ng-container>
+            <ng-container matColumnDef="intensity">
+                <th mat-header-cell *matHeaderCellDef> {{ 'log-entry.ExerciseIntensity' | translate }} </th>
+                <td mat-cell *matCellDef="let exercise"> {{ exercise.intensity }} </td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="cardioColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: cardioColumns;"></tr>
+        </table>
+        <!-- END Cardio Exercise Grid END -->
+    </div> <!-- END Content Body END -->
+</div> <!-- END Form Group END -->
 <!-- START Exercise PDF Table START -->
 <div id="exerciseTable" #exerciseTable>
     <h1 *ngIf="currentLog.exercises.length > 0 || currentLog.cardioExercises.length > 0">{{ 'global.LogYourWorkout'

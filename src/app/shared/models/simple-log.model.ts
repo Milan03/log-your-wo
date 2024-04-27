@@ -1,6 +1,5 @@
 import { Guid } from 'guid-typescript';
 import { Exercise } from './exercise.model';
-import { CardioExercise } from './cardio-exercise.model';
 
 export class SimpleLog {
     constructor(
@@ -9,12 +8,12 @@ export class SimpleLog {
         public endDatim?: Date,
         public title?: string,
         public exercises?: Array<Exercise>,
-        public cardioExercises?: Array<CardioExercise>,
+        public cardioExercises?: Array<Exercise>,
         public notes?: string
     ) { 
         this.logId = Guid.create();
         this.startDatim = new Date();
         this.exercises = new Array<Exercise>();
-        this.cardioExercises = new Array<CardioExercise>();
+        this.cardioExercises = new Array<Exercise>();
     }
 }

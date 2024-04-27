@@ -1,13 +1,12 @@
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
-import { UntypedFormGroup, UntypedFormBuilder, UntypedFormControl, Validators } from '@angular/forms';
+import { UntypedFormGroup, UntypedFormBuilder, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { MatTable } from '@angular/material/table';
 import { Subscription } from 'rxjs';
 
-import { DurationDialogComponent } from '../duration-dialog/duration-dialog.component';
+import { ExerciseDialogComponent } from '../exercise-dialog/exercise-dialog.component';
 import { EmailDialogComponent } from '../email-dialog/email-dialog.component';
 import { Exercise } from '../../../shared/models/exercise.model';
-import { CardioExercise } from '../../../shared/models/cardio-exercise.model';
 import { SimpleLog } from '../../../shared/models/simple-log.model';
 import { EmailRequest } from '../../../shared/models/email-request.model';
 import { SharedService } from '../../../shared/services/shared.service';
@@ -15,12 +14,12 @@ import { TranslatorService } from '../../../core/translator/translator.service';
 import { EmailService } from '../../../shared/services/email.service';
 import { GoogleAnalyticsService } from '../../../shared/services/google-analytics.service';
 import { ExerciseDataSource } from '../../../shared/data-sources/exercise-data-source';
+import { CardioExerciseDataSource } from '../../../shared/data-sources/cardio-exercises-data-source';
 
 import { LogTypes, FormValues } from '../../../shared/common/common.constants';
 
 import * as moment from 'moment';
 import * as jsPDF from 'jspdf'
-import { ExerciseDialogComponent } from '../exercise-dialog/exercise-dialog.component';
 
 const swal = require('sweetalert');
 
@@ -35,21 +34,21 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     public simpleLogForm: UntypedFormGroup;
     private currentLanguage: string;
     public currentLog: SimpleLog;
-    private currentExercise: Exercise;
-    private currentCardioExercise: CardioExercise;
-    private currentPDF: any;
+    private currentPDF: any
+    public dataSource: ExerciseDataSource;
+    public cDataSource: CardioExerciseDataSource;
 
     public selectedIntensity: string;
 
     public readonly exerciseNameCharLimit: number = 50;
     public readonly exerciseNumericCharLimit: number = 5;
     public readonly exerciseAlphaNumericCharLimit: number = 15;
-    public readonly titleCharLimit: number = 75;
+    public readonly titleCharLimit: number = 25;
     public readonly exerciseType: string = FormValues.ExerciseNameFormControl;
     public readonly cardioExerciseType: string = FormValues.CardioExerciseNameFormControl;
     public intensities = FormValues.ExerciseIntensities;
     public displayedColumns: string[] = ['exerciseName', 'weight', 'sets', 'reps'];
-    public dataSource: ExerciseDataSource;
+    public cardioColumns: string[] = ['exerciseName', 'distance', 'duration', 'intensity'];
 
     private langSub: Subscription;
 
@@ -64,7 +63,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         private _googleAnalyticsService: GoogleAnalyticsService
     ) {
         this.simpleLogForm = this._formBuilder.group({
-            'title': ['', Validators.compose([Validators.maxLength(75)])]
+            'title': ['', Validators.compose([Validators.maxLength(25)])]
         });
     }
 
@@ -213,19 +212,6 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             this.currentLog.title = title;
     }
 
-    /**
-     * Mat dialog click events to open respective dialogs.
-     */
-    public openDialog(exercise: CardioExercise): void {
-        let dialogRef = this._dialog.open(DurationDialogComponent);
-        this.currentCardioExercise = this.currentLog.cardioExercises.find(x => x.exerciseId == exercise.exerciseId);
-        this._sharedService.emitCvExercise(this.currentCardioExercise);
-        dialogRef.afterClosed().subscribe(result => {
-            this.currentCardioExercise = result;
-            //console.log(this.currentLog.cardioExercises.find(x => x.exerciseId == exercise.exerciseId));
-        });
-    }
-
     public openEmailDialog(): void {
         let dialogRef = this._dialog.open(EmailDialogComponent);
         dialogRef.afterClosed().subscribe(result => {
@@ -237,21 +223,32 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     }
 
     public openExerciseDialog(): void {
-        let dialogRef = this._dialog.open(ExerciseDialogComponent);
+        let dialogRef = this._dialog.open(ExerciseDialogComponent, {data: { exerciseType: 'strength' }});
         dialogRef.afterClosed().subscribe(result => {
             if (result) {
                 //console.log(`exercise dialog: ${result}`);
                 let newExercise: Exercise = result;
-                if (!this.currentLog.exercises) {
-                    this.currentLog.exercises = new Array<Exercise>();
-                }
                 this.currentLog.exercises.push(newExercise);
-                this.currentExercise = newExercise;
-                // Add or update the currentExercise in dataToDisplay
                 if (this.currentLog.exercises) {
                     this.dataSource = new ExerciseDataSource(this.currentLog.exercises);
                 } else {
                     this.dataSource.setData(this.currentLog.exercises);
+                }
+            }
+        });
+    }
+
+    public openCardioExerciseDialog(): void {
+        let dialogRef = this._dialog.open(ExerciseDialogComponent, {data: { exerciseType: 'cardio' }});
+        dialogRef.afterClosed().subscribe(result => {
+            if (result) {
+                //console.log(`exercise dialog: ${result}`);
+                let newExercise: Exercise = result;
+                this.currentLog.cardioExercises.push(newExercise);
+                if (this.currentLog.cardioExercises) {
+                    this.cDataSource = new CardioExerciseDataSource(this.currentLog.cardioExercises);
+                } else {
+                    this.cDataSource.setData(this.currentLog.cardioExercises);
                 }
             }
         });
@@ -276,14 +273,6 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     /**
      * Sweet alert prompts.
      */
-    private swalCompleteRowError(): void {
-        if (this.currentLanguage == FormValues.ENCode) {
-            swal('Complete Current Row', 'Please complete the current row before trying to add another.', 'info');
-        } else {
-            swal('Compl\u00E9ter la ligne actuelle', 'Veuillez compl\u00E9ter la ligne actuelle avant d\'essayer d\'en ajouter une autre.', 'info');
-        }
-    }
-
     private swalEmailSending(): void {
         if (this.currentLanguage == FormValues.ENCode) {
             swal({

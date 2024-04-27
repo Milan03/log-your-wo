@@ -1,3 +1,5 @@
+@import '../../../shared/styles/common';
+
 .mda-form-group {
     display: flex;
     flex-direction: column;
@@ -36,4 +38,26 @@
     color: #fff; /* Text color */
     background-color: #6c757d; /* Secondary button color */
     border-color: #6c757d; /* Border color to match */
+}
+
+.duration-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Spacing between button and duration display */
+}
+
+.duration-edit-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px 10px; /* Smaller padding for a compact look */
+    font-size: 16px; /* Larger font size for better visibility */
+}
+
+.duration-display {
+    background-color: #f8f9fa; /* Light background for the duration display */
+    border: 1px solid #ccc; /* Subtle border */
+    padding: 5px 10px; /* Padding for aesthetic spacing */
+    border-radius: 5px; /* Rounded corners for modern look */
+    cursor: pointer; /* Indicates that the element is clickable */
 }
