@@ -1,6 +1,6 @@
-<div class="row">
+<div class="row footer">
     <span id="app-info">&copy; {{_settings.getAppSetting('year')}} - {{ _settings.getAppSetting('name') }}</span>
-    <div class="ml-auto">
+    <div class="language-select">
         <mat-form-field>
             <mat-select placeholder="{{ 'global.Language' | translate }}" (selectionChange)="setLang($event)" [(ngModel)]="selectedLanguage">
                 <mat-option *ngFor="let lang of getLangs()" [value]="lang.code">
