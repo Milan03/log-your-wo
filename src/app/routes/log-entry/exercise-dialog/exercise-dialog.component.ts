@@ -1,19 +1,18 @@
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef, Inject } from '@angular/core';
-import { UntypedFormGroup, UntypedFormBuilder, UntypedFormControl, Validators } from '@angular/forms';
+import { Component, Inject } from '@angular/core';
+import { UntypedFormGroup, UntypedFormBuilder, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
-import { MatTable } from '@angular/material/table';
-import { Observable, ReplaySubject, Subscription, map, startWith } from 'rxjs';
+import { Observable, Subscription, map, startWith } from 'rxjs';
 
 import { Exercise } from '../../../shared/models/exercise.model';
+import { DurationDialogComponent } from '../duration-dialog/duration-dialog.component';
 import { SharedService } from '../../../shared/services/shared.service';
 import { TranslatorService } from '../../../core/translator/translator.service';
-import { EmailService } from '../../../shared/services/email.service';
 import { GoogleAnalyticsService } from '../../../shared/services/google-analytics.service';
+import { ExerciseDirectoryService } from '../../../shared/services/exercise-directory.service';
 
-import { LogTypes, FormValues } from '../../../shared/common/common.constants';
-import { DurationDialogComponent } from '../duration-dialog/duration-dialog.component';
+import { FormValues } from '../../../shared/common/common.constants';
+
 import * as moment from 'moment';
-import { ExerciseDirectoryService } from 'src/app/shared/services/exercise-directory.service';
 
 @Component({
     selector: 'exercise-dialog',
