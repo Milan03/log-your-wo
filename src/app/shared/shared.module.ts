@@ -41,6 +41,7 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { EmailService } from './services/email.service';
+import { ExerciseDirectoryService } from './services/exercise-directory.service';
 
 import { FormatDurationPipe } from './pipes/format-duration.pipe';
 import { IntensityFormatPipe } from './pipes/format-intensity.pipe';
@@ -90,7 +91,8 @@ import { IntensityFormatPipe } from './pipes/format-intensity.pipe';
         MatStepperModule
     ],
     providers: [
-        EmailService
+        EmailService,
+        ExerciseDirectoryService
     ],
     declarations: [
         FormatDurationPipe,

@@ -1,63 +1,119 @@
 @import '../../../shared/styles/common';
 
+/* General Form Group Styling */
 .mda-form-group {
     display: flex;
     flex-direction: column;
-    margin-bottom: 20px; /* Space between form groups */
+    margin-bottom: 20px;
+    /* Re-enabled margin for better spacing */
 }
 
 .mda-form-control {
     margin-top: 8px;
-    margin-bottom: 4px; /* Space for the label to float */
+    margin-bottom: 4px;
+    display: block;
 }
 
+.mda-form-group .mat-form-field {
+    width: 100%;
+    margin-top: 8px;
+    margin-bottom: 4px;
+}
+
+/* Handling Flex Children Overflow */
+.mda-form-group .mat-form-field-wrapper {
+    margin-top: 4px;
+}
+
+/* Label Color and Transition for Focus */
 .float-label label {
-    color: #666; /* Label color */
-    transition: all 0.3s ease; /* Smooth transition for floating labels */
+    color: #666;
+    transition: all 0.3s ease;
 }
 
-.float-label input:focus + label {
-    color: #0056b3; /* Highlight color when focused */
-    font-size: 0.85rem; /* Smaller size when the label floats */
+.float-label input:focus+label {
+    color: #0056b3;
+    font-size: 0.85rem;
 }
 
+/* Button Styling */
 .btn {
-    padding: 0.375rem 0.75rem; /* Padding for buttons */
-    margin: 0.375rem; /* Margin around buttons for spacing */
-    cursor: pointer; /* Cursor to indicate clickable */
-    border: 1px solid transparent; /* Border setup */
+    padding: 0.375rem 0.75rem;
+    margin: 0.375rem;
+    cursor: pointer;
+    border: 1px solid transparent;
 }
 
 .btn-primary {
-    color: #fff; /* Text color */
-    background-color: #007bff; /* Primary button color */
-    border-color: #007bff; /* Border color to match */
+    color: #fff;
+    background-color: #007bff;
+    border-color: #007bff;
 }
 
 .btn-secondary {
-    color: #fff; /* Text color */
-    background-color: #6c757d; /* Secondary button color */
-    border-color: #6c757d; /* Border color to match */
+    color: #fff;
+    background-color: #6c757d;
+    border-color: #6c757d;
 }
 
+/* Duration Control Flexbox Styling */
 .duration-controls {
     display: flex;
     align-items: center;
-    gap: 10px; /* Spacing between button and duration display */
+    gap: 10px;
 }
 
 .duration-edit-button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 5px 10px; /* Smaller padding for a compact look */
-    font-size: 16px; /* Larger font size for better visibility */
+    padding: 5px 10px;
+    font-size: 16px;
 }
 
 .duration-display {
-    background-color: #f8f9fa; /* Light background for the duration display */
-    border: 1px solid #ccc; /* Subtle border */
-    padding: 5px 10px; /* Padding for aesthetic spacing */
-    border-radius: 5px; /* Rounded corners for modern look */
-    cursor: pointer; /* Indicates that the element is clickable */
+    background-color: #f8f9fa;
+    border: 1px solid #ccc;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+/* Padding Adjustment for Button Group */
+.pr-2 {
+    padding-right: 8px;
+}
+
+/* Ensure Consistent Vertical Spacing and Height for Buttons */
+button[mat-button],
+button[mat-raised-button],
+button[mat-stroked-button] {
+    min-height: 36px;
+    line-height: 36px;
+    margin-top: 4px;
+    margin-bottom: 4px;
+}
+
+/* Enhanced Focus States for Accessibility */
+button[mat-button]:focus,
+button[mat-raised-button]:focus,
+button[mat-stroked-button]:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.12);
+}
+
+/* Container Overflow Handling */
+.container {
+    height: 225px;
+}
+
+.mdc-dialog__surface {
+    overflow-y: hidden !important;
+}
+
+@media only screen and (max-width: 823px) {
+    /* phones */
+    .container {
+        height: 550px;
+    }   
 }

@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy, ViewChild, ElementRef, Inject } from '@an
 import { UntypedFormGroup, UntypedFormBuilder, UntypedFormControl, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MatTable } from '@angular/material/table';
-import { Observable, ReplaySubject, Subscription } from 'rxjs';
+import { Observable, ReplaySubject, Subscription, map, startWith } from 'rxjs';
 
 import { Exercise } from '../../../shared/models/exercise.model';
 import { SharedService } from '../../../shared/services/shared.service';
@@ -13,6 +13,7 @@ import { GoogleAnalyticsService } from '../../../shared/services/google-analytic
 import { LogTypes, FormValues } from '../../../shared/common/common.constants';
 import { DurationDialogComponent } from '../duration-dialog/duration-dialog.component';
 import * as moment from 'moment';
+import { ExerciseDirectoryService } from 'src/app/shared/services/exercise-directory.service';
 
 @Component({
     selector: 'exercise-dialog',
@@ -28,8 +29,12 @@ export class ExerciseDialogComponent {
     public readonly exerciseNumericCharLimit: number = 5;
     public readonly exerciseAlphaNumericCharLimit: number = 15;
     public intensities = FormValues.ExerciseIntensities;
+    public exerciseList: string[] = [];
+    public filteredExercises: Observable<string[]>;
 
     private langSub: Subscription;
+    private exerciseSub: Subscription;
+
     constructor(
         @Inject(MAT_DIALOG_DATA) public _exerciseType: any,
         private _formBuilder: UntypedFormBuilder,
@@ -37,7 +42,8 @@ export class ExerciseDialogComponent {
         public _durrDialogRef: MatDialog,
         private _sharedService: SharedService,
         private _translatorService: TranslatorService,
-        private _googleAnalyticsService: GoogleAnalyticsService
+        private _googleAnalyticsService: GoogleAnalyticsService,
+        private _exerciseDirectoryService: ExerciseDirectoryService
     ) {
         this.exerciseLogForm = this._formBuilder.group({
             'exerciseName': ['', Validators.compose([Validators.required, Validators.maxLength(50)])],
@@ -57,14 +63,17 @@ export class ExerciseDialogComponent {
             hours: 0,
             minutes: 0,
             seconds: 0
-          });
+        });
         this.currentLanguage = FormValues.ENCode;
         this.subToLanguageChange();
+        this.subToExerciseDirectoryService();
     }
 
     ngOnDestroy(): void {
         if (this.langSub)
             this.langSub.unsubscribe();
+        if (this.exerciseSub)
+            this.exerciseSub.unsubscribe();
     }
 
     submitForm($ev) {
@@ -119,5 +128,23 @@ export class ExerciseDialogComponent {
                 }
             }
         );
+    }
+
+    private subToExerciseDirectoryService(): void {
+        this.exerciseSub = this._exerciseDirectoryService.getExercises().subscribe(data => {
+            this.exerciseList = data.exercises.map(exercise => exercise.name);
+            this.filteredExercises = this.exerciseLogForm.get('exerciseName').valueChanges.pipe(
+                startWith(''),
+                map(value => this.filterExercises(value))
+            );
+        },
+            error => {
+                console.error('Error fetching exercises:', error);
+            });
+    }
+
+    private filterExercises(value: string): string[] {
+        const filterValue = value.toLowerCase();
+        return this.exerciseList.filter(option => option.toLowerCase().includes(filterValue));
     }
 }
