@@ -1,6 +1,6 @@
 <div [formGroup]="simpleLogForm">
     <!-- START Add Exercise Heading START -->
-    <div class="content-heading">
+    <div class="content-heading" [class.content-heading-sb-is-collapsed]="sbIsCollapsed">
         <div class="mda-form-group float-label first-fg">
             <input class="mda-form-control" name="title" formControlName="title" tabindex="0" aria-invalid="false"
                 (blur)="checkForTitleValue()" />

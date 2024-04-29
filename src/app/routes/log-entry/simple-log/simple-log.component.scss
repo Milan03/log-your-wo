@@ -1,9 +1,16 @@
 @import '../../../shared/styles/common.scss';
 
 .content-heading {
-    margin-top: 30px;
+    position: fixed;
+    top: 70px;
+    left: 240px;
+    right: 0;
     display: flex;
     justify-content: space-between;
+}
+
+.content-heading-sb-is-collapsed {
+    left: 90px;
 }
 
 .content-heading .mda-form-group {
@@ -17,6 +24,10 @@
     margin-top: 0.6em;
     display: flex;
     align-items: center; /* Centers items vertically */
+}
+
+.container-lg {
+    margin-top: 145px;
 }
 
 input.mda-form-control[name="title"] {
@@ -84,29 +95,24 @@ table {
     margin: 0 auto;
 }
 
-@media only screen and (min-width: 1200px) {
-    .close-btn-cv {
-        margin-left: 2.5em;
+@media (min-width: 769px) and (max-width: 1200px) {
+    .container-lg {
+        margin-top: 165px;
     }
 }
 
-@media only screen and (max-width: 767px) and (orientation: portrait) {
-    /* portrait phones */
-    .first-col-cv {
-        max-width: 27%;
-    }
-    .col-2 { 
-        max-width: 14%;
-    }
-}
-
-@media only screen and (max-width: 823px) {
+@media only screen and (max-width: 768px) {
     /* phones */
     .content-heading {
         font-size: 20px;
+        left: 0;
+        width: 100%;
         button {
             width: 100%;
         }
+    }
+    .container-lg {
+        margin-top: 185px;
     }
     .right-content {
         margin-top: 1em;

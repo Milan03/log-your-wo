@@ -139,6 +139,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
     toggleCollapsedSideabar() {
         this.settings.toggleLayoutSetting('isCollapsed');
+        this.sharedService.emitSidebarToggle(this.settings.getLayoutSetting('isCollapsed'));
     }
 
     isCollapsedText() {
