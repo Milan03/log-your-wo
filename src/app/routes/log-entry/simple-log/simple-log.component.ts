@@ -37,6 +37,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     private currentPDF: any
     public dataSource: ExerciseDataSource;
     public cDataSource: CardioExerciseDataSource;
+    public sbIsCollapsed: boolean;
 
     public selectedIntensity: string;
 
@@ -51,6 +52,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     public cardioColumns: string[] = ['exerciseName', 'distance', 'duration', 'intensity'];
 
     private langSub: Subscription;
+    private sbToggleSub: Subscription;
 
     @ViewChild(MatTable) table: MatTable<Exercise>;
 
@@ -73,11 +75,14 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         this._sharedService.emitLogType(LogTypes.SimpleLog);
         this._sharedService.emitLogStartDatim(this.currentLog.startDatim);
         this.subToLanguageChange();
+        this.subToSidebarToggleChange();
     }
 
     ngOnDestroy(): void {
         if (this.langSub)
             this.langSub.unsubscribe();
+        if (this.sbToggleSub)
+            this.sbToggleSub.unsubscribe();
     }
 
     /**
@@ -266,6 +271,14 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
                 } else {
                     this.intensities = FormValues.ExerciseIntensitiesFR;
                 }
+            }
+        );
+    }
+
+    private subToSidebarToggleChange(): void {
+        this.sbToggleSub = this._sharedService.sidebarToggleEmitted$.subscribe(
+            data => {
+                this.sbIsCollapsed = data;
             }
         );
     }

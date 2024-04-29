@@ -10,10 +10,12 @@ export class SharedService {
     private emitLogTypeSource = new Subject<string>();
     private emitLogStartDatimSource = new Subject<Date>();
     private emitExerciseSource = new Subject<Exercise>();
+    private emitSidebarToggleSource = new Subject<boolean>();
     // Observable string streams
     logTypeEmitted$ = this.emitLogTypeSource.asObservable();
     logStartDatimEmitted$ = this.emitLogStartDatimSource.asObservable();
     exerciseEmitted$ = this.emitExerciseSource.asObservable();
+    sidebarToggleEmitted$ = this.emitSidebarToggleSource.asObservable();
     // Emit change functions
     emitLogType(logType: string) {
         this.emitLogTypeSource.next(logType);
@@ -23,5 +25,8 @@ export class SharedService {
     }
     emitCvExercise(exercise: Exercise) {
         this.emitExerciseSource.next(exercise);
+    }
+    emitSidebarToggle(state: boolean) {
+        this.emitSidebarToggleSource.next(state);
     }
 }
