@@ -23,7 +23,8 @@ $content-heading-bg:                      #fafbfc;
 $content-heading-border:                  #cfdbe2;
 $content-padding:                         20px;
 
-$footer-hg:                               60px;
+$footer-hg:                               100px;
+$footer-mobile-hg:                        115px;  
 
 $navbar-hg:                               $navbar-height;
 
@@ -233,6 +234,7 @@ body {
             backface-visibility: hidden;
             .section-container,
             .footer-container {
+                height: $footer-mobile-hg;
                 margin-left: 0;
                 transform: translate3d(0, 0, 0);
                 transition: transform .3s ease;
