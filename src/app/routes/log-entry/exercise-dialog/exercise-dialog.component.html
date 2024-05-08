@@ -4,13 +4,24 @@
         <div class="col-md-3">
             <div class="mda-form-group float-label first-fg">
                 <mat-form-field appearance="fill" class="mda-form-control" floatLabel="always">
-                    <input type="text" matInput [matAutocomplete]="auto" name="exerciseName"
-                        formControlName="exerciseName" tabindex="0">
-                    <mat-autocomplete #auto="matAutocomplete">
-                        <mat-option *ngFor="let exerciseName of filteredExercises | async" [value]="exerciseName">
-                            {{ exerciseName }}
-                        </mat-option>
-                    </mat-autocomplete>
+                    <div *ngIf="currentExercise.exerciseType === 'strength'">
+                        <input type="text" matInput [matAutocomplete]="auto" name="exerciseName"
+                            formControlName="exerciseName" tabindex="0">
+                        <mat-autocomplete #auto="matAutocomplete">
+                            <mat-option *ngFor="let exerciseName of filteredExercises | async" [value]="exerciseName">
+                                {{ exerciseName }}
+                            </mat-option>
+                        </mat-autocomplete>
+                    </div>
+                    <div *ngIf="currentExercise.exerciseType === 'cardio'">
+                        <input type="text" matInput [matAutocomplete]="auto" name="exerciseName"
+                            formControlName="exerciseName" tabindex="0">
+                        <mat-autocomplete #auto="matAutocomplete">
+                            <mat-option *ngFor="let exerciseName of filteredCardioExercises | async" [value]="exerciseName">
+                                {{ exerciseName }}
+                            </mat-option>
+                        </mat-autocomplete>
+                    </div>
                     <mat-label>{{ 'log-entry.ExerciseName' | translate }}</mat-label>
                     <mat-error class="text-danger"
                         *ngIf="exerciseLogForm.get('exerciseName').hasError('required') && (exerciseLogForm.get('exerciseName').dirty || exerciseLogForm.get('exerciseName').touched)">{{
@@ -83,15 +94,15 @@
         <div *ngIf="currentExercise.exerciseType === 'cardio'" class="col-md-3">
             <div class="mda-form-group">
                 <mat-form-field appearance="fill" class="mda-form-control">
-                    <input matInput [value]="currentExercise.duration | formatDuration" readonly (click)="openDurationDialog()"
-                        placeholder="{{ 'log-entry.ExerciseDuration' | translate }}">
+                    <input matInput [value]="currentExercise.duration | formatDuration" readonly
+                        (click)="openDurationDialog()" placeholder="{{ 'log-entry.ExerciseDuration' | translate }}">
                     <mat-label>{{ 'log-entry.ExerciseDuration' | translate }}</mat-label>
                     <button matSuffix mat-icon-button aria-label="Edit duration" (click)="openDurationDialog()">
                         <mat-icon>edit</mat-icon>
                     </button>
                 </mat-form-field>
             </div>
-        </div>        
+        </div>
         <div *ngIf="currentExercise.exerciseType === 'cardio'" class="col-md-3">
             <div class="mda-form-group margin-top-10">
                 <mat-form-field appearance="fill">

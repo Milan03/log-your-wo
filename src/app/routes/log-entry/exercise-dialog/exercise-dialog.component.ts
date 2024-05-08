@@ -29,10 +29,13 @@ export class ExerciseDialogComponent {
     public readonly exerciseAlphaNumericCharLimit: number = 15;
     public intensities = FormValues.ExerciseIntensities;
     public exerciseList: string[] = [];
+    public cardioExerciseList: string[] = [];
     public filteredExercises: Observable<string[]>;
+    public filteredCardioExercises: Observable<string[]>;
 
     private langSub: Subscription;
     private exerciseSub: Subscription;
+    private cardioExerciseSub: Subscription;
 
     constructor(
         @Inject(MAT_DIALOG_DATA) public _exerciseType: any,
@@ -66,6 +69,7 @@ export class ExerciseDialogComponent {
         this.currentLanguage = FormValues.ENCode;
         this.subToLanguageChange();
         this.subToExerciseDirectoryService();
+        this.subToCardioExerciseDirectoryService();
     }
 
     ngOnDestroy(): void {
@@ -73,6 +77,8 @@ export class ExerciseDialogComponent {
             this.langSub.unsubscribe();
         if (this.exerciseSub)
             this.exerciseSub.unsubscribe();
+        if (this.cardioExerciseSub)
+            this.cardioExerciseSub.unsubscribe();
     }
 
     submitForm($ev) {
@@ -142,10 +148,30 @@ export class ExerciseDialogComponent {
                 console.error('Error fetching exercises:', error);
             }
         });
-    }    
+    } 
+    
+    private subToCardioExerciseDirectoryService(): void {
+        this.cardioExerciseSub = this._exerciseDirectoryService.getCardioExercises().subscribe({
+            next: (data) => {
+                this.cardioExerciseList = data.exercises.map(exercise => exercise.name);
+                this.filteredCardioExercises = this.exerciseLogForm.get('exerciseName').valueChanges.pipe(
+                    startWith(''),
+                    map(value => this.filterCardioExercises(value))
+                );
+            },
+            error: (error) => {
+                console.error('Error fetching exercises:', error);
+            }
+        });
+    } 
 
     private filterExercises(value: string): string[] {
         const filterValue = value.toLowerCase();
         return this.exerciseList.filter(option => option.toLowerCase().includes(filterValue));
+    }
+
+    private filterCardioExercises(value: string): string[] {
+        const filterValue = value.toLowerCase();
+        return this.cardioExerciseList.filter(option => option.toLowerCase().includes(filterValue));
     }
 }

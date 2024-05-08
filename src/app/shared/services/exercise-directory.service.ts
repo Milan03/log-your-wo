@@ -3,13 +3,17 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 @Injectable({
-  providedIn: 'root'
+    providedIn: 'root'
 })
 export class ExerciseDirectoryService {
 
-  constructor(private http: HttpClient) { }
+    constructor(private http: HttpClient) { }
 
-  getExercises(): Observable<any> {
-    return this.http.get('/assets/exercises.json');
-  }
+    getExercises(): Observable<any> {
+        return this.http.get('/assets/exercises.json');
+    }
+
+    getCardioExercises(): Observable<any> {
+        return this.http.get('/assets/cardio-exercises.json');
+    }
 }
