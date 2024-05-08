@@ -130,17 +130,19 @@ export class ExerciseDialogComponent {
     }
 
     private subToExerciseDirectoryService(): void {
-        this.exerciseSub = this._exerciseDirectoryService.getExercises().subscribe(data => {
-            this.exerciseList = data.exercises.map(exercise => exercise.name);
-            this.filteredExercises = this.exerciseLogForm.get('exerciseName').valueChanges.pipe(
-                startWith(''),
-                map(value => this.filterExercises(value))
-            );
-        },
-            error => {
+        this.exerciseSub = this._exerciseDirectoryService.getExercises().subscribe({
+            next: (data) => {
+                this.exerciseList = data.exercises.map(exercise => exercise.name);
+                this.filteredExercises = this.exerciseLogForm.get('exerciseName').valueChanges.pipe(
+                    startWith(''),
+                    map(value => this.filterExercises(value))
+                );
+            },
+            error: (error) => {
                 console.error('Error fetching exercises:', error);
-            });
-    }
+            }
+        });
+    }    
 
     private filterExercises(value: string): string[] {
         const filterValue = value.toLowerCase();

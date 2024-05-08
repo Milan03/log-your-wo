@@ -125,14 +125,16 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         let createdPDF = this.createPDF('email');
         this.currentPDF = btoa(createdPDF);
         let request = this.createEmailRequest(recipientEmailAddress);
-        this._emailService.sendMail(request).subscribe(
-            data => {
+        this._emailService.sendMail(request).subscribe({
+            next: () => {
                 this.swalEmailSent();
-                this._googleAnalyticsService.eventEmitter(`email_sent_success`, 'general', 'engagement');
+                this._googleAnalyticsService.eventEmitter('email_sent_success', 'general', 'engagement');
             },
-            err => this.swalEmailError()
-        );
-    }
+            error: () => {
+                this.swalEmailError();
+            }
+        });
+    }    
 
     /**
      * Create the PDF using jsPDF and the exercise HTML table.
