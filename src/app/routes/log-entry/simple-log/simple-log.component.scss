@@ -1,4 +1,5 @@
 @import '../../../shared/styles/common.scss';
+@import '../../../shared/styles/app/variables.scss';
 
 .content-heading {
     position: fixed;
@@ -51,7 +52,7 @@ input.mda-form-control[name="title"] {
 }
 
 .btn-row-close:focus, .btn-row-close:active {
-    color: #ff6358;
+    color: $danger;
 }
 
 .fa-window-close {
@@ -61,7 +62,7 @@ input.mda-form-control[name="title"] {
 }
 
 .fa-window-close:hover, .fa-window-close:focus, .fa-window-close:active {
-    color: #ff6358;
+    color: $danger
 }
 
 .first-col-cv,
@@ -114,12 +115,12 @@ table {
 }
 
 .add-icon {
-    background-color: #3F51B5; /* Blue */
+    background-color: $primary;
     color: white;
 }
 
 .remove-icon {
-    background-color: #ff6358; /* Red */
+    background-color: $danger;
     color: white;
 }
 
