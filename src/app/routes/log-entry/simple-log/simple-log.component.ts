@@ -230,43 +230,29 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         });
     }
 
-    public openExerciseDialog(name?: string): void {
-        // Open the dialog with conditional data based on 'name'
-        let data: ExerciseDialogData = { exerciseType: 'strength' };
+    public openExerciseDialog(type: string, name?: string): void {
+        let data: ExerciseDialogData = { exerciseType: type };
         if (name) {
             data = { ...data, exerciseName: name };
         }
         const dialogRef = this._dialog.open(ExerciseDialogComponent, { data });
         dialogRef.afterClosed().subscribe(result => {
             if (result) {
-                //console.log(`exercise dialog: ${result}`);
                 let newExercise: Exercise = result;
-                this.currentLog.exercises.push(newExercise);
-                if (this.currentLog.exercises) {
-                    this.dataSource = new ExerciseDataSource(this.currentLog.exercises);
+                if (type === 'strength') {
+                    this.currentLog.exercises.push(newExercise);
+                    if (this.currentLog.exercises) {
+                        this.dataSource = new ExerciseDataSource(this.currentLog.exercises);
+                    } else {
+                        this.dataSource.setData(this.currentLog.exercises);
+                    }
                 } else {
-                    this.dataSource.setData(this.currentLog.exercises);
-                }
-            }
-        });
-    }
-
-    public openCardioExerciseDialog(name?: string): void {
-        // Open the dialog with conditional data based on 'name'
-        let data: ExerciseDialogData = { exerciseType: 'cardio' };
-        if (name) {
-            data = { ...data, exerciseName: name };
-        }
-        const dialogRef = this._dialog.open(ExerciseDialogComponent, { data });
-        dialogRef.afterClosed().subscribe(result => {
-            if (result) {
-                //console.log(`exercise dialog: ${result}`);
-                let newExercise: Exercise = result;
-                this.currentLog.cardioExercises.push(newExercise);
-                if (this.currentLog.cardioExercises) {
-                    this.cDataSource = new CardioExerciseDataSource(this.currentLog.cardioExercises);
-                } else {
-                    this.cDataSource.setData(this.currentLog.cardioExercises);
+                    this.currentLog.cardioExercises.push(newExercise);
+                    if (this.currentLog.cardioExercises) {
+                        this.cDataSource = new CardioExerciseDataSource(this.currentLog.cardioExercises);
+                    } else {
+                        this.cDataSource.setData(this.currentLog.cardioExercises);
+                    }
                 }
             }
         });
@@ -275,11 +261,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     public addRow(exercise: Exercise) {
         let newExercise: Exercise = new Exercise();
         newExercise.exerciseName = exercise.exerciseName;
-        if (exercise.exerciseType === 'strength') {
-            this.openExerciseDialog(exercise.exerciseName);
-        } else {
-            this.openCardioExerciseDialog(exercise.exerciseName);
-        }
+        this.openExerciseDialog(exercise.exerciseType, exercise.exerciseName);
     }
 
     public removeRow(exercise: Exercise) {

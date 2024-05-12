@@ -12,9 +12,9 @@
         <div class="right-content">
             <div>{{ 'log-entry.AddExercise' | translate }}</div>
             <div id="exercise-btns">
-                <button class="mb-1 mr-1 btn btn-primary" type="button" (click)="openExerciseDialog()">+ <em
+                <button class="mb-1 mr-1 btn btn-primary" type="button" (click)="openExerciseDialog('strength')">+ <em
                         class="fa fa-dumbbell"></em></button>
-                <button class="mb-1 mr-1 btn btn-primary" type="button" (click)="openCardioExerciseDialog()">+ <em
+                <button class="mb-1 mr-1 btn btn-primary" type="button" (click)="openExerciseDialog('cardio')">+ <em
                         class="fa fa-running"></em></button>
             </div>
         </div>
