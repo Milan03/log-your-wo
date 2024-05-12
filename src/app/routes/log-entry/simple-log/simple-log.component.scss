@@ -95,6 +95,34 @@ table {
     margin: 0 auto;
 }
 
+.control-icons {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.icon {
+    font-size:large;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 2px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.add-icon {
+    background-color: #3F51B5; /* Blue */
+    color: white;
+}
+
+.remove-icon {
+    background-color: #ff6358; /* Red */
+    color: white;
+}
+
 @media (min-width: 769px) and (max-width: 1200px) {
     .container-lg {
         margin-top: 165px;

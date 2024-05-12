@@ -9,6 +9,7 @@ import { EmailDialogComponent } from '../email-dialog/email-dialog.component';
 import { Exercise } from '../../../shared/models/exercise.model';
 import { SimpleLog } from '../../../shared/models/simple-log.model';
 import { EmailRequest } from '../../../shared/models/email-request.model';
+import { ExerciseDialogData } from '../../../shared/interfaces/exercise-dialog-data';
 import { SharedService } from '../../../shared/services/shared.service';
 import { TranslatorService } from '../../../core/translator/translator.service';
 import { EmailService } from '../../../shared/services/email.service';
@@ -48,8 +49,8 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     public readonly exerciseType: string = FormValues.ExerciseNameFormControl;
     public readonly cardioExerciseType: string = FormValues.CardioExerciseNameFormControl;
     public intensities = FormValues.ExerciseIntensities;
-    public displayedColumns: string[] = ['exerciseName', 'weight', 'sets', 'reps'];
-    public cardioColumns: string[] = ['exerciseName', 'distance', 'duration', 'intensity'];
+    public displayedColumns: string[] = ['exerciseName', 'weight', 'sets', 'reps', 'controls'];
+    public cardioColumns: string[] = ['exerciseName', 'distance', 'duration', 'intensity', 'controls'];
 
     private langSub: Subscription;
     private sbToggleSub: Subscription;
@@ -134,7 +135,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
                 this.swalEmailError();
             }
         });
-    }    
+    }
 
     /**
      * Create the PDF using jsPDF and the exercise HTML table.
@@ -229,36 +230,56 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         });
     }
 
-    public openExerciseDialog(): void {
-        let dialogRef = this._dialog.open(ExerciseDialogComponent, {data: { exerciseType: 'strength' }});
+    public openExerciseDialog(type: string, name?: string): void {
+        let data: ExerciseDialogData = { exerciseType: type };
+        if (name) {
+            data = { ...data, exerciseName: name };
+        }
+        const dialogRef = this._dialog.open(ExerciseDialogComponent, { data });
         dialogRef.afterClosed().subscribe(result => {
             if (result) {
-                //console.log(`exercise dialog: ${result}`);
                 let newExercise: Exercise = result;
-                this.currentLog.exercises.push(newExercise);
-                if (this.currentLog.exercises) {
-                    this.dataSource = new ExerciseDataSource(this.currentLog.exercises);
+                if (type === 'strength') {
+                    this.currentLog.exercises.push(newExercise);
+                    if (this.currentLog.exercises) {
+                        this.dataSource = new ExerciseDataSource(this.currentLog.exercises);
+                    } else {
+                        this.dataSource.setData(this.currentLog.exercises);
+                    }
                 } else {
-                    this.dataSource.setData(this.currentLog.exercises);
+                    this.currentLog.cardioExercises.push(newExercise);
+                    if (this.currentLog.cardioExercises) {
+                        this.cDataSource = new CardioExerciseDataSource(this.currentLog.cardioExercises);
+                    } else {
+                        this.cDataSource.setData(this.currentLog.cardioExercises);
+                    }
                 }
             }
         });
     }
 
-    public openCardioExerciseDialog(): void {
-        let dialogRef = this._dialog.open(ExerciseDialogComponent, {data: { exerciseType: 'cardio' }});
-        dialogRef.afterClosed().subscribe(result => {
-            if (result) {
-                //console.log(`exercise dialog: ${result}`);
-                let newExercise: Exercise = result;
-                this.currentLog.cardioExercises.push(newExercise);
-                if (this.currentLog.cardioExercises) {
-                    this.cDataSource = new CardioExerciseDataSource(this.currentLog.cardioExercises);
-                } else {
-                    this.cDataSource.setData(this.currentLog.cardioExercises);
+    public addRow(exercise: Exercise) {
+        let newExercise: Exercise = new Exercise();
+        newExercise.exerciseName = exercise.exerciseName;
+        this.openExerciseDialog(exercise.exerciseType, exercise.exerciseName);
+    }
+
+    public removeRow(exercise: Exercise) {
+        if (exercise.exerciseType === 'strength') {
+            for (let i = 0; i < this.currentLog.exercises.length; ++i) {
+                if (this.currentLog.exercises[i].exerciseId === exercise.exerciseId) {
+                    this.currentLog.exercises.splice(i, 1);
                 }
             }
-        });
+            this.dataSource.setData(this.currentLog.exercises);
+        } else {
+            for (let i = 0; i < this.currentLog.cardioExercises.length; ++i) {
+                if (this.currentLog.cardioExercises[i].exerciseId === exercise.exerciseId) {
+                    this.currentLog.cardioExercises.splice(i, 1);
+                }
+            }
+            this.cDataSource.setData(this.currentLog.cardioExercises);
+        }
     }
 
     /**
