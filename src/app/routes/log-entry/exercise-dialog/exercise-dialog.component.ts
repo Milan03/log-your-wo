@@ -38,7 +38,7 @@ export class ExerciseDialogComponent {
     private cardioExerciseSub: Subscription;
 
     constructor(
-        @Inject(MAT_DIALOG_DATA) public _exerciseType: any,
+        @Inject(MAT_DIALOG_DATA) public _exercise: Exercise,
         private _formBuilder: UntypedFormBuilder,
         public _dialogRef: MatDialogRef<ExerciseDialogComponent>,
         public _durrDialogRef: MatDialog,
@@ -57,7 +57,10 @@ export class ExerciseDialogComponent {
             'intensity': ['']
         });
         this.currentExercise = new Exercise();
-        this.currentExercise.exerciseType = _exerciseType.exerciseType;
+        this.currentExercise.exerciseType = _exercise.exerciseType;
+        this.currentExercise.exerciseName = _exercise.exerciseName;
+        this.exerciseLogForm.get('exerciseName').setValue(this.currentExercise.exerciseName);
+        this.exerciseLogForm.get('exerciseName').updateValueAndValidity();
     }
 
     ngOnInit(): void {

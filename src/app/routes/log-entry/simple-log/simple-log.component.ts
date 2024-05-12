@@ -9,6 +9,7 @@ import { EmailDialogComponent } from '../email-dialog/email-dialog.component';
 import { Exercise } from '../../../shared/models/exercise.model';
 import { SimpleLog } from '../../../shared/models/simple-log.model';
 import { EmailRequest } from '../../../shared/models/email-request.model';
+import { ExerciseDialogData } from '../../../shared/interfaces/exercise-dialog-data';
 import { SharedService } from '../../../shared/services/shared.service';
 import { TranslatorService } from '../../../core/translator/translator.service';
 import { EmailService } from '../../../shared/services/email.service';
@@ -229,8 +230,13 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         });
     }
 
-    public openExerciseDialog(): void {
-        let dialogRef = this._dialog.open(ExerciseDialogComponent, { data: { exerciseType: 'strength' } });
+    public openExerciseDialog(name?: string): void {
+        // Open the dialog with conditional data based on 'name'
+        let data: ExerciseDialogData = { exerciseType: 'strength' };
+        if (name) {
+            data = { ...data, exerciseName: name };
+        }
+        const dialogRef = this._dialog.open(ExerciseDialogComponent, { data });
         dialogRef.afterClosed().subscribe(result => {
             if (result) {
                 //console.log(`exercise dialog: ${result}`);
@@ -245,8 +251,13 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         });
     }
 
-    public openCardioExerciseDialog(): void {
-        let dialogRef = this._dialog.open(ExerciseDialogComponent, { data: { exerciseType: 'cardio' } });
+    public openCardioExerciseDialog(name?: string): void {
+        // Open the dialog with conditional data based on 'name'
+        let data: ExerciseDialogData = { exerciseType: 'cardio' };
+        if (name) {
+            data = { ...data, exerciseName: name };
+        }
+        const dialogRef = this._dialog.open(ExerciseDialogComponent, { data });
         dialogRef.afterClosed().subscribe(result => {
             if (result) {
                 //console.log(`exercise dialog: ${result}`);
@@ -262,27 +273,21 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     }
 
     public addRow(exercise: Exercise) {
-        // Placeholder for add row functionality
-        console.log('Add row for', exercise);
         let newExercise: Exercise = new Exercise();
         newExercise.exerciseName = exercise.exerciseName;
         if (exercise.exerciseType === 'strength') {
-            this.currentLog.exercises.push(newExercise);
-            this.dataSource.setData(this.currentLog.exercises);
+            this.openExerciseDialog(exercise.exerciseName);
         } else {
-            this.currentLog.cardioExercises.push(newExercise);
-            this.cDataSource.setData(this.currentLog.cardioExercises);
+            this.openCardioExerciseDialog(exercise.exerciseName);
         }
     }
 
     public removeRow(exercise: Exercise) {
-        // Placeholder for remove row functionality
-        console.log('Remove row for', exercise);
         if (exercise.exerciseType === 'strength') {
-            for(let i = 0; i < this.currentLog.exercises.length; ++i) {
+            for (let i = 0; i < this.currentLog.exercises.length; ++i) {
                 if (this.currentLog.exercises[i].exerciseId === exercise.exerciseId) {
                     this.currentLog.exercises.splice(i, 1);
-                }    
+                }
             }
             this.dataSource.setData(this.currentLog.exercises);
         } else {
