@@ -48,8 +48,8 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     public readonly exerciseType: string = FormValues.ExerciseNameFormControl;
     public readonly cardioExerciseType: string = FormValues.CardioExerciseNameFormControl;
     public intensities = FormValues.ExerciseIntensities;
-    public displayedColumns: string[] = ['exerciseName', 'weight', 'sets', 'reps'];
-    public cardioColumns: string[] = ['exerciseName', 'distance', 'duration', 'intensity'];
+    public displayedColumns: string[] = ['exerciseName', 'weight', 'sets', 'reps', 'controls'];
+    public cardioColumns: string[] = ['exerciseName', 'distance', 'duration', 'intensity', 'controls'];
 
     private langSub: Subscription;
     private sbToggleSub: Subscription;
@@ -134,7 +134,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
                 this.swalEmailError();
             }
         });
-    }    
+    }
 
     /**
      * Create the PDF using jsPDF and the exercise HTML table.
@@ -230,7 +230,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     }
 
     public openExerciseDialog(): void {
-        let dialogRef = this._dialog.open(ExerciseDialogComponent, {data: { exerciseType: 'strength' }});
+        let dialogRef = this._dialog.open(ExerciseDialogComponent, { data: { exerciseType: 'strength' } });
         dialogRef.afterClosed().subscribe(result => {
             if (result) {
                 //console.log(`exercise dialog: ${result}`);
@@ -246,7 +246,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     }
 
     public openCardioExerciseDialog(): void {
-        let dialogRef = this._dialog.open(ExerciseDialogComponent, {data: { exerciseType: 'cardio' }});
+        let dialogRef = this._dialog.open(ExerciseDialogComponent, { data: { exerciseType: 'cardio' } });
         dialogRef.afterClosed().subscribe(result => {
             if (result) {
                 //console.log(`exercise dialog: ${result}`);
@@ -259,6 +259,40 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
                 }
             }
         });
+    }
+
+    public addRow(exercise: Exercise) {
+        // Placeholder for add row functionality
+        console.log('Add row for', exercise);
+        let newExercise: Exercise = new Exercise();
+        newExercise.exerciseName = exercise.exerciseName;
+        if (exercise.exerciseType === 'strength') {
+            this.currentLog.exercises.push(newExercise);
+            this.dataSource.setData(this.currentLog.exercises);
+        } else {
+            this.currentLog.cardioExercises.push(newExercise);
+            this.cDataSource.setData(this.currentLog.cardioExercises);
+        }
+    }
+
+    public removeRow(exercise: Exercise) {
+        // Placeholder for remove row functionality
+        console.log('Remove row for', exercise);
+        if (exercise.exerciseType === 'strength') {
+            for(let i = 0; i < this.currentLog.exercises.length; ++i) {
+                if (this.currentLog.exercises[i].exerciseId === exercise.exerciseId) {
+                    this.currentLog.exercises.splice(i, 1);
+                }    
+            }
+            this.dataSource.setData(this.currentLog.exercises);
+        } else {
+            for (let i = 0; i < this.currentLog.cardioExercises.length; ++i) {
+                if (this.currentLog.cardioExercises[i].exerciseId === exercise.exerciseId) {
+                    this.currentLog.cardioExercises.splice(i, 1);
+                }
+            }
+            this.cDataSource.setData(this.currentLog.cardioExercises);
+        }
     }
 
     /**

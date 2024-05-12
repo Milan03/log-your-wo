@@ -23,7 +23,6 @@
     <div class="container-lg">
         <!-- START Exercise Grid START -->
         <table mat-table *ngIf="currentLog.exercises.length > 0" [dataSource]="dataSource" class="mat-elevation-z8">
-            <!-- Position Column -->
             <ng-container matColumnDef="exerciseName">
                 <th mat-header-cell *matHeaderCellDef> {{ 'log-entry.ExerciseName' | translate }} </th>
                 <td mat-cell *matCellDef="let exercise"> {{ exercise.exerciseName }} </td>
@@ -40,6 +39,15 @@
                 <th mat-header-cell *matHeaderCellDef> {{ 'log-entry.ExerciseReps' | translate }} </th>
                 <td mat-cell *matCellDef="let exercise"> {{ exercise.reps }} </td>
             </ng-container>
+            <ng-container matColumnDef="controls">
+                <th mat-header-cell *matHeaderCellDef>  </th>
+                <td mat-cell *matCellDef="let exercise">
+                    <div class="control-icons">
+                        <div class="icon add-icon" (click)="addRow(exercise)">+</div>
+                        <div class="icon remove-icon" (click)="removeRow(exercise)">-</div>
+                    </div>
+                </td>
+            </ng-container>
             <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
             <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
         </table>
@@ -47,7 +55,6 @@
         <!-- START Cardio Exercise Grid START -->
         <table mat-table *ngIf="currentLog.cardioExercises.length > 0" [dataSource]="cDataSource"
             class="mat-elevation-z8">
-            <!-- Position Column -->
             <ng-container matColumnDef="exerciseName">
                 <th mat-header-cell *matHeaderCellDef> {{ 'log-entry.ExerciseName' | translate }} </th>
                 <td mat-cell *matCellDef="let exercise"> {{ exercise.exerciseName }} </td>
@@ -63,6 +70,15 @@
             <ng-container matColumnDef="intensity">
                 <th mat-header-cell *matHeaderCellDef> {{ 'log-entry.ExerciseIntensity' | translate }} </th>
                 <td mat-cell *matCellDef="let exercise"> {{ exercise.intensity | formatIntensity }} </td>
+            </ng-container>
+            <ng-container matColumnDef="controls">
+                <th mat-header-cell *matHeaderCellDef>  </th>
+                <td mat-cell *matCellDef="let exercise">
+                    <div class="control-icons">
+                        <div class="icon add-icon" (click)="addRow(exercise)">+</div>
+                        <div class="icon remove-icon" (click)="removeRow(exercise)">-</div>
+                    </div>
+                </td>
             </ng-container>
             <tr mat-header-row *matHeaderRowDef="cardioColumns"></tr>
             <tr mat-row *matRowDef="let row; columns: cardioColumns;"></tr>
