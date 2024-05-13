@@ -8,7 +8,7 @@ export class ColorsService {
           'success':                '#4CAF50',
           'info':                   '#3F51B5',
           'warning':                '#FF9800',
-          'danger':                 '#F44336',
+          'danger':                 '#B30000',
           'inverse':                '#607D8B',
           'green':                  '#009688',
           'pink':                   '#E91E63',
