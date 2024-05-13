@@ -16,6 +16,7 @@
 
 .content-heading .mda-form-group {
     padding: 18px 0 0 0;
+
     .mda-form-control {
         border: none;
     }
@@ -24,7 +25,9 @@
 .right-content {
     margin-top: 0.6em;
     display: flex;
-    align-items: center; /* Centers items vertically */
+    align-items: center;
+    /* Centers items vertically */
+    flex-direction: column;
 }
 
 .container-lg {
@@ -36,7 +39,8 @@ input.mda-form-control[name="title"] {
 }
 
 #exercise-btns {
-  margin-left: 2em;
+    margin-left: 2em;
+    margin-right: 2em;
 }
 
 .container {
@@ -51,7 +55,8 @@ input.mda-form-control[name="title"] {
     float: right;
 }
 
-.btn-row-close:focus, .btn-row-close:active {
+.btn-row-close:focus,
+.btn-row-close:active {
     color: $danger;
 }
 
@@ -61,7 +66,9 @@ input.mda-form-control[name="title"] {
     font-size: 25px;
 }
 
-.fa-window-close:hover, .fa-window-close:focus, .fa-window-close:active {
+.fa-window-close:hover,
+.fa-window-close:focus,
+.fa-window-close:active {
     color: $danger
 }
 
@@ -80,7 +87,7 @@ input.mda-form-control[name="title"] {
 }
 
 mat-form-field {
-    display: block; 
+    display: block;
 }
 
 table {
@@ -102,7 +109,7 @@ table {
 }
 
 .icon {
-    font-size:large;
+    font-size: large;
     width: 24px;
     height: 24px;
     display: flex;
@@ -123,30 +130,39 @@ table {
     color: white;
 }
 
+/* tablets */
 @media (min-width: 769px) and (max-width: 1200px) {
     .container-lg {
         margin-top: 165px;
     }
 }
 
+/* phones */
 @media only screen and (max-width: 768px) {
-    /* phones */
     .content-heading {
         font-size: 20px;
         left: 0;
         width: 100%;
+
         button {
             width: 100%;
         }
     }
+
     .container-lg {
         margin-top: 185px;
     }
+
     .right-content {
         margin-top: 1em;
     }
+
+    #exercise-btns {
+        margin-left: 0;
+        margin-right: 0;
+    }
+
     input.mda-form-control[name="title"] {
         width: 7em;
     }
 }
-
