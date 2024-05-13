@@ -1,4 +1,5 @@
-@import '../../../shared/styles/common';
+@import 'src/app/shared/styles/common';
+@import 'src/app/shared/styles/app/variables.scss';
 
 /* General Form Group Styling */
 .mda-form-group {
@@ -88,6 +89,7 @@
 button[mat-button],
 button[mat-raised-button],
 button[mat-stroked-button] {
+    background-color: $primary;
     min-height: 36px;
     line-height: 36px;
     margin-top: 4px;
@@ -100,6 +102,15 @@ button[mat-raised-button]:focus,
 button[mat-stroked-button]:focus {
     outline: none;
     box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.12);
+}
+
+button[mat-button][color="secondary"] {
+    background-color: $danger;
+    color: white;
+
+    &:hover {
+        background-color: darken($danger, 10%);
+    }
 }
 
 /* Container Overflow Handling */
