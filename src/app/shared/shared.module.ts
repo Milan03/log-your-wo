@@ -45,6 +45,7 @@ import { ExerciseDirectoryService } from './services/exercise-directory.service'
 
 import { FormatDurationPipe } from './pipes/format-duration.pipe';
 import { IntensityFormatPipe } from './pipes/format-intensity.pipe';
+import { DuplicateNamePipe } from './pipes/duplicate-name.pipe';
 
 // https://angular.io/styleguide#!#04-10
 @NgModule({
@@ -96,7 +97,8 @@ import { IntensityFormatPipe } from './pipes/format-intensity.pipe';
     ],
     declarations: [
         FormatDurationPipe,
-        IntensityFormatPipe
+        IntensityFormatPipe,
+        DuplicateNamePipe
     ],
     exports: [
         CommonModule,
@@ -140,7 +142,8 @@ import { IntensityFormatPipe } from './pipes/format-intensity.pipe';
         MatNativeDateModule,
         MatStepperModule,
         FormatDurationPipe,
-        IntensityFormatPipe
+        IntensityFormatPipe,
+        DuplicateNamePipe
     ]
 })
 
