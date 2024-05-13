@@ -47,23 +47,6 @@
         <div *ngIf="currentExercise.exerciseType === 'strength'" class="col-md-3">
             <div class="mda-form-group float-label">
                 <mat-form-field appearance="fill" class="mda-form-control">
-                    <input matInput name="sets" formControlName="sets" tabindex="0" aria-invalid="false"
-                        placeholder="{{ 'log-entry.ExerciseSets' | translate }}">
-                    <mat-label>{{ 'log-entry.ExerciseSets' | translate }}</mat-label>
-                    <mat-error
-                        *ngIf="exerciseLogForm.get('sets').hasError('pattern') && (exerciseLogForm.get('sets').dirty || exerciseLogForm.get('sets').touched)">
-                        {{ 'global.NumericOnly' | translate }}
-                    </mat-error>
-                    <mat-error
-                        *ngIf="exerciseLogForm.get('sets').hasError('maxlength') && (exerciseLogForm.get('sets').dirty || exerciseLogForm.get('sets').touched)">
-                        {{ 'global.CharacterLimit' | translate }} {{ exerciseNumericCharLimit }}
-                    </mat-error>
-                </mat-form-field>
-            </div>
-        </div>
-        <div *ngIf="currentExercise.exerciseType === 'strength'" class="col-md-3">
-            <div class="mda-form-group float-label">
-                <mat-form-field appearance="fill" class="mda-form-control">
                     <input matInput name="reps" formControlName="reps" tabindex="0" aria-invalid="false"
                         placeholder="{{ 'log-entry.ExerciseReps' | translate }}">
                     <mat-label>{{ 'log-entry.ExerciseReps' | translate }}</mat-label>
@@ -73,6 +56,23 @@
                     </mat-error>
                     <mat-error
                         *ngIf="exerciseLogForm.get('reps').hasError('maxlength') && (exerciseLogForm.get('reps').dirty || exerciseLogForm.get('reps').touched)">
+                        {{ 'global.CharacterLimit' | translate }} {{ exerciseNumericCharLimit }}
+                    </mat-error>
+                </mat-form-field>
+            </div>
+        </div>
+        <div *ngIf="currentExercise.exerciseType === 'strength'" class="col-md-3">
+            <div class="mda-form-group float-label">
+                <mat-form-field appearance="fill" class="mda-form-control">
+                    <input matInput name="sets" formControlName="sets" tabindex="0" aria-invalid="false"
+                        placeholder="{{ 'log-entry.ExerciseSets' | translate }}">
+                    <mat-label>{{ 'log-entry.ExerciseSets' | translate }}</mat-label>
+                    <mat-error
+                        *ngIf="exerciseLogForm.get('sets').hasError('pattern') && (exerciseLogForm.get('sets').dirty || exerciseLogForm.get('sets').touched)">
+                        {{ 'global.NumericOnly' | translate }}
+                    </mat-error>
+                    <mat-error
+                        *ngIf="exerciseLogForm.get('sets').hasError('maxlength') && (exerciseLogForm.get('sets').dirty || exerciseLogForm.get('sets').touched)">
                         {{ 'global.CharacterLimit' | translate }} {{ exerciseNumericCharLimit }}
                     </mat-error>
                 </mat-form-field>

@@ -49,7 +49,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     public readonly exerciseType: string = FormValues.ExerciseNameFormControl;
     public readonly cardioExerciseType: string = FormValues.CardioExerciseNameFormControl;
     public intensities = FormValues.ExerciseIntensities;
-    public displayedColumns: string[] = ['exerciseName', 'weight', 'sets', 'reps', 'controls'];
+    public displayedColumns: string[] = ['exerciseName', 'weight', 'reps', 'sets', 'controls'];
     public cardioColumns: string[] = ['exerciseName', 'distance', 'duration', 'intensity', 'controls'];
 
     private langSub: Subscription;
