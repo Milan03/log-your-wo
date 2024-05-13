@@ -118,10 +118,10 @@
     </div>
     <div class="row justify-content-end mt-4">
         <div class="col-auto">
-            <button mat-button type="button" color="secondary" (click)="onCancel()">Cancel</button>
+            <button mat-button type="button" color="secondary" (click)="onCancel()">{{ 'global.CancelLabel' | translate }}</button>
         </div>
         <div class="col-auto">
-            <button mat-raised-button type="submit" color="primary" (click)="submitForm($event)">Add</button>
+            <button mat-raised-button type="submit" color="primary" (click)="submitForm($event)">{{ 'log-entry.AddExercise' | translate }}</button>
         </div>
     </div>
 </div>
