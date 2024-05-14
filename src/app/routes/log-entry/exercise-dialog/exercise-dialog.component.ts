@@ -51,7 +51,7 @@ export class ExerciseDialogComponent {
             'exerciseName': ['', Validators.compose([Validators.required, Validators.maxLength(50)])],
             'weight': ['', Validators.maxLength(15)],
             'reps': ['', Validators.compose([Validators.pattern("^[0-9]*$"), Validators.maxLength(5)])],
-            'sets': ['', Validators.compose([Validators.pattern("^[0-9]*$"), Validators.maxLength(5)])],            
+            'sets': ['', Validators.compose([Validators.pattern("^[0-9]*$"), Validators.maxLength(5)])],
             'duration': [''],
             'distance': ['', Validators.maxLength(15)],
             'intensity': ['']
@@ -103,6 +103,12 @@ export class ExerciseDialogComponent {
         this._dialogRef.close();
     }
 
+    onEnter(event: KeyboardEvent) {
+        if (event.key === 'Enter') {
+            this.submitForm(event);
+        }
+    }
+
     openDurationDialog(): void {
         let dialogRef = this._durrDialogRef.open(DurationDialogComponent);
         this._sharedService.emitCvExercise(this.currentExercise);
@@ -151,8 +157,8 @@ export class ExerciseDialogComponent {
                 console.error('Error fetching exercises:', error);
             }
         });
-    } 
-    
+    }
+
     private subToCardioExerciseDirectoryService(): void {
         this.cardioExerciseSub = this._exerciseDirectoryService.getCardioExercises().subscribe({
             next: (data) => {
@@ -166,7 +172,7 @@ export class ExerciseDialogComponent {
                 console.error('Error fetching exercises:', error);
             }
         });
-    } 
+    }
 
     private filterExercises(value: string): string[] {
         const filterValue = value.toLowerCase();
