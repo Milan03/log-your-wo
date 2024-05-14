@@ -1,5 +1,5 @@
 <h1 mat-dialog-title>{{ 'log-entry.AddExercise' | translate }}</h1>
-<div [formGroup]="exerciseLogForm" class="container">
+<form [formGroup]="exerciseLogForm" class="container" (ngSubmit)="submitForm($event)" (keydown.enter)="onEnter($event)">
     <div class="row">
         <div class="col-md-3">
             <div class="mda-form-group float-label first-fg">
@@ -121,7 +121,7 @@
             <button mat-button type="button" color="secondary" (click)="onCancel()">{{ 'global.CancelLabel' | translate }}</button>
         </div>
         <div class="col-auto">
-            <button mat-raised-button type="submit" color="primary" (click)="submitForm($event)">{{ 'log-entry.AddExercise' | translate }}</button>
+            <button mat-raised-button type="submit" color="primary">{{ 'log-entry.AddExercise' | translate }}</button>
         </div>
     </div>
-</div>
+</form>
