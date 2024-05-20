@@ -95,6 +95,16 @@ table {
     margin-bottom: 2em;
 }
 
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.table-responsive table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
 #exerciseTable {
     display: none;
 }
