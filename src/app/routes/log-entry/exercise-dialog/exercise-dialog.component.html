@@ -95,9 +95,9 @@
             <div class="mda-form-group">
                 <mat-form-field appearance="fill" class="mda-form-control">
                     <input matInput [value]="currentExercise.duration | formatDuration" readonly
-                        (click)="openDurationDialog()" placeholder="{{ 'log-entry.ExerciseDuration' | translate }}">
+                        (click)="openDurationDialog($event)" placeholder="{{ 'log-entry.ExerciseDuration' | translate }}">
                     <mat-label>{{ 'log-entry.ExerciseDuration' | translate }}</mat-label>
-                    <button matSuffix mat-icon-button aria-label="Edit duration" (click)="openDurationDialog()">
+                    <button matSuffix mat-icon-button aria-label="Edit duration" (click)="openDurationDialog($event)">
                         <mat-icon>edit</mat-icon>
                     </button>
                 </mat-form-field>
