@@ -109,7 +109,8 @@ export class ExerciseDialogComponent {
         }
     }
 
-    openDurationDialog(): void {
+    openDurationDialog(event: Event): void {
+        event.preventDefault();
         let dialogRef = this._durrDialogRef.open(DurationDialogComponent);
         this._sharedService.emitCvExercise(this.currentExercise);
         dialogRef.afterClosed().subscribe(result => {

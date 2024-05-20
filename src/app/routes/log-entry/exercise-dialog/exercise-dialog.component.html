@@ -47,8 +47,7 @@
         <div *ngIf="currentExercise.exerciseType === 'strength'" class="col-md-3">
             <div class="mda-form-group float-label">
                 <mat-form-field appearance="fill" class="mda-form-control">
-                    <input matInput name="reps" formControlName="reps" tabindex="0" aria-invalid="false"
-                        placeholder="{{ 'log-entry.ExerciseReps' | translate }}">
+                    <input matInput name="reps" formControlName="reps" tabindex="0" aria-invalid="false">
                     <mat-label>{{ 'log-entry.ExerciseReps' | translate }}</mat-label>
                     <mat-error
                         *ngIf="exerciseLogForm.get('reps').hasError('pattern') && (exerciseLogForm.get('reps').dirty || exerciseLogForm.get('reps').touched)">
@@ -64,8 +63,7 @@
         <div *ngIf="currentExercise.exerciseType === 'strength'" class="col-md-3">
             <div class="mda-form-group float-label">
                 <mat-form-field appearance="fill" class="mda-form-control">
-                    <input matInput name="sets" formControlName="sets" tabindex="0" aria-invalid="false"
-                        placeholder="{{ 'log-entry.ExerciseSets' | translate }}">
+                    <input matInput name="sets" formControlName="sets" tabindex="0" aria-invalid="false">
                     <mat-label>{{ 'log-entry.ExerciseSets' | translate }}</mat-label>
                     <mat-error
                         *ngIf="exerciseLogForm.get('sets').hasError('pattern') && (exerciseLogForm.get('sets').dirty || exerciseLogForm.get('sets').touched)">
@@ -81,8 +79,7 @@
         <div *ngIf="currentExercise.exerciseType === 'cardio'" class="col-md-3">
             <div class="mda-form-group float-label">
                 <mat-form-field appearance="fill" class="mda-form-control">
-                    <input matInput name="distance" formControlName="distance" tabindex="0" aria-invalid="false"
-                        placeholder="{{ 'log-entry.ExerciseDistance' | translate }}">
+                    <input matInput name="distance" formControlName="distance" tabindex="0" aria-invalid="false">
                     <mat-label>{{ 'log-entry.ExerciseDistance' | translate }}</mat-label>
                     <mat-error
                         *ngIf="exerciseLogForm.get('distance').hasError('maxlength') && (exerciseLogForm.get('distance').dirty || exerciseLogForm.get('distance').touched)">
@@ -95,9 +92,9 @@
             <div class="mda-form-group">
                 <mat-form-field appearance="fill" class="mda-form-control">
                     <input matInput [value]="currentExercise.duration | formatDuration" readonly
-                        (click)="openDurationDialog()" placeholder="{{ 'log-entry.ExerciseDuration' | translate }}">
+                        (click)="openDurationDialog($event)">
                     <mat-label>{{ 'log-entry.ExerciseDuration' | translate }}</mat-label>
-                    <button matSuffix mat-icon-button aria-label="Edit duration" (click)="openDurationDialog()">
+                    <button matSuffix mat-icon-button aria-label="Edit duration" (click)="openDurationDialog($event)">
                         <mat-icon>edit</mat-icon>
                     </button>
                 </mat-form-field>

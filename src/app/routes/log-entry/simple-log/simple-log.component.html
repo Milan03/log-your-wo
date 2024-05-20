@@ -26,9 +26,9 @@
             <ng-container matColumnDef="exerciseName">
                 <th mat-header-cell *matHeaderCellDef> {{ 'log-entry.ExerciseName' | translate }} </th>
                 <td mat-cell *matCellDef="let exercise; let i = index">
-                  {{ currentLog.exercises | duplicateName:exercise:i }}
+                    {{ currentLog.exercises | duplicateName:exercise:i }}
                 </td>
-              </ng-container>
+            </ng-container>
             <ng-container matColumnDef="weight">
                 <th mat-header-cell *matHeaderCellDef> {{ 'log-entry.ExerciseWeight' | translate }} </th>
                 <td mat-cell *matCellDef="let exercise"> {{ exercise.weight }} </td>
@@ -55,38 +55,41 @@
         </table>
         <!-- END Exercise Grid END -->
         <!-- START Cardio Exercise Grid START -->
-        <table mat-table *ngIf="currentLog.cardioExercises.length > 0" [dataSource]="cDataSource"
-            class="mat-elevation-z8">
-            <ng-container matColumnDef="exerciseName">
-                <th mat-header-cell *matHeaderCellDef> {{ 'log-entry.ExerciseName' | translate }} </th>
-                <td mat-cell *matCellDef="let exercise"> {{ exercise.exerciseName }} </td>
-            </ng-container>
-            <ng-container matColumnDef="distance">
-                <th mat-header-cell *matHeaderCellDef> {{ 'log-entry.ExerciseDistance' | translate }} </th>
-                <td mat-cell *matCellDef="let exercise"> {{ exercise.distance }} </td>
-            </ng-container>
-            <ng-container matColumnDef="duration">
-                <th mat-header-cell *matHeaderCellDef> {{ 'log-entry.ExerciseDuration' | translate }} </th>
-                <td mat-cell *matCellDef="let exercise">
-                    <div *ngIf="exercise.duration.asMilliseconds() > 0"> {{ exercise.duration | formatDuration }} </div>
-                </td>
-            </ng-container>
-            <ng-container matColumnDef="intensity">
-                <th mat-header-cell *matHeaderCellDef> {{ 'log-entry.ExerciseIntensity' | translate }} </th>
-                <td mat-cell *matCellDef="let exercise"> {{ exercise.intensity | formatIntensity }} </td>
-            </ng-container>
-            <ng-container matColumnDef="controls">
-                <th mat-header-cell *matHeaderCellDef> </th>
-                <td mat-cell *matCellDef="let exercise">
-                    <div class="control-icons">
-                        <div class="icon add-icon" (click)="addRow(exercise)">+</div>
-                        <div class="icon remove-icon" (click)="removeRow(exercise)">-</div>
-                    </div>
-                </td>
-            </ng-container>
-            <tr mat-header-row *matHeaderRowDef="cardioColumns"></tr>
-            <tr mat-row *matRowDef="let row; columns: cardioColumns;"></tr>
-        </table>
+        <div class="table-responsive">
+            <table mat-table *ngIf="currentLog.cardioExercises.length > 0" [dataSource]="cDataSource"
+                class="mat-elevation-z8">
+                <ng-container matColumnDef="exerciseName">
+                    <th mat-header-cell *matHeaderCellDef> {{ 'log-entry.ExerciseName' | translate }} </th>
+                    <td mat-cell *matCellDef="let exercise"> {{ exercise.exerciseName }} </td>
+                </ng-container>
+                <ng-container matColumnDef="distance">
+                    <th mat-header-cell *matHeaderCellDef> {{ 'log-entry.ExerciseDistance' | translate }} </th>
+                    <td mat-cell *matCellDef="let exercise"> {{ exercise.distance }} </td>
+                </ng-container>
+                <ng-container matColumnDef="duration">
+                    <th mat-header-cell *matHeaderCellDef> {{ 'log-entry.ExerciseDuration' | translate }} </th>
+                    <td mat-cell *matCellDef="let exercise">
+                        <div *ngIf="exercise.duration.asMilliseconds() > 0"> {{ exercise.duration | formatDuration }}
+                        </div>
+                    </td>
+                </ng-container>
+                <ng-container matColumnDef="intensity">
+                    <th mat-header-cell *matHeaderCellDef> {{ 'log-entry.ExerciseIntensity' | translate }} </th>
+                    <td mat-cell *matCellDef="let exercise"> {{ exercise.intensity | formatIntensity }} </td>
+                </ng-container>
+                <ng-container matColumnDef="controls">
+                    <th mat-header-cell *matHeaderCellDef> </th>
+                    <td mat-cell *matCellDef="let exercise">
+                        <div class="control-icons">
+                            <div class="icon add-icon" (click)="addRow(exercise)">+</div>
+                            <div class="icon remove-icon" (click)="removeRow(exercise)">-</div>
+                        </div>
+                    </td>
+                </ng-container>
+                <tr mat-header-row *matHeaderRowDef="cardioColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: cardioColumns;"></tr>
+            </table>
+        </div>
         <!-- END Cardio Exercise Grid END -->
         <!-- START Submit Buttons START -->
         <div *ngIf="currentLog.exercises.length > 0 || currentLog.cardioExercises.length > 0" class="row">
