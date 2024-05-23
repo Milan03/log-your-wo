@@ -5,7 +5,7 @@
             <div class="mda-form-group float-label first-fg">
                 <mat-form-field appearance="fill" class="mda-form-control" floatLabel="always">
                     <div *ngIf="currentExercise.exerciseType === 'strength'">
-                        <input type="text" matInput [matAutocomplete]="auto" name="exerciseName"
+                        <input #strExerciseName type="text" matInput [matAutocomplete]="auto" name="exerciseName"
                             formControlName="exerciseName" tabindex="0">
                         <mat-autocomplete #auto="matAutocomplete">
                             <mat-option *ngFor="let exerciseName of filteredExercises | async" [value]="exerciseName">
@@ -14,7 +14,7 @@
                         </mat-autocomplete>
                     </div>
                     <div *ngIf="currentExercise.exerciseType === 'cardio'">
-                        <input type="text" matInput [matAutocomplete]="auto" name="exerciseName"
+                        <input #carExerciseName type="text" matInput [matAutocomplete]="auto" name="exerciseName"
                             formControlName="exerciseName" tabindex="0">
                         <mat-autocomplete #auto="matAutocomplete">
                             <mat-option *ngFor="let exerciseName of filteredCardioExercises | async" [value]="exerciseName">
@@ -35,7 +35,7 @@
         <div *ngIf="currentExercise.exerciseType === 'strength'" class="col-md-3">
             <div class="mda-form-group float-label">
                 <mat-form-field appearance="fill" class="mda-form-control">
-                    <input matInput name="weight" formControlName="weight" tabindex="0" aria-invalid="false" />
+                    <input #weight matInput name="weight" formControlName="weight" tabindex="0" aria-invalid="false" />
                     <mat-label>{{ 'log-entry.ExerciseWeight' | translate }}</mat-label>
                     <mat-error
                         *ngIf="exerciseLogForm.get('weight').hasError('maxlength') && (exerciseLogForm.get('weight').dirty || exerciseLogForm.get('weight').touched)">
@@ -79,7 +79,7 @@
         <div *ngIf="currentExercise.exerciseType === 'cardio'" class="col-md-3">
             <div class="mda-form-group float-label">
                 <mat-form-field appearance="fill" class="mda-form-control">
-                    <input matInput name="distance" formControlName="distance" tabindex="0" aria-invalid="false">
+                    <input #distance matInput name="distance" formControlName="distance" tabindex="0" aria-invalid="false">
                     <mat-label>{{ 'log-entry.ExerciseDistance' | translate }}</mat-label>
                     <mat-error
                         *ngIf="exerciseLogForm.get('distance').hasError('maxlength') && (exerciseLogForm.get('distance').dirty || exerciseLogForm.get('distance').touched)">
