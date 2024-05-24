@@ -47,7 +47,7 @@
         <div *ngIf="currentExercise.exerciseType === 'strength'" class="col-md-3">
             <div class="mda-form-group float-label">
                 <mat-form-field appearance="fill" class="mda-form-control">
-                    <input matInput name="reps" formControlName="reps" tabindex="0" aria-invalid="false">
+                    <input matInput name="reps" formControlName="reps" type="number" inputmode="numeric" tabindex="0" aria-invalid="false">
                     <mat-label>{{ 'log-entry.ExerciseReps' | translate }}</mat-label>
                     <mat-error
                         *ngIf="exerciseLogForm.get('reps').hasError('pattern') && (exerciseLogForm.get('reps').dirty || exerciseLogForm.get('reps').touched)">
@@ -63,7 +63,7 @@
         <div *ngIf="currentExercise.exerciseType === 'strength'" class="col-md-3">
             <div class="mda-form-group float-label">
                 <mat-form-field appearance="fill" class="mda-form-control">
-                    <input matInput name="sets" formControlName="sets" tabindex="0" aria-invalid="false">
+                    <input matInput name="sets" formControlName="sets" type="number" inputmode="numeric" tabindex="0" aria-invalid="false">
                     <mat-label>{{ 'log-entry.ExerciseSets' | translate }}</mat-label>
                     <mat-error
                         *ngIf="exerciseLogForm.get('sets').hasError('pattern') && (exerciseLogForm.get('sets').dirty || exerciseLogForm.get('sets').touched)">
