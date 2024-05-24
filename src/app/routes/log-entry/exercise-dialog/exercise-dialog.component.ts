@@ -1,6 +1,7 @@
-import { Component, Inject } from '@angular/core';
+import { Component, ElementRef, Inject, ViewChild } from '@angular/core';
 import { UntypedFormGroup, UntypedFormBuilder, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { Observable, Subscription, map, startWith } from 'rxjs';
 
 import { Exercise } from '../../../shared/models/exercise.model';
@@ -20,6 +21,13 @@ import * as moment from 'moment';
     styleUrl: './exercise-dialog.component.scss'
 })
 export class ExerciseDialogComponent {
+    @ViewChild('strExerciseName', { read: MatAutocompleteTrigger }) strengthInputTrigger: MatAutocompleteTrigger;
+    @ViewChild('carExerciseName', { read: MatAutocompleteTrigger }) cardioInputTrigger: MatAutocompleteTrigger;
+    @ViewChild('strExerciseName') strExerciseNameInput: ElementRef;
+    @ViewChild('carExerciseName') carExerciseNameInput: ElementRef;
+    @ViewChild('weight') weightInput: ElementRef;
+    @ViewChild('distance') distanceInput: ElementRef;
+
     public exerciseLogForm: UntypedFormGroup;
     private currentLanguage: string;
     public currentExercise: Exercise;
@@ -59,8 +67,12 @@ export class ExerciseDialogComponent {
         this.currentExercise = new Exercise();
         this.currentExercise.exerciseType = _exercise.exerciseType;
         this.currentExercise.exerciseName = _exercise.exerciseName;
-        this.exerciseLogForm.get('exerciseName').setValue(this.currentExercise.exerciseName);
-        this.exerciseLogForm.get('exerciseName').updateValueAndValidity();
+    }
+
+    ngAfterViewInit() {
+        this.focusInput(this.currentExercise.exerciseName);
+        //this.exerciseLogForm.get('exerciseName').setValue(this.currentExercise.exerciseName);
+        //this.exerciseLogForm.get('exerciseName').updateValueAndValidity();
     }
 
     ngOnInit(): void {
@@ -176,12 +188,49 @@ export class ExerciseDialogComponent {
     }
 
     private filterExercises(value: string): string[] {
-        const filterValue = value.toLowerCase();
-        return this.exerciseList.filter(option => option.toLowerCase().includes(filterValue));
+        if (value) {
+            const filterValue = value.toLowerCase();
+            return this.exerciseList.filter(option => option.toLowerCase().includes(filterValue));
+        }
     }
 
     private filterCardioExercises(value: string): string[] {
-        const filterValue = value.toLowerCase();
-        return this.cardioExerciseList.filter(option => option.toLowerCase().includes(filterValue));
+        if (value) {
+            const filterValue = value.toLowerCase();
+            return this.cardioExerciseList.filter(option => option.toLowerCase().includes(filterValue));
+        }
+    }
+
+    private focusInput(exerciseName: string) {
+        setTimeout(() => {
+            if (!exerciseName) {
+                if (this.currentExercise.exerciseType === 'strength' && this.strExerciseNameInput) {
+                    this.strExerciseNameInput.nativeElement.focus();
+                } else if (this.currentExercise.exerciseType === 'cardio' && this.carExerciseNameInput) {
+                    this.carExerciseNameInput.nativeElement.focus();
+                }
+            } else {
+                this.preventAutocompleteOnModalOpen();
+                setTimeout(() => {
+                    if (this.currentExercise.exerciseType === 'strength' && this.weightInput) {
+                        this.weightInput.nativeElement.focus();
+                    } else if (this.currentExercise.exerciseType === 'cardio' && this.distanceInput) {
+                        this.distanceInput.nativeElement.focus();
+                    }
+                });
+            }
+            this.exerciseLogForm.get('exerciseName').setValue(this.currentExercise.exerciseName);
+            this.exerciseLogForm.get('exerciseName').updateValueAndValidity();
+        }, 250);
+    }
+
+    private preventAutocompleteOnModalOpen() {
+        setTimeout(() => {
+            if (this.currentExercise.exerciseType === 'strength' && this.strExerciseNameInput && this.strExerciseNameInput.nativeElement.value) {
+                this.strengthInputTrigger.closePanel();
+            } else if (this.currentExercise.exerciseType === 'cardio' && this.carExerciseNameInput && this.carExerciseNameInput.nativeElement.value) {
+                this.cardioInputTrigger.closePanel();
+            }
+        });
     }
 }
