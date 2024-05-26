@@ -126,7 +126,12 @@ export class ExerciseDialogComponent {
         let dialogRef = this._durrDialogRef.open(DurationDialogComponent);
         this._sharedService.emitCvExercise(this.currentExercise);
         dialogRef.afterClosed().subscribe(result => {
-            this.currentExercise = result;
+            console.log("dialogRef.afterClosed()");
+            if (result) {
+                this.currentExercise = result;
+            } else { 
+                dialogRef.close(this.currentExercise);
+            }
         });
     }
 
