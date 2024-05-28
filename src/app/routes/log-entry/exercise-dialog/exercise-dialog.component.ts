@@ -58,8 +58,8 @@ export class ExerciseDialogComponent {
         this.exerciseLogForm = this._formBuilder.group({
             'exerciseName': ['', Validators.compose([Validators.required, Validators.maxLength(50)])],
             'weight': ['', Validators.maxLength(15)],
-            'reps': ['', Validators.compose([Validators.pattern("^[0-9]*$"), Validators.maxLength(5)])],
-            'sets': ['', Validators.compose([Validators.pattern("^[0-9]*$"), Validators.maxLength(5)])],
+            'reps': ['', Validators.compose([Validators.pattern(/^\d+(\+\d+)?$/), Validators.maxLength(5)])],
+            'sets': ['', Validators.compose([Validators.pattern(/^[0-9]*$/), Validators.maxLength(5)])],
             'duration': [''],
             'distance': ['', Validators.maxLength(15)],
             'intensity': ['']
