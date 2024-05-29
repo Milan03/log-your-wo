@@ -2,6 +2,17 @@
 @import 'src/app/shared/styles/app/variables.scss';
 
 /* General Form Group Styling */
+.header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.chip-set-container {
+    display: flex;
+    padding-right: 16px;
+}
+
 .mda-form-group {
     display: flex;
     flex-direction: column;

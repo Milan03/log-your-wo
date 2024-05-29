@@ -126,10 +126,15 @@ export class ExerciseDialogComponent {
         dialogRef.afterClosed().subscribe(result => {
             if (result) {
                 this.currentExercise = result;
-            } else { 
+            } else {
                 dialogRef.close(this.currentExercise);
             }
         });
+    }
+
+    onChipClick(value: string) {
+        console.log('Chip clicked:', value);
+        this._sharedService.emitMeasureToggle(value);
     }
 
     /**

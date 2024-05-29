@@ -51,9 +51,12 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     public intensities = FormValues.ExerciseIntensities;
     public displayedColumns: string[] = ['exerciseName', 'weight', 'reps', 'sets', 'controls'];
     public cardioColumns: string[] = ['exerciseName', 'distance', 'duration', 'intensity', 'controls'];
+    public weightMeasure: string = 'lbs';
+    public distanceMeasure: string = 'kms';
 
     private langSub: Subscription;
     private sbToggleSub: Subscription;
+    private measureToggleSub: Subscription;
 
     @ViewChild(MatTable) table: MatTable<Exercise>;
 
@@ -77,6 +80,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         this._sharedService.emitLogStartDatim(this.currentLog.startDatim);
         this.subToLanguageChange();
         this.subToSidebarToggleChange();
+        this.subToMeasureToggleChange();
     }
 
     ngOnDestroy(): void {
@@ -84,6 +88,8 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             this.langSub.unsubscribe();
         if (this.sbToggleSub)
             this.sbToggleSub.unsubscribe();
+        if (this.measureToggleSub)
+            this.measureToggleSub.unsubscribe();
     }
 
     /**
@@ -302,6 +308,18 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         this.sbToggleSub = this._sharedService.sidebarToggleEmitted$.subscribe(
             data => {
                 this.sbIsCollapsed = data;
+            }
+        );
+    }
+
+    private subToMeasureToggleChange(): void {
+        this.measureToggleSub = this._sharedService.measureToggleSource$.subscribe(
+            data => {
+                if (data === 'kms' || data === 'kgs') {
+                    this.weightMeasure = data;
+                } else {
+                    this.distanceMeasure = data;
+                }
             }
         );
     }
