@@ -133,9 +133,17 @@ button[mat-button][color="secondary"] {
     overflow-y: hidden !important;
 }
 
+::ng-deep .selected-chip {
+    background-color: #3F51B5 !important;
+    span {
+        color: white !important;
+    }
+}
+
 @media only screen and (max-width: 823px) {
+
     /* phones */
     .container {
         height: 550px;
-    }   
+    }
 }

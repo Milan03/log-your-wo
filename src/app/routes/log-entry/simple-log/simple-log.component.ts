@@ -237,10 +237,11 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     }
 
     public openExerciseDialog(type: string, name?: string): void {
-        let data: ExerciseDialogData = { exerciseType: type };
+        let data: ExerciseDialogData = { exerciseType: type, measure: undefined };
         if (name) {
             data = { ...data, exerciseName: name };
         }
+        data.measure = (type === 'strength') ? this.weightMeasure : this.distanceMeasure;
         const dialogRef = this._dialog.open(ExerciseDialogComponent, { data });
         dialogRef.afterClosed().subscribe(result => {
             if (result) {
