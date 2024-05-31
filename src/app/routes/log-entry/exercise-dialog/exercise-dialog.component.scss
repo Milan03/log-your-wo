@@ -2,6 +2,17 @@
 @import 'src/app/shared/styles/app/variables.scss';
 
 /* General Form Group Styling */
+.header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.chip-set-container {
+    display: flex;
+    padding-right: 16px;
+}
+
 .mda-form-group {
     display: flex;
     flex-direction: column;
@@ -122,9 +133,17 @@ button[mat-button][color="secondary"] {
     overflow-y: hidden !important;
 }
 
+::ng-deep .selected-chip {
+    background-color: #3F51B5 !important;
+    span {
+        color: white !important;
+    }
+}
+
 @media only screen and (max-width: 823px) {
+
     /* phones */
     .container {
         height: 550px;
-    }   
+    }
 }

@@ -9,7 +9,7 @@ export class Exercise {
         public exerciseType?: string,
         public sets?: number,
         public reps?: number,
-        public weight?: string,
+        public weight?: number,
         public duration?: moment.Duration,
         public distance?: number, // in kilometers
         public intensity?: Intensity

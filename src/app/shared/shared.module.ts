@@ -90,6 +90,7 @@ import { DuplicateNamePipe } from './pipes/duplicate-name.pipe';
         MatTooltipModule,
         MatNativeDateModule,
         MatStepperModule
+        
     ],
     providers: [
         EmailService,

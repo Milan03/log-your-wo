@@ -51,9 +51,12 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     public intensities = FormValues.ExerciseIntensities;
     public displayedColumns: string[] = ['exerciseName', 'weight', 'reps', 'sets', 'controls'];
     public cardioColumns: string[] = ['exerciseName', 'distance', 'duration', 'intensity', 'controls'];
+    public weightMeasure: string = 'lbs';
+    public distanceMeasure: string = 'km';
 
     private langSub: Subscription;
     private sbToggleSub: Subscription;
+    private measureToggleSub: Subscription;
 
     @ViewChild(MatTable) table: MatTable<Exercise>;
 
@@ -77,6 +80,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         this._sharedService.emitLogStartDatim(this.currentLog.startDatim);
         this.subToLanguageChange();
         this.subToSidebarToggleChange();
+        this.subToMeasureToggleChange();
     }
 
     ngOnDestroy(): void {
@@ -84,6 +88,8 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             this.langSub.unsubscribe();
         if (this.sbToggleSub)
             this.sbToggleSub.unsubscribe();
+        if (this.measureToggleSub)
+            this.measureToggleSub.unsubscribe();
     }
 
     /**
@@ -231,10 +237,11 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     }
 
     public openExerciseDialog(type: string, name?: string): void {
-        let data: ExerciseDialogData = { exerciseType: type };
+        let data: ExerciseDialogData = { exerciseType: type, measure: undefined };
         if (name) {
             data = { ...data, exerciseName: name };
         }
+        data.measure = (type === 'strength') ? this.weightMeasure : this.distanceMeasure;
         const dialogRef = this._dialog.open(ExerciseDialogComponent, { data });
         dialogRef.afterClosed().subscribe(result => {
             if (result) {
@@ -304,6 +311,46 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
                 this.sbIsCollapsed = data;
             }
         );
+    }
+
+    private subToMeasureToggleChange(): void {
+        this.measureToggleSub = this._sharedService.measureToggleSource$.subscribe(
+            data => {
+                if (data === 'lbs' || data === 'kg') {
+                    if (data !== this.weightMeasure) {
+                        this.weightMeasure = data;
+                        this.transformWeightMeasure(this.weightMeasure);
+                    }
+                } else {
+                    if (data !== this.distanceMeasure) {
+                        this.distanceMeasure = data;
+                        this.tranformDistanceMeasure(this.distanceMeasure);
+                    }
+                }
+            }
+        );
+    }
+
+    private transformWeightMeasure(data: string) {
+        for (let i = 0; i < this.currentLog.exercises.length; ++i) {
+            let currExercise = this.currentLog.exercises[i];
+            if (data === 'kg') {
+                currExercise.weight =  Math.round(currExercise.weight / 2.205);
+            } else {
+                currExercise.weight = Math.round(currExercise.weight * 2.205);
+            }
+        }
+    }
+
+    private tranformDistanceMeasure(data: string) {
+        for (let i = 0; i < this.currentLog.cardioExercises.length; ++i) {
+            let currExercise = this.currentLog.cardioExercises[i];
+            if (data === 'mi') {
+                currExercise.distance =  Math.round(currExercise.distance / 1.609);
+            } else {
+                currExercise.distance = Math.round(currExercise.distance * 1.609);
+            }
+        }
     }
 
     /**

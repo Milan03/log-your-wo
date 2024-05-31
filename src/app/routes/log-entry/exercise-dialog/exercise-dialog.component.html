@@ -1,4 +1,18 @@
-<h1 mat-dialog-title>{{ 'log-entry.AddExercise' | translate }}</h1>
+<div class="header-row">
+    <h1 mat-dialog-title>{{ 'log-entry.AddExercise' | translate }}</h1>
+    <div *ngIf="currentExercise.exerciseType === 'strength'" class="chip-set-container">
+        <mat-chip-set aria-label="Measure selection">
+            <mat-chip (click)="onChipClick('lbs')" [ngClass]="{'selected-chip': selectedWeightChip === 'lbs'}">lbs</mat-chip>
+            <mat-chip (click)="onChipClick('kg')" [ngClass]="{'selected-chip': selectedWeightChip === 'kg'}">kgs</mat-chip>
+        </mat-chip-set>
+    </div>
+    <div *ngIf="currentExercise.exerciseType === 'cardio'" class="chip-set-container">
+        <mat-chip-set aria-label="Measure selection">
+            <mat-chip (click)="onChipClick('km')" [ngClass]="{'selected-chip': selectedDistanceChip === 'km'}">kms</mat-chip>
+            <mat-chip (click)="onChipClick('mi')" [ngClass]="{'selected-chip': selectedDistanceChip === 'mi'}">miles</mat-chip>
+        </mat-chip-set>
+    </div>    
+</div>
 <form [formGroup]="exerciseLogForm" class="container" (ngSubmit)="submitForm($event)" (keydown.enter)="onEnter($event)">
     <div class="row">
         <div class="col-md-3">
@@ -17,7 +31,8 @@
                         <input #carExerciseName type="text" matInput [matAutocomplete]="auto" name="exerciseName"
                             formControlName="exerciseName" tabindex="0">
                         <mat-autocomplete #auto="matAutocomplete">
-                            <mat-option *ngFor="let exerciseName of filteredCardioExercises | async" [value]="exerciseName">
+                            <mat-option *ngFor="let exerciseName of filteredCardioExercises | async"
+                                [value]="exerciseName">
                                 {{ exerciseName }}
                             </mat-option>
                         </mat-autocomplete>
@@ -47,7 +62,8 @@
         <div *ngIf="currentExercise.exerciseType === 'strength'" class="col-md-3">
             <div class="mda-form-group float-label">
                 <mat-form-field appearance="fill" class="mda-form-control">
-                    <input matInput name="reps" formControlName="reps" type="text" inputmode="text" tabindex="0" aria-invalid="false">
+                    <input matInput name="reps" formControlName="reps" type="text" inputmode="text" tabindex="0"
+                        aria-invalid="false">
                     <mat-label>{{ 'log-entry.ExerciseReps' | translate }}</mat-label>
                     <mat-error
                         *ngIf="exerciseLogForm.get('reps').hasError('pattern') && (exerciseLogForm.get('reps').dirty || exerciseLogForm.get('reps').touched)">
@@ -63,7 +79,8 @@
         <div *ngIf="currentExercise.exerciseType === 'strength'" class="col-md-3">
             <div class="mda-form-group float-label">
                 <mat-form-field appearance="fill" class="mda-form-control">
-                    <input matInput name="sets" formControlName="sets" type="number" inputmode="numeric" tabindex="0" aria-invalid="false">
+                    <input matInput name="sets" formControlName="sets" type="number" inputmode="numeric" tabindex="0"
+                        aria-invalid="false">
                     <mat-label>{{ 'log-entry.ExerciseSets' | translate }}</mat-label>
                     <mat-error
                         *ngIf="exerciseLogForm.get('sets').hasError('pattern') && (exerciseLogForm.get('sets').dirty || exerciseLogForm.get('sets').touched)">
@@ -79,7 +96,8 @@
         <div *ngIf="currentExercise.exerciseType === 'cardio'" class="col-md-3">
             <div class="mda-form-group float-label">
                 <mat-form-field appearance="fill" class="mda-form-control">
-                    <input #distance matInput name="distance" formControlName="distance" tabindex="0" aria-invalid="false">
+                    <input #distance matInput name="distance" formControlName="distance" tabindex="0"
+                        aria-invalid="false">
                     <mat-label>{{ 'log-entry.ExerciseDistance' | translate }}</mat-label>
                     <mat-error
                         *ngIf="exerciseLogForm.get('distance').hasError('maxlength') && (exerciseLogForm.get('distance').dirty || exerciseLogForm.get('distance').touched)">
@@ -115,7 +133,8 @@
     </div>
     <div class="row justify-content-end mt-4">
         <div class="col-auto">
-            <button mat-button type="button" color="secondary" (click)="onCancel()">{{ 'global.CancelLabel' | translate }}</button>
+            <button mat-button type="button" color="secondary" (click)="onCancel()">{{ 'global.CancelLabel' | translate
+                }}</button>
         </div>
         <div class="col-auto">
             <button mat-raised-button type="submit" color="primary">{{ 'log-entry.AddExercise' | translate }}</button>

@@ -5,6 +5,7 @@ import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { Observable, Subscription, map, startWith } from 'rxjs';
 
 import { Exercise } from '../../../shared/models/exercise.model';
+import { ExerciseDialogData } from 'src/app/shared/interfaces/exercise-dialog-data';
 import { DurationDialogComponent } from '../duration-dialog/duration-dialog.component';
 import { SharedService } from '../../../shared/services/shared.service';
 import { TranslatorService } from '../../../core/translator/translator.service';
@@ -31,6 +32,8 @@ export class ExerciseDialogComponent {
     public exerciseLogForm: UntypedFormGroup;
     private currentLanguage: string;
     public currentExercise: Exercise;
+    public selectedWeightChip: string = 'lbs';
+    public selectedDistanceChip: string = 'km';
 
     public readonly exerciseNameCharLimit: number = 50;
     public readonly exerciseNumericCharLimit: number = 5;
@@ -38,15 +41,15 @@ export class ExerciseDialogComponent {
     public intensities = FormValues.ExerciseIntensities;
     public exerciseList: string[] = [];
     public cardioExerciseList: string[] = [];
+
     public filteredExercises: Observable<string[]>;
     public filteredCardioExercises: Observable<string[]>;
-
     private langSub: Subscription;
     private exerciseSub: Subscription;
     private cardioExerciseSub: Subscription;
 
     constructor(
-        @Inject(MAT_DIALOG_DATA) public _exercise: Exercise,
+        @Inject(MAT_DIALOG_DATA) public _exerciseDialogData: ExerciseDialogData,
         private _formBuilder: UntypedFormBuilder,
         public _dialogRef: MatDialogRef<ExerciseDialogComponent>,
         public _durrDialogRef: MatDialog,
@@ -65,8 +68,9 @@ export class ExerciseDialogComponent {
             'intensity': ['']
         });
         this.currentExercise = new Exercise();
-        this.currentExercise.exerciseType = _exercise.exerciseType;
-        this.currentExercise.exerciseName = _exercise.exerciseName;
+        this.currentExercise.exerciseType = _exerciseDialogData.exerciseType;
+        this.currentExercise.exerciseName = _exerciseDialogData.exerciseName;
+        this.setSelectedChip(_exerciseDialogData.measure);
     }
 
     ngAfterViewInit() {
@@ -126,10 +130,19 @@ export class ExerciseDialogComponent {
         dialogRef.afterClosed().subscribe(result => {
             if (result) {
                 this.currentExercise = result;
-            } else { 
+            } else {
                 dialogRef.close(this.currentExercise);
             }
         });
+    }
+
+    onChipClick(value: string) {
+        if (value === 'lbs' || value === 'kg') {
+            this.selectedWeightChip = value;
+        } else {
+            this.selectedDistanceChip = value;
+        }
+        this._sharedService.emitMeasureToggle(value);
     }
 
     /**
@@ -234,5 +247,15 @@ export class ExerciseDialogComponent {
                 this.cardioInputTrigger.closePanel();
             }
         });
+    }
+
+    private setSelectedChip(measure: string): void {
+        if (measure) {
+            if (measure === 'lbs' || measure === 'kg') {
+                this.selectedWeightChip = measure;
+            } else {
+                this.selectedDistanceChip = measure;
+            }
+        }
     }
 }
