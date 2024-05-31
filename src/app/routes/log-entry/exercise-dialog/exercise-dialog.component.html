@@ -3,13 +3,13 @@
     <div *ngIf="currentExercise.exerciseType === 'strength'" class="chip-set-container">
         <mat-chip-set aria-label="Measure selection">
             <mat-chip (click)="onChipClick('lbs')">lbs</mat-chip>
-            <mat-chip (click)="onChipClick('kgs')">kgs</mat-chip>
+            <mat-chip (click)="onChipClick('kg')">kgs</mat-chip>
         </mat-chip-set>
     </div>
     <div *ngIf="currentExercise.exerciseType === 'cardio'" class="chip-set-container">
         <mat-chip-set aria-label="Measure selection">
-            <mat-chip (click)="onChipClick('kms')">kms</mat-chip>
-            <mat-chip (click)="onChipClick('miles')">miles</mat-chip>
+            <mat-chip (click)="onChipClick('km')">kms</mat-chip>
+            <mat-chip (click)="onChipClick('mi')">miles</mat-chip>
         </mat-chip-set>
     </div>
 </div>

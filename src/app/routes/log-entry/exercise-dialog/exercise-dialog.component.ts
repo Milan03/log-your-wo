@@ -133,7 +133,6 @@ export class ExerciseDialogComponent {
     }
 
     onChipClick(value: string) {
-        console.log('Chip clicked:', value);
         this._sharedService.emitMeasureToggle(value);
     }
 

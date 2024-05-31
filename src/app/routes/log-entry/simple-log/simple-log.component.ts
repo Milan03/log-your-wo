@@ -52,7 +52,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     public displayedColumns: string[] = ['exerciseName', 'weight', 'reps', 'sets', 'controls'];
     public cardioColumns: string[] = ['exerciseName', 'distance', 'duration', 'intensity', 'controls'];
     public weightMeasure: string = 'lbs';
-    public distanceMeasure: string = 'kms';
+    public distanceMeasure: string = 'km';
 
     private langSub: Subscription;
     private sbToggleSub: Subscription;
@@ -315,13 +315,41 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     private subToMeasureToggleChange(): void {
         this.measureToggleSub = this._sharedService.measureToggleSource$.subscribe(
             data => {
-                if (data === 'kms' || data === 'kgs') {
-                    this.weightMeasure = data;
+                if (data === 'lbs' || data === 'kg') {
+                    if (data !== this.weightMeasure) {
+                        this.weightMeasure = data;
+                        this.transformWeightMeasure(this.weightMeasure);
+                    }
                 } else {
-                    this.distanceMeasure = data;
+                    if (data !== this.distanceMeasure) {
+                        this.distanceMeasure = data;
+                        this.tranformDistanceMeasure(this.distanceMeasure);
+                    }
                 }
             }
         );
+    }
+
+    private transformWeightMeasure(data: string) {
+        for (let i = 0; i < this.currentLog.exercises.length; ++i) {
+            let currExercise = this.currentLog.exercises[i];
+            if (data === 'kg') {
+                currExercise.weight =  Math.round(currExercise.weight / 2.205);
+            } else {
+                currExercise.weight = Math.round(currExercise.weight * 2.205);
+            }
+        }
+    }
+
+    private tranformDistanceMeasure(data: string) {
+        for (let i = 0; i < this.currentLog.cardioExercises.length; ++i) {
+            let currExercise = this.currentLog.cardioExercises[i];
+            if (data === 'mi') {
+                currExercise.distance =  Math.round(currExercise.distance / 1.609);
+            } else {
+                currExercise.distance = Math.round(currExercise.distance * 1.609);
+            }
+        }
     }
 
     /**
