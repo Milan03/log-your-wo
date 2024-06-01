@@ -57,6 +57,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     private langSub: Subscription;
     private sbToggleSub: Subscription;
     private measureToggleSub: Subscription;
+    private openDialogSub: Subscription;
 
     @ViewChild(MatTable) table: MatTable<Exercise>;
 
@@ -81,6 +82,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         this.subToLanguageChange();
         this.subToSidebarToggleChange();
         this.subToMeasureToggleChange();
+        this.subToOpenDialogStream();
     }
 
     ngOnDestroy(): void {
@@ -90,6 +92,8 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             this.sbToggleSub.unsubscribe();
         if (this.measureToggleSub)
             this.measureToggleSub.unsubscribe();
+        if (this.openDialogSub)
+            this.openDialogSub.unsubscribe();
     }
 
     /**
@@ -289,8 +293,30 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         }
     }
 
+    private transformWeightMeasure(data: string) {
+        for (let i = 0; i < this.currentLog.exercises.length; ++i) {
+            let currExercise = this.currentLog.exercises[i];
+            if (data === 'kg') {
+                currExercise.weight =  Math.round(currExercise.weight / 2.205);
+            } else {
+                currExercise.weight = Math.round(currExercise.weight * 2.205);
+            }
+        }
+    }
+
+    private tranformDistanceMeasure(data: string) {
+        for (let i = 0; i < this.currentLog.cardioExercises.length; ++i) {
+            let currExercise = this.currentLog.cardioExercises[i];
+            if (data === 'mi') {
+                currExercise.distance =  Math.round(currExercise.distance / 1.609);
+            } else {
+                currExercise.distance = Math.round(currExercise.distance * 1.609);
+            }
+        }
+    }
+
     /**
-     * Track the language currently chosen by the user.
+     * Inter component communication Subscriptions
      */
     private subToLanguageChange(): void {
         this.langSub = this._translatorService.languageChangeEmitted$.subscribe(
@@ -331,26 +357,18 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         );
     }
 
-    private transformWeightMeasure(data: string) {
-        for (let i = 0; i < this.currentLog.exercises.length; ++i) {
-            let currExercise = this.currentLog.exercises[i];
-            if (data === 'kg') {
-                currExercise.weight =  Math.round(currExercise.weight / 2.205);
-            } else {
-                currExercise.weight = Math.round(currExercise.weight * 2.205);
+    private subToOpenDialogStream(): void {
+        this.openDialogSub = this._sharedService.openExerciseDialogEmitted$.subscribe(
+            data => {
+                if (data) {
+                    if (data === 'strength') {
+                        this.openExerciseDialog('strength');
+                    } else {
+                        this.openExerciseDialog('cardio');
+                    }
+                }
             }
-        }
-    }
-
-    private tranformDistanceMeasure(data: string) {
-        for (let i = 0; i < this.currentLog.cardioExercises.length; ++i) {
-            let currExercise = this.currentLog.cardioExercises[i];
-            if (data === 'mi') {
-                currExercise.distance =  Math.round(currExercise.distance / 1.609);
-            } else {
-                currExercise.distance = Math.round(currExercise.distance * 1.609);
-            }
-        }
+        )
     }
 
     /**

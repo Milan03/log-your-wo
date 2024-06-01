@@ -80,6 +80,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
             this.logStartDatimSub.unsubscribe();
     }
 
+    public sendOpenRequest(type: string): void {
+        this.sharedService.emitOpenExerciseDialog(type);
+    }
+
     subToLogType(): void {
         this.logTypeSub = this.sharedService.logTypeEmitted$.subscribe(
             data => this.currentLogType = data
