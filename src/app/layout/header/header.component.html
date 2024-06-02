@@ -1,10 +1,10 @@
 <!-- START Top Navbar-->
-<nav class="navbar topnavbar" role="navigation">
+<nav class="navbar topnavbar" role="navigation" [formGroup]="headerForm">
     <!-- START navbar header-->
     <div class="navbar-header">
         <a class="navbar-brand" href="#/">
             <div class="brand-logo">
-                <img class="img-fluid" src="assets/img/log-your-wo-logo.png" alt="App Logo" />
+                <img class="img-fluid" src="assets/img/log-your-wo-logo-single.png" alt="App Logo" />
             </div>
             <div class="brand-logo-collapsed">
                 <img class="img-fluid" src="assets/img/log-your-wo-logo-single.png" alt="App Logo" />
@@ -46,7 +46,17 @@
     <ul *ngIf="currentLogType" class="navbar-nav mr-auto flex-row">
         <li class="nav-item d-none d-md-block">
             <a id="log-header" class="nav-link">
-                <span>{{ currentLogType }} - {{ logStartDatim | date: 'MM/dd/yyyy h:mm a' }}</span>
+                <span *ngIf="!isEditingTitle" (click)="editTitle()">{{ currentLogType }} - {{ logStartDatim | date:
+                    'MM/dd/yyyy h:mm a' }}</span>
+                <span *ngIf="isEditingTitle">
+                    <input class="mda-form-control" name="title" formControlName="title" tabindex="0"
+                        aria-invalid="false" (blur)="checkForTitleValue()" [placeholder]="currentLogType" />
+                    <input type="datetime-local" class="mda-form-control" name="date" formControlName="date" tabindex="0"
+                        aria-invalid="false" (blur)="checkForTitleValue()" [placeholder]="logStartDatim" />
+                    <mat-error class="text-danger"
+                        *ngIf="headerForm.get('title').hasError('maxlength') && (headerForm.get('title').dirty || headerForm.get('title').touched)">{{
+                        'global.CharacterLimit' | translate }} {{ titleCharLimit }}</mat-error>
+                </span>
             </a>
         </li>
     </ul>
@@ -58,7 +68,8 @@
             <div id="exercise-btns">
                 <button class="mb-1 mr-1 btn btn-primary" type="button" (click)="sendOpenRequest('strength')">+
                     <em class="fa fa-dumbbell"></em></button>
-                <button class="mb-1 mr-1 btn btn-primary" type="button" (click)="sendOpenRequest('cardio')">+ <em class="fa fa-running"></em></button>
+                <button class="mb-1 mr-1 btn btn-primary" type="button" (click)="sendOpenRequest('cardio')">+ <em
+                        class="fa fa-running"></em></button>
             </div>
         </li>
         <!-- Search icon-->

@@ -9,6 +9,7 @@ import { SharedService } from '../../shared/services/shared.service';
 import { Subscription } from 'rxjs';
 import { FormValues, LogTypes } from 'src/app/shared/common/common.constants';
 import { TranslatorService } from 'src/app/core/translator/translator.service';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 
 @Component({
     selector: 'app-header',
@@ -16,22 +17,27 @@ import { TranslatorService } from 'src/app/core/translator/translator.service';
     styleUrls: ['./header.component.scss']
 })
 export class HeaderComponent implements OnInit, OnDestroy {
-    private currentLanguage: string;
-
-    navCollapsed = true; // for horizontal layout
-    menuItems = []; // for horizontal layout
-    router: Router;
-    currentLogType: string;
-    logStartDatim: Date;
-
-    isNavSearchVisible: boolean;
     @ViewChild('fsbutton', { static: true }) fsbutton;  // the fullscreen button
 
-    logTypeSub: Subscription;
-    logStartDatimSub: Subscription;
-    langSub: Subscription;
+    private currentLanguage: string;
+    public headerForm: UntypedFormGroup;
+
+    public navCollapsed = true; // for horizontal layout
+    public menuItems = []; // for horizontal layout
+    public router: Router;
+    public currentLogType: string;
+    public logStartDatim: Date;
+    public isNavSearchVisible: boolean;
+    public isEditingTitle: boolean;
+
+    public readonly titleCharLimit: number = 25;
+
+    private logTypeSub: Subscription;
+    private logStartDatimSub: Subscription;
+    private langSub: Subscription;
 
     constructor(
+        private _formBuilder: UntypedFormBuilder,
         public menu: MenuService,
         public userblockService: UserblockService,
         public settings: SettingsService,
@@ -39,8 +45,12 @@ export class HeaderComponent implements OnInit, OnDestroy {
         private sharedService: SharedService,
         private translatorService: TranslatorService
     ) {
-        // show only a few items on demo
+        this.headerForm = this._formBuilder.group({
+            'title': ['', Validators.compose([Validators.maxLength(25)])],
+            'date': []
+        });
         this.menuItems = menu.getMenu().slice(0, 4); // for horizontal layout
+        this.toggleCollapsedSideabar();
         this.subToLogType();
         this.subToLogStartDatim();
         this.subToLanguageChange();
@@ -78,10 +88,25 @@ export class HeaderComponent implements OnInit, OnDestroy {
             this.logTypeSub.unsubscribe();
         if (this.logStartDatimSub)
             this.logStartDatimSub.unsubscribe();
+        if (this.langSub)
+            this.langSub.unsubscribe();
     }
 
     public sendOpenRequest(type: string): void {
         this.sharedService.emitOpenExerciseDialog(type);
+    }
+
+    public editTitle(): void {
+        this.isEditingTitle = true;
+    }
+
+    public checkForTitleValue(): void {
+        if (this.headerForm.valid) {
+            this.currentLogType = this.headerForm.value.title;
+            this.logStartDatim = this.headerForm.value.date;
+            
+        }
+        this.isEditingTitle = false;
     }
 
     subToLogType(): void {
@@ -101,13 +126,13 @@ export class HeaderComponent implements OnInit, OnDestroy {
             data => {
                 this.currentLanguage = data;
                 if (this.currentLanguage == FormValues.ENCode) {
-                    switch(this.currentLogType) {
+                    switch (this.currentLogType) {
                         case LogTypes.SimpleLogFR:
                             this.currentLogType = LogTypes.SimpleLog;
                             break;
                     }
                 } else {
-                    switch(this.currentLogType) {
+                    switch (this.currentLogType) {
                         case LogTypes.SimpleLog:
                             this.currentLogType = LogTypes.SimpleLogFR;
                             break;
