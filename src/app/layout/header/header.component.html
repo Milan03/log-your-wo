@@ -45,21 +45,26 @@
     </ul>
     <ul *ngIf="currentLogType" class="navbar-nav mr-auto flex-row">
         <li class="nav-item d-none d-md-block">
-            <a id="log-header" class="nav-link">
-                <span *ngIf="!isEditingTitle" (click)="editTitle()">{{ currentLogType }} - {{ logStartDatim | date:
-                    'MM/dd/yyyy h:mm a' }}</span>
-                <span *ngIf="isEditingTitle">
-                    <input class="mda-form-control" name="title" formControlName="title" tabindex="0"
-                        aria-invalid="false" (blur)="checkForTitleValue()" [placeholder]="currentLogType" />
-                    <input type="datetime-local" class="mda-form-control" name="date" formControlName="date" tabindex="0"
-                        aria-invalid="false" (blur)="checkForTitleValue()" [placeholder]="logStartDatim" />
-                    <mat-error class="text-danger"
-                        *ngIf="headerForm.get('title').hasError('maxlength') && (headerForm.get('title').dirty || headerForm.get('title').touched)">{{
-                        'global.CharacterLimit' | translate }} {{ titleCharLimit }}</mat-error>
+            <div id="log-header" class="nav-link">
+                <span *ngIf="!isEditingTitle" (click)="editTitle()">{{ currentLogType }} - {{ logStartDatim | date: 'MM/dd/yyyy h:mm a' }}</span>
+                <span *ngIf="isEditingTitle" class="edit-container">
+                    <form [formGroup]="headerForm" (ngSubmit)="checkForTitleValue()" class="form-inline">
+                        <input class="form-control edit-mode" name="title" formControlName="title" tabindex="0"
+                            aria-invalid="false" />
+                        <input type="datetime-local" class="form-control edit-mode" name="date" formControlName="date"
+                            tabindex="0" aria-invalid="false" [placeholder]="logStartDatim | date:'MM/dd/yyyy h:mm a'" />
+                        <button type="submit" class="save-button">
+                            <i class="fa fa-check"></i>
+                        </button>
+                        <mat-error class="text-danger"
+                            *ngIf="headerForm.get('title').hasError('maxlength') && (headerForm.get('title').dirty || headerForm.get('title').touched)">
+                            {{ 'global.CharacterLimit' | translate }} {{ titleCharLimit }}
+                        </mat-error>
+                    </form>
                 </span>
-            </a>
+            </div>
         </li>
-    </ul>
+    </ul>    
     <!-- END Left navbar-->
     <!-- START Right Navbar-->
     <ul class="navbar-nav flex-row">

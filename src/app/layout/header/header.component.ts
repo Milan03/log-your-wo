@@ -45,9 +45,11 @@ export class HeaderComponent implements OnInit, OnDestroy {
         private sharedService: SharedService,
         private translatorService: TranslatorService
     ) {
+        this.currentLogType = LogTypes.SimpleLog;
+        this.logStartDatim = new Date();
         this.headerForm = this._formBuilder.group({
-            'title': ['', Validators.compose([Validators.maxLength(25)])],
-            'date': []
+            'title': [this.currentLogType, Validators.compose([Validators.maxLength(25)])],
+            'date': [this.formatDateTime(this.logStartDatim)]
         });
         this.menuItems = menu.getMenu().slice(0, 4); // for horizontal layout
         this.toggleCollapsedSideabar();
@@ -92,6 +94,11 @@ export class HeaderComponent implements OnInit, OnDestroy {
             this.langSub.unsubscribe();
     }
 
+    private formatDateTime(date: Date): string {
+        const pad = (n: number) => n < 10 ? '0' + n : n;
+        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+      }
+
     public sendOpenRequest(type: string): void {
         this.sharedService.emitOpenExerciseDialog(type);
     }
@@ -104,9 +111,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
         if (this.headerForm.valid) {
             this.currentLogType = this.headerForm.value.title;
             this.logStartDatim = this.headerForm.value.date;
-            
+            this.isEditingTitle = false;
         }
-        this.isEditingTitle = false;
     }
 
     subToLogType(): void {

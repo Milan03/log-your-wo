@@ -1,9 +1,5 @@
 @import 'src/app/shared/styles/app/variables.scss';
 
-/*#mobile-log-type {
-    margin-left: 15em;
-}*/
-
 #log-header:hover, #log-header:active, #log-header:focus {
     color: #fff !important;
 }
@@ -15,4 +11,57 @@
 
 #add-exercise-label {
     color: white;
+}
+
+.form-control {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
+}
+
+.form-control:focus {
+    border-color: #007BFF;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+    background-color: #e9f7ff;
+}
+
+.edit-container {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.edit-mode {
+    color: black;
+    border-color: #28a745;
+    background-color: #f0fff4;
+}
+
+.save-button {
+    background-color: #28a745;
+    border: none;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s ease;
+}
+
+.save-button:hover {
+    background-color: #218838;
+}
+
+.save-button .fa-check {
+    font-size: 16px;
+}
+
+.text-danger {
+    flex-basis: 100%;
+    margin-top: 5px;
+    color: #dc3545;
 }
