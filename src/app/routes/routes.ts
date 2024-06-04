@@ -8,12 +8,12 @@ export const routes: Routes = [
         component: LayoutComponent,
         children: [
             { path: '', redirectTo: 'log-entry/simple-log', pathMatch: 'full' },
-            { path: 'home', loadChildren: () => import('./home/home.module').then(m => m.HomeModule) },
+            /*{ path: 'home', loadChildren: () => import('./home/home.module').then(m => m.HomeModule) },*/
             { path: 'log-entry', loadChildren: () => import('./log-entry/log-entry.module').then(m => m.LogEntryModule) }
         ]
     },
 
     // Not found
-    { path: '**', redirectTo: 'home' }
+    { path: '**', redirectTo: 'log-entry/simple-log' }
 
 ];
