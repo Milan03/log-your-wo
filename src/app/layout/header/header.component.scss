@@ -13,18 +13,16 @@
     color: white;
 }
 
+input {
+    color: black !important;
+}
+
 .form-control {
     flex: 1;
     padding: 8px;
     border: 1px solid #ccc;
     border-radius: 4px;
     transition: border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
-}
-
-.form-control:focus {
-    border-color: #007BFF;
-    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
-    background-color: #e9f7ff;
 }
 
 .edit-container {
@@ -34,9 +32,7 @@
 }
 
 .edit-mode {
-    color: black;
     border-color: #28a745;
-    background-color: #f0fff4;
 }
 
 .save-button {
@@ -63,5 +59,5 @@
 .text-danger {
     flex-basis: 100%;
     margin-top: 5px;
-    color: #dc3545;
+    color: white !important;
 }
