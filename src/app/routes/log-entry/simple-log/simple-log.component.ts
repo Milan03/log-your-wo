@@ -58,6 +58,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     private sbToggleSub: Subscription;
     private measureToggleSub: Subscription;
     private openDialogSub: Subscription;
+    private exerciseTitleSub: Subscription;
 
     @ViewChild(MatTable) table: MatTable<Exercise>;
 
@@ -83,6 +84,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         this.subToSidebarToggleChange();
         this.subToMeasureToggleChange();
         this.subToOpenDialogStream();
+        this.subToExerciseTitleStream();
     }
 
     ngOnDestroy(): void {
@@ -94,6 +96,8 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             this.measureToggleSub.unsubscribe();
         if (this.openDialogSub)
             this.openDialogSub.unsubscribe();
+        if (this.exerciseTitleSub)
+            this.exerciseTitleSub.unsubscribe();
     }
 
     /**
@@ -369,6 +373,14 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
                 }
             }
         )
+    }
+
+    private subToExerciseTitleStream(): void {
+        this.exerciseTitleSub = this._sharedService.exerciseTitleEmitted$.subscribe(
+          data => {
+            this.currentLog.title = data;
+          }  
+        );
     }
 
     /**

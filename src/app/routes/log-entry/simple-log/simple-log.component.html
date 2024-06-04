@@ -85,9 +85,8 @@
 </div> <!-- END Form Group END -->
 <!-- START Exercise PDF Table START -->
 <div id="exerciseTable" #exerciseTable>
-    <h1 *ngIf="currentLog.exercises.length > 0 || currentLog.cardioExercises.length > 0">{{ 'global.LogYourWorkout' |
+    <h1 *ngIf="currentLog.exercises.length > 0 || currentLog.cardioExercises.length > 0">{{ currentLog.title |
         translate }} - {{ currentLog.startDatim | date: 'MM/dd/yyyy h:mm a' }}</h1>
-    <h2 *ngIf="currentLog.exercises.length > 0 && currentLog.title">{{ currentLog.title }}</h2>
     <h2 *ngIf="currentLog.exercises.length > 0">{{ 'global.ExercisesTitle' | translate }}</h2>
     <table *ngIf="currentLog.exercises.length > 0">
         <tr>

@@ -112,6 +112,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
             this.currentLogType = this.headerForm.value.title;
             this.logStartDatim = this.headerForm.value.date;
             this.isEditingTitle = false;
+            this.sharedService.emitExerciseTitle(this.currentLogType);
         }
     }
 
