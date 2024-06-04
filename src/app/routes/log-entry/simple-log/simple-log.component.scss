@@ -1,54 +1,16 @@
 @import '../../../shared/styles/common.scss';
 @import '../../../shared/styles/app/variables.scss';
 
-.content-heading {
-    position: fixed;
-    top: 70px;
-    left: 240px;
-    right: 0;
-    display: flex;
-    justify-content: space-between;
-}
-
-.content-heading-sb-is-collapsed {
-    left: 90px;
-}
-
-.content-heading .mda-form-group {
-    padding: 18px 0 0 0;
-
-    .mda-form-control {
-        border: none;
-    }
-}
-
-.right-content {
-    margin-top: 0.6em;
-    display: flex;
-    align-items: center;
-    /* Centers items vertically */
-    flex-direction: column;
-}
-
 .container-lg {
-    margin-top: 145px;
+    margin-top: 50px;
 }
 
 input.mda-form-control[name="title"] {
     width: 15em;
 }
 
-#exercise-btns {
-    margin-left: 2em;
-    margin-right: 2em;
-}
-
 .container {
     padding-top: 15px;
-}
-
-.first-fg {
-    margin-left: 10px;
 }
 
 .btn-row-close {
@@ -141,38 +103,11 @@ table {
 }
 
 /* tablets */
-@media (min-width: 769px) and (max-width: 1200px) {
-    .container-lg {
-        margin-top: 165px;
-    }
-}
+/*@media (min-width: 769px) and (max-width: 1200px) {
+
+}*/
 
 /* phones */
-@media only screen and (max-width: 768px) {
-    .content-heading {
-        font-size: 20px;
-        left: 0;
-        width: 100%;
+/*@media only screen and (max-width: 768px) {
 
-        button {
-            width: 100%;
-        }
-    }
-
-    .container-lg {
-        margin-top: 185px;
-    }
-
-    .right-content {
-        margin-top: 1em;
-    }
-
-    #exercise-btns {
-        margin-left: 0;
-        margin-right: 0;
-    }
-
-    input.mda-form-control[name="title"] {
-        width: 7em;
-    }
-}
+}*/

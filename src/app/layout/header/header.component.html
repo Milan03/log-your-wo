@@ -1,10 +1,10 @@
 <!-- START Top Navbar-->
-<nav class="navbar topnavbar" role="navigation">
+<nav class="navbar topnavbar" role="navigation" [formGroup]="headerForm">
     <!-- START navbar header-->
     <div class="navbar-header">
         <a class="navbar-brand" href="#/">
             <div class="brand-logo">
-                <img class="img-fluid" src="assets/img/log-your-wo-logo.png" alt="App Logo" />
+                <img class="img-fluid" src="assets/img/log-your-wo-logo-single.png" alt="App Logo" />
             </div>
             <div class="brand-logo-collapsed">
                 <img class="img-fluid" src="assets/img/log-your-wo-logo-single.png" alt="App Logo" />
@@ -16,19 +16,21 @@
     <ul class="navbar-nav mr-auto flex-row">
         <li class="nav-item">
             <!-- Button used to collapse the left sidebar. Only visible on tablet and desktops-->
-            <a class="nav-link d-none d-md-block d-lg-block d-xl-block" trigger-resize="" (click)="toggleCollapsedSideabar()" *ngIf="!isCollapsedText()">
+            <a class="nav-link d-none d-md-block d-lg-block d-xl-block" trigger-resize=""
+                (click)="toggleCollapsedSideabar()" *ngIf="!isCollapsedText()">
                 <em class="fas fa-bars"></em>
             </a>
             <!-- Button to show/hide the sidebar on mobile. Visible on mobile only.-->
-            <a class="nav-link sidebar-toggle d-md-none" (click)="settings.toggleLayoutSetting('asideToggled'); $event.stopPropagation()">
+            <a class="nav-link sidebar-toggle d-md-none"
+                (click)="settings.toggleLayoutSetting('asideToggled'); $event.stopPropagation()">
                 <em class="fas fa-bars"></em>
                 <!--<span id="mobile-log-type">{{ currentLogType }}</span>-->
             </a>
         </li>
         <!-- START User avatar toggle-->
         <!-- <li class="nav-item d-none d-md-block"> -->
-            <!-- Button used to collapse the left sidebar. Only visible on tablet and desktops-->
-            <!-- <a  class="nav-link" (click)="toggleUserBlock($event)">
+        <!-- Button used to collapse the left sidebar. Only visible on tablet and desktops-->
+        <!-- <a  class="nav-link" (click)="toggleUserBlock($event)">
                 <em class="icon-user"></em>
             </a>
         </li> -->
@@ -43,14 +45,38 @@
     </ul>
     <ul *ngIf="currentLogType" class="navbar-nav mr-auto flex-row">
         <li class="nav-item d-none d-md-block">
-            <a id="log-header" class="nav-link">
-                <span>{{ currentLogType }} - {{ logStartDatim | date: 'MM/dd/yyyy h:mm a' }}</span>
-            </a>
+            <div id="log-header" class="nav-link">
+                <span *ngIf="!isEditingTitle" (click)="editTitle()">{{ currentLogType }} - {{ logStartDatim | date: 'MM/dd/yyyy h:mm a' }}</span>
+                <span *ngIf="isEditingTitle" class="edit-container">
+                    <form [formGroup]="headerForm" (ngSubmit)="checkForTitleValue()" class="form-inline">
+                        <input class="form-control edit-mode" name="title" formControlName="title" tabindex="0"
+                            aria-invalid="false" />
+                        <input type="datetime-local" class="form-control edit-mode" name="date" formControlName="date"
+                            tabindex="0" aria-invalid="false" [placeholder]="logStartDatim | date:'MM/dd/yyyy h:mm a'" />
+                        <button type="submit" class="save-button">
+                            <i class="fa fa-check"></i>
+                        </button>
+                        <mat-error class="text-danger"
+                            *ngIf="headerForm.get('title').hasError('maxlength') && (headerForm.get('title').dirty || headerForm.get('title').touched)">
+                            {{ 'global.CharacterLimit' | translate }} {{ titleCharLimit }}
+                        </mat-error>
+                    </form>
+                </span>
+            </div>
         </li>
-    </ul>
+    </ul>    
     <!-- END Left navbar-->
     <!-- START Right Navbar-->
     <ul class="navbar-nav flex-row">
+        <li>
+            <div id="add-exercise-label">{{ 'log-entry.AddExercise' | translate }}</div>
+            <div id="exercise-btns">
+                <button class="mb-1 mr-1 btn btn-primary" type="button" (click)="sendOpenRequest('strength')">+
+                    <em class="fa fa-dumbbell"></em></button>
+                <button class="mb-1 mr-1 btn btn-primary" type="button" (click)="sendOpenRequest('cardio')">+ <em
+                        class="fa fa-running"></em></button>
+            </div>
+        </li>
         <!-- Search icon-->
         <!-- <li class="nav-item">
             <a class="nav-link" (click)="openNavSearch($event)">
@@ -69,13 +95,13 @@
                 <em class="icon-bell"></em>
                 <span class="badge badge-danger">11</span>
             </a> -->
-            <!-- START Dropdown menu-->
-            <!-- <div *dropdownMenu class="dropdown-menu dropdown-menu-right animated flipInX">
+        <!-- START Dropdown menu-->
+        <!-- <div *dropdownMenu class="dropdown-menu dropdown-menu-right animated flipInX">
                 <div class="dropdown-item"> -->
-                    <!-- START list group-->
-                    <!-- <div class="list-group"> -->
-                       <!-- list item-->
-                       <!-- <div class="list-group-item list-group-item-action">
+        <!-- START list group-->
+        <!-- <div class="list-group"> -->
+        <!-- list item-->
+        <!-- <div class="list-group-item list-group-item-action">
                           <div class="media">
                              <div class="align-self-start mr-2">
                                 <em class="fab fa-twitter fa-2x text-info"></em>
@@ -86,8 +112,8 @@
                              </div>
                           </div>
                        </div> -->
-                       <!-- list item-->
-                       <!-- <div class="list-group-item list-group-item-action">
+        <!-- list item-->
+        <!-- <div class="list-group-item list-group-item-action">
                           <div class="media">
                              <div class="align-self-start mr-2">
                                 <em class="fa fa-envelope fa-2x text-warning"></em>
@@ -98,8 +124,8 @@
                              </div>
                           </div>
                        </div> -->
-                       <!-- list item-->
-                       <!-- <div class="list-group-item list-group-item-action">
+        <!-- list item-->
+        <!-- <div class="list-group-item list-group-item-action">
                           <div class="media">
                              <div class="align-self-start mr-2">
                                 <em class="fa fa-tasks fa-2x text-success"></em>
@@ -110,18 +136,18 @@
                              </div>
                           </div>
                        </div> -->
-                       <!-- last list item-->
-                       <!-- <div class="list-group-item list-group-item-action">
+        <!-- last list item-->
+        <!-- <div class="list-group-item list-group-item-action">
                           <span class="d-flex align-items-center">
                              <span class="text-sm">More notifications</span>
                              <span class="badge badge-danger ml-auto">14</span>
                           </span>
                        </div>
                     </div> -->
-                    <!-- END list group-->
-                <!-- </div>
+        <!-- END list group-->
+        <!-- </div>
             </div> -->
-            <!-- END Dropdown menu-->
+        <!-- END Dropdown menu-->
         <!-- </li> -->
         <!-- END Alert menu-->
         <!-- START Offsidebar button-->

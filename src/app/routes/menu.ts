@@ -1,10 +1,10 @@
 
-const Home = {
+/*const Home = {
     text: 'Home',
     link: '/home',
     icon: 'icon-home',
     translate: 'global.Home'
-};
+};*/
 
 const SimpleLog = {
     text: 'Simple Log',
@@ -21,6 +21,6 @@ const headingMain = {
 
 export const menu = [
     headingMain,
-    Home,
+    //Home,
     SimpleLog
 ];

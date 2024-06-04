@@ -12,12 +12,16 @@ export class SharedService {
     private emitExerciseSource = new Subject<Exercise>();
     private emitSidebarToggleSource = new Subject<boolean>();
     private emitMeasureToggleSource = new Subject<string>();
+    private emitOpenExerciseDialogSource = new Subject<string>();
+    private emitExerciseTitleSource = new Subject<string>();
     // Observable string streams
     logTypeEmitted$ = this.emitLogTypeSource.asObservable();
     logStartDatimEmitted$ = this.emitLogStartDatimSource.asObservable();
     exerciseEmitted$ = this.emitExerciseSource.asObservable();
     sidebarToggleEmitted$ = this.emitSidebarToggleSource.asObservable();
     measureToggleSource$ = this.emitMeasureToggleSource.asObservable();
+    openExerciseDialogEmitted$ = this.emitOpenExerciseDialogSource.asObservable();
+    exerciseTitleEmitted$ = this.emitExerciseTitleSource.asObservable();
     // Emit change functions
     emitLogType(logType: string) {
         this.emitLogTypeSource.next(logType);
@@ -33,5 +37,11 @@ export class SharedService {
     }
     emitMeasureToggle(toggle: string) {
         this.emitMeasureToggleSource.next(toggle);
+    }
+    emitOpenExerciseDialog(type: string) {
+        this.emitOpenExerciseDialogSource.next(type);
+    }
+    emitExerciseTitle(title: string) {
+        this.emitExerciseTitleSource.next(title);
     }
 }
