@@ -1,10 +1,10 @@
 <tabset [justified]="true">
     <tab>
-        <ng-template tabHeading>
+        <!-- <ng-template tabHeading>
             <em class="icon-equalizer fa-lg"></em>
-        </ng-template>
-        <h3 class="text-center text-thin mt-4" [innerHTML]="'offsidebar.setting.SETTINGS' | translate"></h3>
-        <div class="p-2">
+        </ng-template> -->
+        <!-- <h3 class="text-center text-thin mt-4" [innerHTML]="'offsidebar.setting.SETTINGS' | translate"></h3> -->
+        <!-- <div class="p-2">
             <h4 class="text-muted text-thin">Themes</h4>
             <div class="row row-flush mb-2">
                 <div class="col mb-2">
@@ -114,8 +114,8 @@
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="p-2">
+        </div> -->
+        <!-- <div class="p-2">
             <h4 class="text-muted text-thin">Layout</h4>
             <div class="clearfix">
                 <p class="float-left">Fixed</p>
@@ -138,7 +138,7 @@
                         <span></span>
                     </label>
                 </div>
-            </div>
+            </div> -->
             <!--
     <div class="clearfix">
       <p class="float-left">RTL</p>
@@ -150,8 +150,8 @@
       </div>
     </div>
     -->
-        </div>
-        <div class="p-2" *ngIf="!settings.getLayoutSetting('horizontal')">
+        <!-- </div> -->
+        <!-- <div class="p-2" *ngIf="!settings.getLayoutSetting('horizontal')">
             <h4 class="text-muted text-thin">Aside</h4>
             <div class="clearfix">
                 <p class="float-left">Collapsed</p>
@@ -210,26 +210,29 @@
                     </label>
                 </div>
             </div>
-        </div>
+        </div> -->
         <div class="p-2">
             <h4 class="text-muted text-thin">Language</h4>
             <select class="form-control" [ngModel]="selectedLanguage" (ngModelChange)="setLang($event)">
                 <option [value]="lang.code" *ngFor="let lang of getLangs()">{{lang.text}}</option>
             </select>
         </div>
+        <div class="p-2">
+            <span id="app-info">&copy; {{_settings.getAppSetting('year')}} - {{ _settings.getAppSetting('name') }}</span>
+        </div>
     </tab>
-    <tab>
+    <!--<tab>
         <ng-template tabHeading>
             <em class="icon-user fa-lg"></em>
         </ng-template>
         <h3 class="text-center text-thin mt-4">Connections</h3>
-        <div class="list-group">
+        <div class="list-group">-->
             <!-- START list title-->
-            <div class="list-group-item border-0">
+            <!-- <div class="list-group-item border-0">
                 <small class="text-muted">ONLINE</small>
-            </div>
+            </div> -->
             <!-- END list title-->
-            <div class="list-group-item list-group-item-action border-0">
+            <!--<div class="list-group-item list-group-item-action border-0">
                 <div class="media">
                     <img class="align-self-center mr-3 rounded-circle thumb48" src="assets/img/user/05.jpg" alt="Image">
                     <div class="media-body text-truncate">
@@ -288,13 +291,13 @@
                         <span class="circle bg-warning circle-lg"></span>
                     </div>
                 </div>
-            </div>
+            </div> -->
             <!-- START list title-->
-            <div class="list-group-item border-0">
+            <!-- <div class="list-group-item border-0">
                 <small class="text-muted">OFFLINE</small>
-            </div>
+            </div> -->
             <!-- END list title-->
-            <div class="list-group-item list-group-item-action border-0">
+            <!-- <div class="list-group-item list-group-item-action border-0">
                 <div class="media">
                     <img class="align-self-center mr-3 rounded-circle thumb48" src="assets/img/user/09.jpg" alt="Image">
                     <div class="media-body text-truncate">
@@ -324,15 +327,15 @@
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="px-3 py-4 text-center">
+        </div> -->
+        <!-- <div class="px-3 py-4 text-center"> -->
             <!-- Optional link to list more users-->
-            <a class="btn btn-purple btn-sm" href="#" title="See more contacts">
+            <!-- <a class="btn btn-purple btn-sm" href="#" title="See more contacts">
                            <strong>Load more..</strong>
                         </a>
-        </div>
+        </div> -->
         <!-- Extra items-->
-        <div class="px-3 py-2">
+        <!-- <div class="px-3 py-2">
             <p>
                 <small class="text-muted">Tasks completion</small>
             </p>
@@ -351,6 +354,6 @@
                     <span class="sr-only">40% Complete</span>
                 </div>
             </div>
-        </div>
-    </tab>
+        </div> -->
+    <!-- </tab> -->
 </tabset>
