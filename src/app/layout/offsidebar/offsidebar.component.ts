@@ -11,11 +11,16 @@ import { TranslatorService } from '../../core/translator/translator.service';
 })
 export class OffsidebarComponent implements OnInit, OnDestroy {
 
-    currentTheme: any;
+    //currentTheme: any;
     selectedLanguage: string;
 
-    constructor(public settings: SettingsService, public themes: ThemesService, public translator: TranslatorService, public elem: ElementRef) {
-        this.currentTheme = themes.getDefaultTheme();
+    constructor(
+        public _settings: SettingsService,
+        public themes: ThemesService,
+        public translator: TranslatorService,
+        public elem: ElementRef
+    ) {
+        //this.currentTheme = themes.getDefaultTheme();
         this.selectedLanguage = this.getLangs()[0].code;
     }
 
@@ -23,9 +28,9 @@ export class OffsidebarComponent implements OnInit, OnDestroy {
         this.anyClickClose();
     }
 
-    setTheme() {
-        //this.themes.setTheme(this.currentTheme);
-    }
+    /*setTheme() {
+        this.themes.setTheme(this.currentTheme);
+    }*/
 
     getLangs() {
         return this.translator.getAvailableLanguages();
@@ -42,7 +47,7 @@ export class OffsidebarComponent implements OnInit, OnDestroy {
     checkCloseOffsidebar = e => {
         const contains = (this.elem.nativeElement !== e.target && this.elem.nativeElement.contains(e.target));
         if (!contains) {
-            this.settings.setLayoutSetting('offsidebarOpen', false);
+            this._settings.setLayoutSetting('offsidebarOpen', false);
         }
     }
 

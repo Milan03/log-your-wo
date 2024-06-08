@@ -61,3 +61,12 @@ input {
     margin-top: 5px;
     color: white !important;
 }
+
+.nav-item a.nav-link {
+    transition: transform 0.3s ease; /* Smooth transition */
+}
+
+.nav-item a.nav-link:hover {
+    color: #FFFFFF;
+    transform: translateY(-3px); /* Raise the icon slightly */
+}

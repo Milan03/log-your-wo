@@ -27,6 +27,13 @@
                 <!--<span id="mobile-log-type">{{ currentLogType }}</span>-->
             </a>
         </li>
+        <!-- START Offsidebar button START -->
+        <li class="nav-item">
+            <a class="nav-link" (click)="toggleOffsidebar(); $event.stopPropagation()">
+                <em class="icon-notebook"></em>
+            </a>
+        </li>
+        <!-- END Offsidebar menu END -->
         <!-- START User avatar toggle-->
         <!-- <li class="nav-item d-none d-md-block"> -->
         <!-- Button used to collapse the left sidebar. Only visible on tablet and desktops-->
@@ -46,13 +53,15 @@
     <ul *ngIf="currentLogType" class="navbar-nav mr-auto flex-row">
         <li class="nav-item d-none d-md-block">
             <div id="log-header" class="nav-link">
-                <span *ngIf="!isEditingTitle" (click)="editTitle()">{{ currentLogType }} - {{ logStartDatim | date: 'MM/dd/yyyy h:mm a' }}</span>
+                <span *ngIf="!isEditingTitle" (click)="editTitle()">{{ currentLogType }} - {{ logStartDatim | date:
+                    'MM/dd/yyyy h:mm a' }}</span>
                 <span *ngIf="isEditingTitle" class="edit-container">
                     <form [formGroup]="headerForm" (ngSubmit)="checkForTitleValue()" class="form-inline">
                         <input class="form-control edit-mode" name="title" formControlName="title" tabindex="0"
                             aria-invalid="false" />
                         <input type="datetime-local" class="form-control edit-mode" name="date" formControlName="date"
-                            tabindex="0" aria-invalid="false" [placeholder]="logStartDatim | date:'MM/dd/yyyy h:mm a'" />
+                            tabindex="0" aria-invalid="false"
+                            [placeholder]="logStartDatim | date:'MM/dd/yyyy h:mm a'" />
                         <button type="submit" class="save-button">
                             <i class="fa fa-check"></i>
                         </button>
@@ -64,11 +73,12 @@
                 </span>
             </div>
         </li>
-    </ul>    
+    </ul>
     <!-- END Left navbar-->
     <!-- START Right Navbar-->
     <ul class="navbar-nav flex-row">
-        <li>
+        <!-- START Add Exercise Buttons START -->
+        <li class="nav-item">
             <div id="add-exercise-label">{{ 'log-entry.AddExercise' | translate }}</div>
             <div id="exercise-btns">
                 <button class="mb-1 mr-1 btn btn-primary" type="button" (click)="sendOpenRequest('strength')">+
@@ -77,6 +87,7 @@
                         class="fa fa-running"></em></button>
             </div>
         </li>
+        <!-- END Add Exercise Buttons END -->
         <!-- Search icon-->
         <!-- <li class="nav-item">
             <a class="nav-link" (click)="openNavSearch($event)">
@@ -150,13 +161,6 @@
         <!-- END Dropdown menu-->
         <!-- </li> -->
         <!-- END Alert menu-->
-        <!-- START Offsidebar button-->
-        <!-- <li class="nav-item">
-            <a class="nav-link" (click)="toggleOffsidebar(); $event.stopPropagation()">
-                <em class="icon-notebook"></em>
-            </a>
-        </li> -->
-        <!-- END Offsidebar menu-->
     </ul>
     <!-- END Right Navbar-->
 

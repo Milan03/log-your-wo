@@ -169,9 +169,9 @@ export class HeaderComponent implements OnInit, OnDestroy {
     //     return this.isNavSearchVisible;
     // }
 
-    // toggleOffsidebar() {
-    //     this.settings.toggleLayoutSetting('offsidebarOpen');
-    // }
+     toggleOffsidebar() {
+         this.settings.toggleLayoutSetting('offsidebarOpen');
+     }
 
     toggleCollapsedSideabar() {
         this.settings.toggleLayoutSetting('isCollapsed');
