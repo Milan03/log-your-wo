@@ -1,3 +1,28 @@
 ::ng-deep .mat-mdc-dialog-container {
+    height: 16em;
     width: 30em;
+}
+
+.mda-form-group {
+    width: 29em;
+    padding-left: 24px;
+}
+
+label {
+    padding-left: 24px;
+}
+
+.button-container {
+    position: absolute;
+    bottom: 16px;
+    right: 16px;
+    display: flex;
+    gap: 10px;
+}
+
+/* phones */
+@media only screen and (max-width: 768px) {
+    .mda-form-group {
+        width: 22em;
+    }
 }

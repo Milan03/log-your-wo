@@ -1,0 +1,16 @@
+::ng-deep .mat-mdc-dialog-container {
+    height: 16em;
+    width: 18em;
+}
+
+label { 
+    padding-left: 24px;
+}
+
+.button-container {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    display: flex;
+
+}

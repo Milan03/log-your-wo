@@ -1,14 +1,22 @@
 <h1 mat-dialog-title>{{ 'log-entry.EmailAsPDF' | translate }}</h1>
-<form [formGroup]="emailForm" (submit)="submitForm($event, emailForm.value)" class="form-validate" novalidate="">
+<form [formGroup]="emailForm" (submit)="submitForm($event, emailForm.value)" class="form-validate" novalidate>
     <div class="mda-form-group float-label">
-        <input class="mda-form-control" name="emailAddress" formControlName="emailAddress" tabindex="0" aria-invalid="false" />
+        <input class="mda-form-control" name="emailAddress" formControlName="emailAddress" tabindex="0"
+            aria-invalid="false" />
         <label>{{ 'log-entry.EmailAddressLabel' | translate }}</label>
-        <mat-error class="text-danger" *ngIf="emailForm.get('emailAddress').hasError('required') && (emailForm.get('emailAddress').dirty || emailForm.get('emailAddress').touched)">{{ 'global.Required' | translate }}</mat-error>
-        <mat-error class="text-danger" *ngIf="emailForm.get('emailAddress').hasError('email') && (emailForm.get('emailAddress').dirty || emailForm.get('emailAddress').touched)">{{ 'global.InvalidEmailFormat' | translate }}</mat-error>
+        <mat-error class="text-danger"
+            *ngIf="emailForm.get('emailAddress').hasError('required') && (emailForm.get('emailAddress').dirty || emailForm.get('emailAddress').touched)">
+            {{ 'global.Required' | translate }}
+        </mat-error>
+        <mat-error class="text-danger"
+            *ngIf="emailForm.get('emailAddress').hasError('email') && (emailForm.get('emailAddress').dirty || emailForm.get('emailAddress').touched)">
+            {{ 'global.InvalidEmailFormat' | translate }}
+        </mat-error>
     </div>
     <br>
-    <div class="row float-right">
-        <button mat-button type="submit">{{ 'global.SendLabel' | translate }}</button>
-        <button mat-button type="button" (click)="_dialogRef.close()">{{ 'global.CancelLabel' | translate }}</button>
+    <div class="button-container">
+        <button mat-button type="submit" class="btn-primary">{{ 'global.SendLabel' | translate }}</button>
+        <button mat-button type="button" class="btn-secondary" (click)="_dialogRef.close()">{{ 'global.CancelLabel' |
+            translate }}</button>
     </div>
 </form>
