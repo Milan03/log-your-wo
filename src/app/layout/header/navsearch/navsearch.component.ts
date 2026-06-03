@@ -2,6 +2,7 @@ import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChange
 
 @Component({
     selector: 'app-navsearch',
+    standalone: false,
     templateUrl: './navsearch.component.html',
     styleUrls: ['./navsearch.component.scss']
 })

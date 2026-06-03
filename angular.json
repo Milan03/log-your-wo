@@ -1,5 +1,5 @@
 {
-  "$schema": "./node_modules/@angular/cl/lib/config/schema.json",
+  "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
@@ -18,9 +18,10 @@
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
             "allowedCommonJsDependencies": [
-                "rxjs",
-                "rxjs-compat",
-                "jspdf"
+                "guid-typescript",
+                "jspdf",
+                "moment",
+                "sweetalert"
              ],
             "outputPath": "dist",
             "index": "src/index.html",
@@ -113,18 +114,6 @@
               "src/app/core/wrapper/wrapper.js",
               "src/app/core/preloader/preloader.js"
             ]
-          }
-        },
-        "e2e": {
-          "builder": "@angular-devkit/build-angular:protractor",
-          "options": {
-            "protractorConfig": "e2e/protractor.conf.js",
-            "devServerTarget": "log-your-wo:serve"
-          },
-          "configurations": {
-            "production": {
-              "devServerTarget": "log-your-wo:serve:production"
-            }
           }
         }
       }

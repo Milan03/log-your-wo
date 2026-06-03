@@ -5,17 +5,21 @@
     "outDir": "./dist/out-tsc",
     "sourceMap": true,
     "declaration": false,
+    "ignoreDeprecations": "6.0",
     "downlevelIteration": true,
     "experimentalDecorators": true,
-    "module": "es2020",
-    "moduleResolution": "node",
+    "module": "preserve",
+    "moduleResolution": "bundler",
     "importHelpers": true,
     "target": "ES2022",
+    "strict": false,
+    "strictNullChecks": false,
+    "strictPropertyInitialization": false,
     "typeRoots": [
       "node_modules/@types"
     ],
     "lib": [
-      "es2018",
+      "es2022",
       "dom"
     ],
     "useDefineForClassFields": false

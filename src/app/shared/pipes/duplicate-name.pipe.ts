@@ -2,7 +2,8 @@ import { Pipe, PipeTransform } from '@angular/core';
 import { Exercise } from '../models/exercise.model';
 
 @Pipe({
-  name: 'duplicateName'
+  name: 'duplicateName',
+  standalone: false
 })
 export class DuplicateNamePipe implements PipeTransform {
   transform(exercises: Exercise[], exercise: Exercise, index: number): string {

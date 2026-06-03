@@ -18,6 +18,7 @@ import * as moment from 'moment';
 
 @Component({
     selector: 'exercise-dialog',
+    standalone: false,
     templateUrl: './exercise-dialog.component.html',
     styleUrl: './exercise-dialog.component.scss'
 })
@@ -125,13 +126,12 @@ export class ExerciseDialogComponent {
 
     openDurationDialog(event: Event): void {
         event.preventDefault();
-        let dialogRef = this._durrDialogRef.open(DurationDialogComponent);
-        this._sharedService.emitCvExercise(this.currentExercise);
+        let dialogRef = this._durrDialogRef.open(DurationDialogComponent, {
+            data: this.currentExercise
+        });
         dialogRef.afterClosed().subscribe(result => {
             if (result) {
                 this.currentExercise = result;
-            } else {
-                dialogRef.close(this.currentExercise);
             }
         });
     }

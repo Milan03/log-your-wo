@@ -6,6 +6,7 @@ import { TranslatorService } from '../../core/translator/translator.service';
 
 @Component({
     selector: 'app-offsidebar',
+    standalone: false,
     templateUrl: './offsidebar.component.html',
     styleUrls: ['./offsidebar.component.scss']
 })

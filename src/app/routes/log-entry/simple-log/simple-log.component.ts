@@ -1,7 +1,6 @@
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
+import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { UntypedFormGroup, UntypedFormBuilder, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
-import { MatTable } from '@angular/material/table';
 import { Subscription } from 'rxjs';
 
 import { ExerciseDialogComponent } from '../exercise-dialog/exercise-dialog.component';
@@ -14,18 +13,17 @@ import { SharedService } from '../../../shared/services/shared.service';
 import { TranslatorService } from '../../../core/translator/translator.service';
 import { EmailService } from '../../../shared/services/email.service';
 import { GoogleAnalyticsService } from '../../../shared/services/google-analytics.service';
-import { ExerciseDataSource } from '../../../shared/data-sources/exercise-data-source';
-import { CardioExerciseDataSource } from '../../../shared/data-sources/cardio-exercises-data-source';
 
 import { LogTypes, FormValues } from '../../../shared/common/common.constants';
 
 import * as moment from 'moment';
-import * as jsPDF from 'jspdf'
+import { jsPDF, jsPDFOptions } from 'jspdf';
 
 const swal = require('sweetalert');
 
 @Component({
     selector: 'app-simple-log',
+    standalone: false,
     templateUrl: './simple-log.component.html',
     styleUrls: ['./simple-log.component.scss']
 })
@@ -36,8 +34,6 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     private currentLanguage: string;
     public currentLog: SimpleLog;
     private currentPDF: any
-    public dataSource: ExerciseDataSource;
-    public cDataSource: CardioExerciseDataSource;
     public sbIsCollapsed: boolean;
 
     public selectedIntensity: string;
@@ -59,8 +55,6 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     private measureToggleSub: Subscription;
     private openDialogSub: Subscription;
     private exerciseTitleSub: Subscription;
-
-    @ViewChild(MatTable) table: MatTable<Exercise>;
 
     constructor(
         private _formBuilder: UntypedFormBuilder,
@@ -111,12 +105,12 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             this.emailPDFSubmit();
     }
 
-    private savePDFSubmit(): void {
+    private async savePDFSubmit(): Promise<void> {
         for (let c in this.simpleLogForm.controls) {
             this.simpleLogForm.controls[c].markAsTouched();
         }
         if (this.simpleLogForm.valid) {
-            let createdPDF = this.createPDF('save');
+            let createdPDF = await this.createPDF('save');
             createdPDF.save('tableToPdf.pdf');
             this._googleAnalyticsService.eventEmitter(`pdf_saved_success`, 'general', 'engagement');
         }
@@ -136,8 +130,8 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
      * initiate call the email service.
      * @param recipientEmailAddress 
      */
-    public emailAsPDF(recipientEmailAddress: string): void {
-        let createdPDF = this.createPDF('email');
+    public async emailAsPDF(recipientEmailAddress: string): Promise<void> {
+        let createdPDF = await this.createPDF('email');
         this.currentPDF = btoa(createdPDF);
         let request = this.createEmailRequest(recipientEmailAddress);
         this._emailService.sendMail(request).subscribe({
@@ -154,28 +148,32 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     /**
      * Create the PDF using jsPDF and the exercise HTML table.
      */
-    private createPDF(type: string): any {
-        let orientation = {
+    private createPDF(type: string): Promise<any> {
+        let orientation: jsPDFOptions = {
             orientation: 'p',
             unit: 'mm',
             format: 'a3',
-            compress: true,
-            fontSize: 8,
-            lineHeight: 0.75,
-            autoSize: false,
-            printHeaders: true
+            compress: true
         };
         const doc = new jsPDF(orientation);
         doc.setProperties({
             title: 'Log Your Workout'
         });
         const exerciseTable = this.exerciseTable.nativeElement;
-        // doc.setFontSize(12);
-        doc.fromHTML(exerciseTable.innerHTML, 40, 20, { 'width': 522 });
-        if (type == 'save')
-            return doc;
-        else
-            return doc.output()
+        return new Promise(resolve => {
+            doc.html(exerciseTable, {
+                x: 40,
+                y: 20,
+                width: 522,
+                windowWidth: exerciseTable.scrollWidth,
+                callback: createdDoc => {
+                    if (type == 'save')
+                        resolve(createdDoc);
+                    else
+                        resolve(createdDoc.output());
+                }
+            });
+        });
     }
 
     /**
@@ -253,22 +251,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         const dialogRef = this._dialog.open(ExerciseDialogComponent, { data });
         dialogRef.afterClosed().subscribe(result => {
             if (result) {
-                let newExercise: Exercise = result;
-                if (type === 'strength') {
-                    this.currentLog.exercises.push(newExercise);
-                    if (this.currentLog.exercises) {
-                        this.dataSource = new ExerciseDataSource(this.currentLog.exercises);
-                    } else {
-                        this.dataSource.setData(this.currentLog.exercises);
-                    }
-                } else {
-                    this.currentLog.cardioExercises.push(newExercise);
-                    if (this.currentLog.cardioExercises) {
-                        this.cDataSource = new CardioExerciseDataSource(this.currentLog.cardioExercises);
-                    } else {
-                        this.cDataSource.setData(this.currentLog.cardioExercises);
-                    }
-                }
+                this.addExerciseToLog(type, result);
             }
         });
     }
@@ -281,19 +264,17 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
 
     public removeRow(exercise: Exercise) {
         if (exercise.exerciseType === 'strength') {
-            for (let i = 0; i < this.currentLog.exercises.length; ++i) {
-                if (this.currentLog.exercises[i].exerciseId === exercise.exerciseId) {
-                    this.currentLog.exercises.splice(i, 1);
-                }
-            }
-            this.dataSource.setData(this.currentLog.exercises);
+            this.currentLog.exercises = this.currentLog.exercises.filter(currentExercise => currentExercise.exerciseId !== exercise.exerciseId);
         } else {
-            for (let i = 0; i < this.currentLog.cardioExercises.length; ++i) {
-                if (this.currentLog.cardioExercises[i].exerciseId === exercise.exerciseId) {
-                    this.currentLog.cardioExercises.splice(i, 1);
-                }
-            }
-            this.cDataSource.setData(this.currentLog.cardioExercises);
+            this.currentLog.cardioExercises = this.currentLog.cardioExercises.filter(currentExercise => currentExercise.exerciseId !== exercise.exerciseId);
+        }
+    }
+
+    private addExerciseToLog(type: string, newExercise: Exercise): void {
+        if (type === 'strength') {
+            this.currentLog.exercises = [...this.currentLog.exercises, newExercise];
+        } else {
+            this.currentLog.cardioExercises = [...this.currentLog.cardioExercises, newExercise];
         }
     }
 

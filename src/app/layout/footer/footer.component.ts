@@ -4,6 +4,7 @@ import { TranslatorService } from '../../core/translator/translator.service';
 
 @Component({
     selector: '[app-footer]',
+    standalone: false,
     templateUrl: './footer.component.html',
     styleUrls: ['./footer.component.scss']
 })

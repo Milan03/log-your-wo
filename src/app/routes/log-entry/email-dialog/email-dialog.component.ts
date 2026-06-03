@@ -3,8 +3,9 @@ import { UntypedFormGroup, UntypedFormBuilder, Validators } from '@angular/forms
 import { MatDialogRef } from '@angular/material/dialog';
 
 @Component({
-    selector: 'app-email-dialog',
-    templateUrl: './email-dialog.component.html',
+  selector: 'app-email-dialog',
+  standalone: false,
+  templateUrl: './email-dialog.component.html',
     styleUrls: ['./email-dialog.component.scss']
 })
 export class EmailDialogComponent {

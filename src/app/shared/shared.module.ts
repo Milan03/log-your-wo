@@ -55,8 +55,8 @@ import { DuplicateNamePipe } from './pipes/duplicate-name.pipe';
         ReactiveFormsModule,
         TranslateModule,
         ToastrModule.forRoot(),
-        TabsModule.forRoot(),
-        TimepickerModule.forRoot(),
+        TabsModule,
+        TimepickerModule,
         // Material Modules
         MatAutocompleteModule,
         MatButtonModule,

@@ -4,13 +4,13 @@ import { ElementRef } from '@angular/core';
 import { TestBed, inject, waitForAsync } from '@angular/core/testing';
 import { OffsidebarComponent } from './offsidebar.component';
 import { TranslateService, TranslateModule, TranslateLoader } from '@ngx-translate/core';
-import { HttpClientModule, HttpClient } from '@angular/common/http';
+import { HttpClientModule } from '@angular/common/http';
+import { TRANSLATE_HTTP_LOADER_CONFIG, TranslateHttpLoader } from '@ngx-translate/http-loader';
 
 import { SettingsService } from '../../core/settings/settings.service';
 import { ThemesService } from '../../core/themes/themes.service';
 import { TranslatorService } from '../../core/translator/translator.service';
 import { SharedModule } from '../../shared/shared.module';
-import { createTranslateLoader } from '../../app.module';
 
 export class MockElementRef extends ElementRef {
     constructor() { super(null); }
@@ -24,14 +24,22 @@ describe('Component: Offsidebar', () => {
                 TranslateModule.forRoot({
                     loader: {
                         provide: TranslateLoader,
-                        useFactory: (createTranslateLoader),
-                        deps: [HttpClient]
+                        useClass: TranslateHttpLoader
                     }
                 }),
                 HttpClientModule,
                 SharedModule
             ],
-            providers: [SettingsService, ThemesService, TranslatorService, MockElementRef]
+            providers: [
+                SettingsService,
+                ThemesService,
+                TranslatorService,
+                MockElementRef,
+                {
+                    provide: TRANSLATE_HTTP_LOADER_CONFIG,
+                    useValue: {}
+                }
+            ]
         }).compileComponents();
     });
 

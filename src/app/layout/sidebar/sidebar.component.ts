@@ -7,6 +7,7 @@ import { SettingsService } from '../../core/settings/settings.service';
 
 @Component({
     selector: 'app-sidebar',
+    standalone: false,
     templateUrl: './sidebar.component.html',
     styleUrls: ['./sidebar.component.scss']
 })

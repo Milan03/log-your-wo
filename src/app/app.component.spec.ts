@@ -3,6 +3,7 @@
 import { TestBed, waitForAsync } from '@angular/core/testing';
 import { AppComponent } from './app.component';
 import { TranslateModule } from '@ngx-translate/core';
+import { TRANSLATE_HTTP_LOADER_CONFIG } from '@ngx-translate/http-loader';
 
 import { CoreModule } from './core/core.module';
 import { LayoutModule } from './layout/layout.module';
@@ -27,7 +28,11 @@ describe('App: log-your-wo', () => {
                 RoutesModule
             ],
             providers: [
-                { provide: APP_BASE_HREF, useValue: '/' }
+                { provide: APP_BASE_HREF, useValue: '/' },
+                {
+                    provide: TRANSLATE_HTTP_LOADER_CONFIG,
+                    useValue: {}
+                }
             ]
         });
     });

@@ -2,10 +2,10 @@
 
 import { TestBed, inject, waitForAsync } from '@angular/core/testing';
 import { TranslateService, TranslateModule, TranslateLoader } from '@ngx-translate/core';
-import { HttpClientModule, HttpClient } from '@angular/common/http';
+import { HttpClientModule } from '@angular/common/http';
+import { TRANSLATE_HTTP_LOADER_CONFIG, TranslateHttpLoader } from '@ngx-translate/http-loader';
 
 import { TranslatorService } from './translator.service';
-import { createTranslateLoader } from '../../app.module';
 
 describe('Service: Translator', () => {
     beforeEach(() => {
@@ -15,12 +15,17 @@ describe('Service: Translator', () => {
                 TranslateModule.forRoot({
                     loader: {
                         provide: TranslateLoader,
-                        useFactory: (createTranslateLoader),
-                        deps: [HttpClient]
+                        useClass: TranslateHttpLoader
                     }
                 })
             ],
-            providers: [TranslatorService]
+            providers: [
+                TranslatorService,
+                {
+                    provide: TRANSLATE_HTTP_LOADER_CONFIG,
+                    useValue: {}
+                }
+            ]
         });
     });
 

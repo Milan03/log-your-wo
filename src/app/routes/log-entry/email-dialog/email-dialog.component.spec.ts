@@ -1,6 +1,9 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
+import { MatDialogRef } from '@angular/material/dialog';
+import { TranslateModule } from '@ngx-translate/core';
 
 import { EmailDialogComponent } from './email-dialog.component';
+import { SharedModule } from '../../../shared/shared.module';
 
 describe('EmailDialogComponent', () => {
   let component: EmailDialogComponent;
@@ -8,7 +11,19 @@ describe('EmailDialogComponent', () => {
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      declarations: [ EmailDialogComponent ]
+      imports: [
+        SharedModule,
+        TranslateModule.forRoot()
+      ],
+      declarations: [ EmailDialogComponent ],
+      providers: [
+        {
+          provide: MatDialogRef,
+          useValue: {
+            close: () => {}
+          }
+        }
+      ]
     })
     .compileComponents();
   }));

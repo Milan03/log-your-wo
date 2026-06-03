@@ -2,14 +2,17 @@
 
 import { Injector } from '@angular/core';
 import { TranslateService, TranslateModule, TranslateLoader } from '@ngx-translate/core';
-import { HttpClientModule, HttpClient } from '@angular/common/http';
+import { HttpClientModule } from '@angular/common/http';
+import { UntypedFormBuilder } from '@angular/forms';
+import { TRANSLATE_HTTP_LOADER_CONFIG, TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { TestBed, inject, waitForAsync } from '@angular/core/testing';
 import { HeaderComponent } from './header.component';
 
 import { SettingsService } from '../../core/settings/settings.service';
 import { MenuService } from '../../core/menu/menu.service';
 import { TranslatorService } from '../../core/translator/translator.service';
-import { createTranslateLoader } from '../../app.module';
+import { SharedService } from '../../shared/services/shared.service';
+import { UserblockService } from '../sidebar/userblock/userblock.service';
 
 describe('Component: Header', () => {
     beforeEach(() => {
@@ -18,25 +21,39 @@ describe('Component: Header', () => {
                 TranslateModule.forRoot({
                     loader: {
                         provide: TranslateLoader,
-                        useFactory: createTranslateLoader,
-                        deps: [HttpClient]
+                        useClass: TranslateHttpLoader
                     }
                 }),
                 HttpClientModule
             ],
-            providers: [MenuService, SettingsService, TranslatorService, Injector]
+            providers: [
+                UntypedFormBuilder,
+                MenuService,
+                UserblockService,
+                SettingsService,
+                SharedService,
+                TranslatorService,
+                Injector,
+                {
+                    provide: TRANSLATE_HTTP_LOADER_CONFIG,
+                    useValue: {}
+                }
+            ]
         }).compileComponents();
     });
 
     it('should create an instance', waitForAsync(
         inject(
-            [MenuService, SettingsService, TranslatorService, Injector],
-            (menuService, settingsService, translator, injector) => {
+            [UntypedFormBuilder, MenuService, UserblockService, SettingsService, Injector, SharedService, TranslatorService],
+            (formBuilder, menuService, userblockService, settingsService, injector, sharedService, translator) => {
                 let component = new HeaderComponent(
+                    formBuilder,
                     menuService,
+                    userblockService,
                     settingsService,
-                    translator,
-                    injector
+                    injector,
+                    sharedService,
+                    translator
                 );
                 expect(component).toBeTruthy();
             }

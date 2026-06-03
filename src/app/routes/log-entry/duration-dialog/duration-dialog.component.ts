@@ -1,50 +1,38 @@
-import { Component, OnDestroy } from '@angular/core';
-import { MatDialogRef } from '@angular/material/dialog';
-import { Subscription } from 'rxjs';
+import { Component, Inject } from '@angular/core';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 
 import { Exercise } from '../../../shared/models/exercise.model';
-import { SharedService } from '../../../shared/services/shared.service';
 
 import * as moment from 'moment';
 
 @Component({
   selector: 'app-duration-dialog',
+  standalone: false,
   templateUrl: './duration-dialog.component.html',
   styleUrls: ['./duration-dialog.component.scss']
 })
-export class DurationDialogComponent implements OnDestroy {
+export class DurationDialogComponent {
     public durationValue: Date;
     public currentExercise: Exercise;
 
-    private exerciseSub: Subscription;
-
     constructor(
         public _dialogRef: MatDialogRef<DurationDialogComponent>,
-        private _sharedService: SharedService
+        @Inject(MAT_DIALOG_DATA) exercise: Exercise
     ) {
-        this.subToCurrentCardioExercise();
-    }
-
-    ngOnDestroy(): void {
-        if (this.exerciseSub)
-            this.exerciseSub.unsubscribe();
+        this.currentExercise = exercise;
+        this.setDurationValue();
     }
 
     /**
      * Track exercise being editted. If the exercise has a duration defined, set it in the control.
      */
-    private subToCurrentCardioExercise(): void {
-        this.exerciseSub = this._sharedService.exerciseEmitted$.subscribe(
-            data => { 
-                this.currentExercise = data;
-                if (this.currentExercise.duration) {
-                    this.durationValue = new Date();
-                    this.durationValue.setHours(this.currentExercise.duration.get('hours'));
-                    this.durationValue.setMinutes(this.currentExercise.duration.get('minutes'));
-                    this.durationValue.setSeconds(this.currentExercise.duration.get('seconds'));
-                }
-            }
-        );
+    private setDurationValue(): void {
+        if (this.currentExercise.duration) {
+            this.durationValue = new Date();
+            this.durationValue.setHours(this.currentExercise.duration.get('hours'));
+            this.durationValue.setMinutes(this.currentExercise.duration.get('minutes'));
+            this.durationValue.setSeconds(this.currentExercise.duration.get('seconds'));
+        }
     }
 
     /**
@@ -56,7 +44,10 @@ export class DurationDialogComponent implements OnDestroy {
         if (dateTime) {
             let duration = moment.duration({ hours: dateTime.getHours(), minutes: dateTime.getMinutes(), seconds: dateTime.getSeconds() });
             this.currentExercise.duration = duration;
-            //console.log(this.currentCardioExercise);
         }
+    }
+
+    public submit(): void {
+        this._dialogRef.close(this.currentExercise);
     }
 }

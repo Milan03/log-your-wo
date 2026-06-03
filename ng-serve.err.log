@@ -1,0 +1,980 @@
+[1m[33mOne or more browsers which are configured in the project's Browserslist configuration will be ignored as ES5 output is not supported by the Angular CLI.
+Ignored browsers:
+ie 11, kaios 2.5, op_mini all[39m[22m
+[1m[33mOne or more browsers which are configured in the project's Browserslist configuration fall outside Angular's browser support for this version.
+Unsupported browsers:
+and_qq 14.9, and_uc 15.5, android 148, chrome 109, kaios 3.0-3.1, op_mob 80, opera 131, opera 127, samsung 29, samsung 28[39m[22m
+- Generating browser application bundles (phase: setup)...
+[32m√[39m Browser application bundle generation complete.
+[1m[33m
+./src/app/core/preloader/preloader.scss - Warning: Module Warning (from ./node_modules/sass-loader/dist/cjs.js):
+Deprecation Warning on line 3, column 8 of file:///C:/Dev/log-your-wo/src/app/core/preloader/preloader.scss:3:8:
+Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+3 | @import "../../shared/styles/bootstrap/_functions.scss";
+
+
+src\app\core\preloader\preloader.scss 4:9  root stylesheet
+
+
+./src/app/core/preloader/preloader.scss - Warning: Module Warning (from ./node_modules/sass-loader/dist/cjs.js):
+Deprecation Warning on line 4, column 8 of file:///C:/Dev/log-your-wo/src/app/core/preloader/preloader.scss:4:8:
+Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+4 | @import "../../shared/styles/bootstrap/_variables.scss";
+
+
+src\app\core\preloader\preloader.scss 5:9  root stylesheet
+
+
+./src/app/core/preloader/preloader.scss - Warning: Module Warning (from ./node_modules/sass-loader/dist/cjs.js):
+Deprecation Warning on line 5, column 8 of file:///C:/Dev/log-your-wo/src/app/core/preloader/preloader.scss:5:8:
+Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+5 | @import "../../shared/styles/bootstrap/_mixins";
+
+
+src\app\core\preloader\preloader.scss 6:9  root stylesheet
+
+
+./src/app/core/preloader/preloader.scss - Warning: Module Warning (from ./node_modules/sass-loader/dist/cjs.js):
+Deprecation Warning on line 5, column 8 of file:///C:/Dev/log-your-wo/src/app/shared/styles/bootstrap/_mixins.scss:5:8:
+Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+5 | @import "vendor/rfs";
+
+
+src\app\shared\styles\bootstrap\_mixins.scss 6:9  @import
+src\app\core\preloader\preloader.scss 6:9         root stylesheet
+
+
+./src/app/core/preloader/preloader.scss - Warning: Module Warning (from ./node_modules/sass-loader/dist/cjs.js):
+Deprecation Warning on line 6, column 8 of file:///C:/Dev/log-your-wo/src/app/core/preloader/preloader.scss:6:8:
+Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+6 | @import "../../shared/styles/app/variables";
+
+
+src\app\core\preloader\preloader.scss 7:9  root stylesheet
+
+
+./src/app/core/preloader/preloader.scss - Warning: Module Warning (from ./node_modules/sass-loader/dist/cjs.js):
+Deprecation Warning on line 21, column 8 of file:///C:/Dev/log-your-wo/src/app/shared/styles/bootstrap/_variables.scss:21:8:
+Global built-in functions are deprecated and will be removed in Dart Sass 3.0.0.
+Use map.merge instead.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+21 | $grays: map-merge(
+  (
+    "100": $gray-100,
+    "200": $gray-200,
+    "300": $gray-300,
+    "400": $gray-400,
+    "500": $gray-500,
+    "600": $gray-600,
+    "700": $gray-700,
+    "800": $gray-800,
+    "900": $gray-900
+  ),
+  $grays
+);
+
+
+src\app\shared\styles\bootstrap\_variables.scss 22:9  @import
+src\app\core\preloader\preloader.scss 5:9             root stylesheet
+
+
+./src/app/core/preloader/preloader.scss - Warning: Module Warning (from ./node_modules/sass-loader/dist/cjs.js):
+Deprecation Warning on line 49, column 9 of file:///C:/Dev/log-your-wo/src/app/shared/styles/bootstrap/_variables.scss:49:9:
+Global built-in functions are deprecated and will be removed in Dart Sass 3.0.0.
+Use map.merge instead.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+49 | $colors: map-merge(
+  (
+    "blue":       $blue,
+    "indigo":     $indigo,
+    "purple":     $purple,
+    "pink":       $pink,
+    "red":        $red,
+    "orange":     $orange,
+    "yellow":     $yellow,
+    "green":      $green,
+    "teal":       $teal,
+    "cyan":       $cyan,
+    "white":      $white,
+    "gray":       $gray-600,
+    "gray-dark":  $gray-800
+  ),
+  $colors
+);
+
+
+src\app\shared\styles\bootstrap\_variables.scss 50:10  @import
+src\app\core\preloader\preloader.scss 5:9              root stylesheet
+
+
+./src/app/core/preloader/preloader.scss - Warning: Module Warning (from ./node_modules/sass-loader/dist/cjs.js):
+Deprecation Warning on line 67, column 12 of file:///C:/Dev/log-your-wo/src/app/shared/styles/bootstrap/vendor/_rfs.scss:67:12:
+The Sass if() syntax is deprecated in favor of the modern CSS syntax.
+
+Suggestion: if(sass(type-of($fs) == "number"): unit($fs); else: false)
+
+More info: https://sass-lang.com/d/if-function
+
+67 |   $fs-unit: if(type-of($fs) == "number", unit($fs), false);
+
+
+src\app\shared\styles\bootstrap\vendor\_rfs.scss 68:13  @import
+src\app\shared\styles\bootstrap\_mixins.scss 6:9        @import
+src\app\core\preloader\preloader.scss 6:9               root stylesheet
+
+
+./src/app/core/preloader/preloader.scss - Warning: Module Warning (from ./node_modules/sass-loader/dist/cjs.js):
+Deprecation Warning on line 70, column 15 of file:///C:/Dev/log-your-wo/src/app/shared/styles/bootstrap/vendor/_rfs.scss:70:15:
+The Sass if() syntax is deprecated in favor of the modern CSS syntax.
+
+Suggestion: if(sass($important): " !important"; else: "")
+
+More info: https://sass-lang.com/d/if-function
+
+70 |   $rfs-suffix: if($important, " !important", "");
+
+
+src\app\shared\styles\bootstrap\vendor\_rfs.scss 71:16  @import
+src\app\shared\styles\bootstrap\_mixins.scss 6:9        @import
+src\app\core\preloader\preloader.scss 6:9               root stylesheet
+
+
+./src/app/core/preloader/preloader.scss - Warning: Module Warning (from ./node_modules/sass-loader/dist/cjs.js):
+Deprecation Warning on line 79, column 15 of file:///C:/Dev/log-your-wo/src/app/shared/styles/bootstrap/_variables.scss:79:15:
+Global built-in functions are deprecated and will be removed in Dart Sass 3.0.0.
+Use map.merge instead.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+79 | $theme-colors: map-merge(
+  (
+    "primary":    $primary,
+    "secondary":  $secondary,
+    "success":    $success,
+    "info":       $info,
+    "warning":    $warning,
+    "danger":     $danger,
+    "light":      $light,
+    "dark":       $dark
+  ),
+  $theme-colors
+);
+
+
+src\app\shared\styles\bootstrap\_variables.scss 80:16  @import
+src\app\core\preloader\preloader.scss 5:9              root stylesheet
+
+
+./src/app/core/preloader/preloader.scss - Warning: Module Warning (from ./node_modules/sass-loader/dist/cjs.js):
+Deprecation Warning on line 92, column 15 of file:///C:/Dev/log-your-wo/src/app/shared/styles/bootstrap/_functions.scss:92:15:
+The Sass if() syntax is deprecated in favor of the modern CSS syntax.
+
+Suggestion: if(sass($level > 0): $black; else: $white)
+
+More info: https://sass-lang.com/d/if-function
+
+92 |   $color-base: if($level > 0, $black, $white);
+
+
+src\app\shared\styles\bootstrap\_functions.scss 93:16  @import
+src\app\core\preloader\preloader.scss 4:9              root stylesheet
+
+
+./src/app/core/preloader/preloader.scss - Warning: Module Warning (from ./node_modules/sass-loader/dist/cjs.js):
+Deprecation Warning on line 112, column 10 of file:///C:/Dev/log-your-wo/src/app/shared/styles/bootstrap/_functions.scss:112:10:
+The Sass if() syntax is deprecated in favor of the modern CSS syntax.
+
+Suggestion: if(sass($return-calc == true): calc(#{$value1} + #{$value2}); else: $value1 + unquote(" + ") + $value2)
+
+More info: https://sass-lang.com/d/if-function
+
+112 |   @return if($return-calc == true, calc(#{$value1} + #{$value2}), $value1 + unquote(" + ") + $value2);
+
+
+src\app\shared\styles\bootstrap\_functions.scss 113:11  @import
+src\app\core\preloader\preloader.scss 4:9               root stylesheet
+
+
+./src/app/core/preloader/preloader.scss - Warning: Module Warning (from ./node_modules/sass-loader/dist/cjs.js):
+Deprecation Warning on line 132, column 10 of file:///C:/Dev/log-your-wo/src/app/shared/styles/bootstrap/_functions.scss:132:10:
+The Sass if() syntax is deprecated in favor of the modern CSS syntax.
+
+Suggestion: if(sass($return-calc == true): calc(#{$value1} - #{$value2}); else: $value1 + unquote(" - ") + $value2)
+
+More info: https://sass-lang.com/d/if-function
+
+132 |   @return if($return-calc == true, calc(#{$value1} - #{$value2}), $value1 + unquote(" - ") + $value2);
+
+
+src\app\shared\styles\bootstrap\_functions.scss 133:11  @import
+src\app\core\preloader\preloader.scss 4:9               root stylesheet
+
+
+./src/app/core/preloader/preloader.scss - Warning: Module Warning (from ./node_modules/sass-loader/dist/cjs.js):
+Deprecation Warning on line 139, column 10 of file:///C:/Dev/log-your-wo/src/app/shared/styles/bootstrap/_variables.scss:139:10:
+Global built-in functions are deprecated and will be removed in Dart Sass 3.0.0.
+Use map.merge instead.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+139 | $spacers: map-merge(
+  (
+    0: 0,
+    1: ($spacer * .25),
+    2: ($spacer * .5),
+    3: $spacer,
+    4: ($spacer * 1.5),
+    5: ($spacer * 3)
+  ),
+  $spacers
+);
+
+
+src\app\shared\styles\bootstrap\_variables.scss 140:11  @import
+src\app\core\preloader\preloader.scss 5:9               root stylesheet
+
+
+./src/app/core/preloader/preloader.scss - Warning: Module Warning (from ./node_modules/sass-loader/dist/cjs.js):
+Deprecation Warning on line 154, column 8 of file:///C:/Dev/log-your-wo/src/app/shared/styles/bootstrap/_variables.scss:154:8:
+Global built-in functions are deprecated and will be removed in Dart Sass 3.0.0.
+Use map.merge instead.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+154 | $sizes: map-merge(
+  (
+    25: 25%,
+    50: 50%,
+    75: 75%,
+    100: 100%,
+    auto: auto
+  ),
+  $sizes
+);
+
+
+src\app\shared\styles\bootstrap\_variables.scss 155:9  @import
+src\app\core\preloader\preloader.scss 5:9              root stylesheet
+
+
+./src/app/core/preloader/preloader.scss - Warning: Module Warning (from ./node_modules/sass-loader/dist/cjs.js):
+Deprecation Warning on line 180, column 42 of file:///C:/Dev/log-your-wo/src/app/shared/styles/bootstrap/_variables.scss:180:42:
+darken() is deprecated. Suggestions:
+
+color.scale($color, $lightness: -30%)
+color.adjust($color, $lightness: -15%)
+
+More info: https://sass-lang.com/d/color-functions
+
+180 | $link-hover-color:                        darken($link-color, 15%) !default;
+
+
+src\app\shared\styles\bootstrap\_variables.scss 181:43  @import
+src\app\core\preloader\preloader.scss 5:9               root stylesheet
+
+
+./src/app/core/preloader/preloader.scss - Warning: Module Warning (from ./node_modules/sass-loader/dist/cjs.js):
+Deprecation Warning on line 375, column 30 of file:///C:/Dev/log-your-wo/src/app/shared/styles/bootstrap/_variables.scss:375:30:
+lighten() is deprecated. Suggestions:
+
+color.scale($color, $lightness: 9.7081218274%)
+color.adjust($color, $lightness: 7.5%)
+
+More info: https://sass-lang.com/d/color-functions
+
+375 | $table-dark-border-color:     lighten($table-dark-bg, 7.5%) !default;
+
+
+src\app\shared\styles\bootstrap\_variables.scss 376:31  @import
+src\app\core\preloader\preloader.scss 5:9               root stylesheet
+
+
+./src/app/core/preloader/preloader.scss - Warning: Module Warning (from ./node_modules/sass-loader/dist/cjs.js):
+Deprecation Warning on line 488, column 40 of file:///C:/Dev/log-your-wo/src/app/shared/styles/bootstrap/_variables.scss:488:40:
+lighten() is deprecated. Suggestions:
+
+color.scale($color, $lightness: 50%)
+color.adjust($color, $lightness: 25%)
+
+More info: https://sass-lang.com/d/color-functions
+
+488 | $input-focus-border-color:              lighten($component-active-bg, 25%) !default;
+
+
+src\app\shared\styles\bootstrap\_variables.scss 489:41  @import
+src\app\core\preloader\preloader.scss 5:9               root stylesheet
+
+
+./src/app/core/preloader/preloader.scss - Warning: Module Warning (from ./node_modules/sass-loader/dist/cjs.js):
+Deprecation Warning on line 553, column 48 of file:///C:/Dev/log-your-wo/src/app/shared/styles/bootstrap/_variables.scss:553:48:
+lighten() is deprecated. Suggestions:
+
+color.scale($color, $lightness: 70%)
+color.adjust($color, $lightness: 35%)
+
+More info: https://sass-lang.com/d/color-functions
+
+553 | $custom-control-indicator-active-bg:            lighten($component-active-bg, 35%) !default;
+
+
+src\app\shared\styles\bootstrap\_variables.scss 554:49  @import
+src\app\core\preloader\preloader.scss 5:9               root stylesheet
+
+
+./src/app/core/preloader/preloader.scss - Warning: Module Warning (from ./node_modules/sass-loader/dist/cjs.js):
+Deprecation Warning on line 628, column 45 of file:///C:/Dev/log-your-wo/src/app/shared/styles/bootstrap/_variables.scss:628:45:
+lighten() is deprecated. Suggestions:
+
+color.scale($color, $lightness: 70%)
+color.adjust($color, $lightness: 35%)
+
+More info: https://sass-lang.com/d/color-functions
+
+628 | $custom-range-thumb-active-bg:               lighten($component-active-bg, 35%) !default;
+
+
+src\app\shared\styles\bootstrap\_variables.scss 629:46  @import
+src\app\core\preloader\preloader.scss 5:9               root stylesheet
+
+
+./src/app/core/preloader/preloader.scss - Warning: Module Warning (from ./node_modules/sass-loader/dist/cjs.js):
+129 repetitive deprecation warnings omitted.
+Run in verbose mode to see all warnings.
+
+./src/styles.scss - Warning: Module Warning (from ./node_modules/sass-loader/dist/cjs.js):
+Deprecation Warning on line 5, column 8 of file:///C:/Dev/log-your-wo/src/app/shared/styles/bootstrap.scss:5:8:
+Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+5 | @import "app/variables";
+
+
+src\app\shared\styles\bootstrap.scss 6:9  @import
+src\styles.scss 11:9                      root stylesheet
+
+
+./src/styles.scss - Warning: Module Warning (from ./node_modules/sass-loader/dist/cjs.js):
+Deprecation Warning on line 7, column 8 of file:///C:/Dev/log-your-wo/src/app/shared/styles/bootstrap.scss:7:8:
+Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+7 | @import "bootstrap/bootstrap";
+
+src\app\shared\styles\bootstrap.scss 8:9  @import
+src\styles.scss 11:9                      root stylesheet
+
+
+./src/styles.scss - Warning: Module Warning (from ./node_modules/sass-loader/dist/cjs.js):
+Deprecation Warning on line 7, column 8 of file:///C:/Dev/log-your-wo/src/app/shared/styles/bootstrap/bootstrap.scss:7:8:
+Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+7 | @import "functions";
+
+
+src\app\shared\styles\bootstrap\bootstrap.scss 8:9  @import
+src\app\shared\styles\bootstrap.scss 8:9            @import
+src\styles.scss 11:9                                root stylesheet
+
+
+./src/styles.scss - Warning: Module Warning (from ./node_modules/sass-loader/dist/cjs.js):
+Deprecation Warning on line 10, column 8 of file:///C:/Dev/log-your-wo/src/styles.scss:10:8:
+Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+10 | @import "./app/shared/styles/bootstrap.scss";
+
+
+src\styles.scss 11:9  root stylesheet
+
+
+./src/styles.scss - Warning: Module Warning (from ./node_modules/sass-loader/dist/cjs.js):
+Deprecation Warning on line 12, column 8 of file:///C:/Dev/log-your-wo/src/styles.scss:12:8:
+Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+12 | @import "./app/shared/styles/app.scss";
+
+
+src\styles.scss 13:9  root stylesheet
+
+
+./src/styles.scss - Warning: Module Warning (from ./node_modules/sass-loader/dist/cjs.js):
+Deprecation Warning on line 26, column 24 of file:///C:/Dev/log-your-wo/src/app/shared/styles/app/variables.scss:26:24:
+Global built-in functions are deprecated and will be removed in Dart Sass 3.0.0.
+Use color.adjust instead.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+26 | $primary-light:         lighten($primary, $amountOfLight);
+
+
+src\app\shared\styles\app\variables.scss 27:25  @import
+src\app\shared\styles\bootstrap.scss 6:9        @import
+src\styles.scss 11:9                            root stylesheet
+
+
+./src/styles.scss - Warning: Module Warning (from ./node_modules/sass-loader/dist/cjs.js):
+Deprecation Warning on line 26, column 24 of file:///C:/Dev/log-your-wo/src/app/shared/styles/app/variables.scss:26:24:
+lighten() is deprecated. Suggestions:
+
+color.scale($color, $lightness: 19.1729323308%)
+color.adjust($color, $lightness: 10%)
+
+More info: https://sass-lang.com/d/color-functions
+
+26 | $primary-light:         lighten($primary, $amountOfLight);
+
+
+src\app\shared\styles\app\variables.scss 27:25  @import
+src\app\shared\styles\bootstrap.scss 6:9        @import
+src\styles.scss 11:9                            root stylesheet
+
+
+./src/styles.scss - Warning: Module Warning (from ./node_modules/sass-loader/dist/cjs.js):
+Deprecation Warning on line 27, column 24 of file:///C:/Dev/log-your-wo/src/app/shared/styles/app/variables.scss:27:24:
+Global built-in functions are deprecated and will be removed in Dart Sass 3.0.0.
+Use color.adjust instead.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+27 | $success-light:         lighten($success, $amountOfLight);
+
+
+src\app\shared\styles\app\variables.scss 28:25  @import
+src\app\shared\styles\bootstrap.scss 6:9        @import
+src\styles.scss 11:9                            root stylesheet
+
+
+./src/styles.scss - Warning: Module Warning (from ./node_modules/sass-loader/dist/cjs.js):
+Deprecation Warning on line 27, column 24 of file:///C:/Dev/log-your-wo/src/app/shared/styles/app/variables.scss:27:24:
+lighten() is deprecated. Suggestions:
+
+color.scale($color, $lightness: 19.6911196911%)
+color.adjust($color, $lightness: 10%)
+
+More info: https://sass-lang.com/d/color-functions
+
+27 | $success-light:         lighten($success, $amountOfLight);
+
+
+src\app\shared\styles\app\variables.scss 28:25  @import
+src\app\shared\styles\bootstrap.scss 6:9        @import
+src\styles.scss 11:9                            root stylesheet
+
+
+./src/styles.scss - Warning: Module Warning (from ./node_modules/sass-loader/dist/cjs.js):
+Deprecation Warning on line 28, column 24 of file:///C:/Dev/log-your-wo/src/app/shared/styles/app/variables.scss:28:24:
+Global built-in functions are deprecated and will be removed in Dart Sass 3.0.0.
+Use color.adjust instead.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+28 | $info-light:            lighten($info, $amountOfLight);
+
+
+src\app\shared\styles\app\variables.scss 29:25  @import
+src\app\shared\styles\bootstrap.scss 6:9        @import
+src\styles.scss 11:9                            root stylesheet
+
+
+./src/styles.scss - Warning: Module Warning (from ./node_modules/sass-loader/dist/cjs.js):
+Deprecation Warning on line 28, column 24 of file:///C:/Dev/log-your-wo/src/app/shared/styles/app/variables.scss:28:24:
+lighten() is deprecated. Suggestions:
+
+color.scale($color, $lightness: 19.1729323308%)
+color.adjust($color, $lightness: 10%)
+
+More info: https://sass-lang.com/d/color-functions
+
+28 | $info-light:            lighten($info, $amountOfLight);
+
+
+src\app\shared\styles\app\variables.scss 29:25  @import
+src\app\shared\styles\bootstrap.scss 6:9        @import
+src\styles.scss 11:9                            root stylesheet
+
+
+./src/styles.scss - Warning: Module Warning (from ./node_modules/sass-loader/dist/cjs.js):
+Deprecation Warning on line 29, column 24 of file:///C:/Dev/log-your-wo/src/app/shared/styles/app/variables.scss:29:24:
+Global built-in functions are deprecated and will be removed in Dart Sass 3.0.0.
+Use color.adjust instead.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+29 | $warning-light:         lighten($warning, $amountOfLight);
+
+
+src\app\shared\styles\app\variables.scss 30:25  @import
+src\app\shared\styles\bootstrap.scss 6:9        @import
+src\styles.scss 11:9                            root stylesheet
+
+
+./src/styles.scss - Warning: Module Warning (from ./node_modules/sass-loader/dist/cjs.js):
+Deprecation Warning on line 29, column 24 of file:///C:/Dev/log-your-wo/src/app/shared/styles/app/variables.scss:29:24:
+lighten() is deprecated. Suggestions:
+
+color.scale($color, $lightness: 20%)
+color.adjust($color, $lightness: 10%)
+
+More info: https://sass-lang.com/d/color-functions
+
+29 | $warning-light:         lighten($warning, $amountOfLight);
+
+
+src\app\shared\styles\app\variables.scss 30:25  @import
+src\app\shared\styles\bootstrap.scss 6:9        @import
+src\styles.scss 11:9                            root stylesheet
+
+
+./src/styles.scss - Warning: Module Warning (from ./node_modules/sass-loader/dist/cjs.js):
+Deprecation Warning on line 30, column 24 of file:///C:/Dev/log-your-wo/src/app/shared/styles/app/variables.scss:30:24:
+Global built-in functions are deprecated and will be removed in Dart Sass 3.0.0.
+Use color.adjust instead.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+30 | $danger-light:          lighten($danger, $amountOfLight);
+
+
+src\app\shared\styles\app\variables.scss 31:25  @import
+src\app\shared\styles\bootstrap.scss 6:9        @import
+src\styles.scss 11:9                            root stylesheet
+
+
+./src/styles.scss - Warning: Module Warning (from ./node_modules/sass-loader/dist/cjs.js):
+Deprecation Warning on line 30, column 24 of file:///C:/Dev/log-your-wo/src/app/shared/styles/app/variables.scss:30:24:
+lighten() is deprecated. Suggestions:
+
+color.scale($color, $lightness: 15.4078549849%)
+color.adjust($color, $lightness: 10%)
+
+More info: https://sass-lang.com/d/color-functions
+
+30 | $danger-light:          lighten($danger, $amountOfLight);
+
+
+src\app\shared\styles\app\variables.scss 31:25  @import
+src\app\shared\styles\bootstrap.scss 6:9        @import
+src\styles.scss 11:9                            root stylesheet
+
+
+./src/styles.scss - Warning: Module Warning (from ./node_modules/sass-loader/dist/cjs.js):
+Deprecation Warning on line 67, column 12 of file:///C:/Dev/log-your-wo/src/app/shared/styles/bootstrap/vendor/_rfs.scss:67:12:
+The Sass if() syntax is deprecated in favor of the modern CSS syntax.
+
+Suggestion: if(sass(type-of($fs) == "number"): unit($fs); else: false)
+
+More info: https://sass-lang.com/d/if-function
+
+67 |   $fs-unit: if(type-of($fs) == "number", unit($fs), false);
+
+
+src\app\shared\styles\bootstrap\vendor\_rfs.scss 68:13  @import
+src\app\shared\styles\bootstrap\_mixins.scss 6:9        @import
+src\app\shared\styles\bootstrap\bootstrap.scss 10:9     @import
+src\app\shared\styles\bootstrap.scss 8:9                @import
+src\styles.scss 11:9                                    root stylesheet
+
+
+./src/styles.scss - Warning: Module Warning (from ./node_modules/sass-loader/dist/cjs.js):
+Deprecation Warning on line 70, column 15 of file:///C:/Dev/log-your-wo/src/app/shared/styles/bootstrap/vendor/_rfs.scss:70:15:
+The Sass if() syntax is deprecated in favor of the modern CSS syntax.
+
+Suggestion: if(sass($important): " !important"; else: "")
+
+More info: https://sass-lang.com/d/if-function
+
+70 |   $rfs-suffix: if($important, " !important", "");
+
+
+src\app\shared\styles\bootstrap\vendor\_rfs.scss 71:16  @import
+src\app\shared\styles\bootstrap\_mixins.scss 6:9        @import
+src\app\shared\styles\bootstrap\bootstrap.scss 10:9     @import
+src\app\shared\styles\bootstrap.scss 8:9                @import
+src\styles.scss 11:9                                    root stylesheet
+
+
+./src/styles.scss - Warning: Module Warning (from ./node_modules/sass-loader/dist/cjs.js):
+Deprecation Warning on line 92, column 15 of file:///C:/Dev/log-your-wo/src/app/shared/styles/bootstrap/_functions.scss:92:15:
+The Sass if() syntax is deprecated in favor of the modern CSS syntax.
+
+Suggestion: if(sass($level > 0): $black; else: $white)
+
+More info: https://sass-lang.com/d/if-function
+
+92 |   $color-base: if($level > 0, $black, $white);
+
+
+src\app\shared\styles\bootstrap\_functions.scss 93:16  @import
+src\app\shared\styles\bootstrap\bootstrap.scss 8:9     @import
+src\app\shared\styles\bootstrap.scss 8:9               @import
+src\styles.scss 11:9                                   root stylesheet
+
+
+./src/styles.scss - Warning: Module Warning (from ./node_modules/sass-loader/dist/cjs.js):
+Deprecation Warning on line 112, column 10 of file:///C:/Dev/log-your-wo/src/app/shared/styles/bootstrap/_functions.scss:112:10:
+The Sass if() syntax is deprecated in favor of the modern CSS syntax.
+
+Suggestion: if(sass($return-calc == true): calc(#{$value1} + #{$value2}); else: $value1 + unquote(" + ") + $value2)
+
+More info: https://sass-lang.com/d/if-function
+
+112 |   @return if($return-calc == true, calc(#{$value1} + #{$value2}), $value1 + unquote(" + ") + $value2);
+
+
+src\app\shared\styles\bootstrap\_functions.scss 113:11  @import
+src\app\shared\styles\bootstrap\bootstrap.scss 8:9      @import
+src\app\shared\styles\bootstrap.scss 8:9                @import
+src\styles.scss 11:9                                    root stylesheet
+
+
+./src/styles.scss - Warning: Module Warning (from ./node_modules/sass-loader/dist/cjs.js):
+Deprecation Warning on line 132, column 10 of file:///C:/Dev/log-your-wo/src/app/shared/styles/bootstrap/_functions.scss:132:10:
+The Sass if() syntax is deprecated in favor of the modern CSS syntax.
+
+Suggestion: if(sass($return-calc == true): calc(#{$value1} - #{$value2}); else: $value1 + unquote(" - ") + $value2)
+
+More info: https://sass-lang.com/d/if-function
+
+132 |   @return if($return-calc == true, calc(#{$value1} - #{$value2}), $value1 + unquote(" - ") + $value2);
+
+
+src\app\shared\styles\bootstrap\_functions.scss 133:11  @import
+src\app\shared\styles\bootstrap\bootstrap.scss 8:9      @import
+src\app\shared\styles\bootstrap.scss 8:9                @import
+src\styles.scss 11:9                                    root stylesheet
+
+
+./src/styles.scss - Warning: Module Warning (from ./node_modules/sass-loader/dist/cjs.js):
+395 repetitive deprecation warnings omitted.
+Run in verbose mode to see all warnings.
+
+./src/app/layout/header/header.component.scss?ngResource - Warning: Module Warning (from ./node_modules/sass-loader/dist/cjs.js):
+Deprecation Warning on line 0, column 8 of file:///C:/Dev/log-your-wo/src/app/layout/header/header.component.scss:0:8:
+Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+0 | @import 'src/app/shared/styles/app/variables.scss';
+
+
+src\app\layout\header\header.component.scss 1:9  root stylesheet
+
+
+./src/app/routes/log-entry/exercise-dialog/exercise-dialog.component.scss?ngResource - Warning: Module Warning (from ./node_modules/sass-loader/dist/cjs.js):
+Deprecation Warning on line 0, column 8 of file:///C:/Dev/log-your-wo/src/app/routes/log-entry/exercise-dialog/exercise-dialog.component.scss:0:8:
+Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+0 | @import 'src/app/shared/styles/common';
+
+
+src\app\routes\log-entry\exercise-dialog\exercise-dialog.component.scss 1:9  root stylesheet
+
+
+./src/app/routes/log-entry/exercise-dialog/exercise-dialog.component.scss?ngResource - Warning: Module Warning (from ./node_modules/sass-loader/dist/cjs.js):
+Deprecation Warning on line 1, column 8 of file:///C:/Dev/log-your-wo/src/app/routes/log-entry/exercise-dialog/exercise-dialog.component.scss:1:8:
+Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+1 | @import 'src/app/shared/styles/app/variables.scss';
+
+
+src\app\routes\log-entry\exercise-dialog\exercise-dialog.component.scss 2:9  root stylesheet
+
+
+./src/app/routes/log-entry/exercise-dialog/exercise-dialog.component.scss?ngResource - Warning: Module Warning (from ./node_modules/sass-loader/dist/cjs.js):
+Deprecation Warning on line 122, column 26 of file:///C:/Dev/log-your-wo/src/app/routes/log-entry/exercise-dialog/exercise-dialog.component.scss:122:26:
+Global built-in functions are deprecated and will be removed in Dart Sass 3.0.0.
+Use color.adjust instead.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+122 |         background-color: darken($danger, 10%);
+
+
+src\app\routes\log-entry\exercise-dialog\exercise-dialog.component.scss 123:27  root stylesheet
+
+
+./src/app/routes/log-entry/exercise-dialog/exercise-dialog.component.scss?ngResource - Warning: Module Warning (from ./node_modules/sass-loader/dist/cjs.js):
+Deprecation Warning on line 122, column 26 of file:///C:/Dev/log-your-wo/src/app/routes/log-entry/exercise-dialog/exercise-dialog.component.scss:122:26:
+darken() is deprecated. Suggestions:
+
+color.scale($color, $lightness: -28.4916201117%)
+color.adjust($color, $lightness: -10%)
+
+More info: https://sass-lang.com/d/color-functions
+
+122 |         background-color: darken($danger, 10%);
+
+
+src\app\routes\log-entry\exercise-dialog\exercise-dialog.component.scss 123:27  root stylesheet
+
+
+./src/app/routes/log-entry/simple-log/simple-log.component.scss?ngResource - Warning: Module Warning (from ./node_modules/sass-loader/dist/cjs.js):
+Deprecation Warning on line 0, column 8 of file:///C:/Dev/log-your-wo/src/app/routes/log-entry/simple-log/simple-log.component.scss:0:8:
+Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+0 | @import '../../../shared/styles/common.scss';
+
+
+src\app\routes\log-entry\simple-log\simple-log.component.scss 1:9  root stylesheet
+
+
+./src/app/routes/log-entry/simple-log/simple-log.component.scss?ngResource - Warning: Module Warning (from ./node_modules/sass-loader/dist/cjs.js):
+Deprecation Warning on line 0, column 8 of file:///C:/Dev/log-your-wo/src/app/shared/styles/common.scss:0:8:
+Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+0 | @import 'src/app/shared/styles/app/variables.scss';
+
+
+src\app\shared\styles\common.scss 1:9                              @import
+src\app\routes\log-entry\simple-log\simple-log.component.scss 1:9  root stylesheet
+
+
+./src/app/routes/log-entry/simple-log/simple-log.component.scss?ngResource - Warning: Module Warning (from ./node_modules/sass-loader/dist/cjs.js):
+Deprecation Warning on line 1, column 8 of file:///C:/Dev/log-your-wo/src/app/routes/log-entry/simple-log/simple-log.component.scss:1:8:
+Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+1 | @import '../../../shared/styles/app/variables.scss';
+
+
+src\app\routes\log-entry\simple-log\simple-log.component.scss 2:9  root stylesheet
+
+
+./src/app/routes/log-entry/simple-log/simple-log.component.scss?ngResource - Warning: Module Warning (from ./node_modules/sass-loader/dist/cjs.js):
+Deprecation Warning on line 26, column 24 of file:///C:/Dev/log-your-wo/src/app/shared/styles/app/variables.scss:26:24:
+Global built-in functions are deprecated and will be removed in Dart Sass 3.0.0.
+Use color.adjust instead.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+26 | $primary-light:         lighten($primary, $amountOfLight);
+
+
+src\app\shared\styles\app\variables.scss 27:25                     @import
+src\app\routes\log-entry\simple-log\simple-log.component.scss 2:9  root stylesheet
+
+
+./src/app/routes/log-entry/simple-log/simple-log.component.scss?ngResource - Warning: Module Warning (from ./node_modules/sass-loader/dist/cjs.js):
+Deprecation Warning on line 26, column 24 of file:///C:/Dev/log-your-wo/src/app/shared/styles/app/variables.scss:26:24:
+lighten() is deprecated. Suggestions:
+
+color.scale($color, $lightness: 19.1729323308%)
+color.adjust($color, $lightness: 10%)
+
+More info: https://sass-lang.com/d/color-functions
+
+26 | $primary-light:         lighten($primary, $amountOfLight);
+
+
+src\app\shared\styles\app\variables.scss 27:25                     @import
+src\app\routes\log-entry\simple-log\simple-log.component.scss 2:9  root stylesheet
+
+
+./src/app/routes/log-entry/simple-log/simple-log.component.scss?ngResource - Warning: Module Warning (from ./node_modules/sass-loader/dist/cjs.js):
+Deprecation Warning on line 27, column 24 of file:///C:/Dev/log-your-wo/src/app/shared/styles/app/variables.scss:27:24:
+Global built-in functions are deprecated and will be removed in Dart Sass 3.0.0.
+Use color.adjust instead.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+27 | $success-light:         lighten($success, $amountOfLight);
+
+
+src\app\shared\styles\app\variables.scss 28:25                     @import
+src\app\routes\log-entry\simple-log\simple-log.component.scss 2:9  root stylesheet
+
+
+./src/app/routes/log-entry/simple-log/simple-log.component.scss?ngResource - Warning: Module Warning (from ./node_modules/sass-loader/dist/cjs.js):
+Deprecation Warning on line 27, column 24 of file:///C:/Dev/log-your-wo/src/app/shared/styles/app/variables.scss:27:24:
+lighten() is deprecated. Suggestions:
+
+color.scale($color, $lightness: 19.6911196911%)
+color.adjust($color, $lightness: 10%)
+
+More info: https://sass-lang.com/d/color-functions
+
+27 | $success-light:         lighten($success, $amountOfLight);
+
+
+src\app\shared\styles\app\variables.scss 28:25                     @import
+src\app\routes\log-entry\simple-log\simple-log.component.scss 2:9  root stylesheet
+
+
+./src/app/routes/log-entry/simple-log/simple-log.component.scss?ngResource - Warning: Module Warning (from ./node_modules/sass-loader/dist/cjs.js):
+Deprecation Warning on line 28, column 24 of file:///C:/Dev/log-your-wo/src/app/shared/styles/app/variables.scss:28:24:
+Global built-in functions are deprecated and will be removed in Dart Sass 3.0.0.
+Use color.adjust instead.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+28 | $info-light:            lighten($info, $amountOfLight);
+
+
+src\app\shared\styles\app\variables.scss 29:25                     @import
+src\app\routes\log-entry\simple-log\simple-log.component.scss 2:9  root stylesheet
+
+
+./src/app/routes/log-entry/simple-log/simple-log.component.scss?ngResource - Warning: Module Warning (from ./node_modules/sass-loader/dist/cjs.js):
+Deprecation Warning on line 28, column 24 of file:///C:/Dev/log-your-wo/src/app/shared/styles/app/variables.scss:28:24:
+lighten() is deprecated. Suggestions:
+
+color.scale($color, $lightness: 19.1729323308%)
+color.adjust($color, $lightness: 10%)
+
+More info: https://sass-lang.com/d/color-functions
+
+28 | $info-light:            lighten($info, $amountOfLight);
+
+
+src\app\shared\styles\app\variables.scss 29:25                     @import
+src\app\routes\log-entry\simple-log\simple-log.component.scss 2:9  root stylesheet
+
+
+./src/app/routes/log-entry/simple-log/simple-log.component.scss?ngResource - Warning: Module Warning (from ./node_modules/sass-loader/dist/cjs.js):
+Deprecation Warning on line 29, column 24 of file:///C:/Dev/log-your-wo/src/app/shared/styles/app/variables.scss:29:24:
+Global built-in functions are deprecated and will be removed in Dart Sass 3.0.0.
+Use color.adjust instead.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+29 | $warning-light:         lighten($warning, $amountOfLight);
+
+
+src\app\shared\styles\app\variables.scss 30:25                     @import
+src\app\routes\log-entry\simple-log\simple-log.component.scss 2:9  root stylesheet
+
+
+./src/app/routes/log-entry/simple-log/simple-log.component.scss?ngResource - Warning: Module Warning (from ./node_modules/sass-loader/dist/cjs.js):
+Deprecation Warning on line 29, column 24 of file:///C:/Dev/log-your-wo/src/app/shared/styles/app/variables.scss:29:24:
+lighten() is deprecated. Suggestions:
+
+color.scale($color, $lightness: 20%)
+color.adjust($color, $lightness: 10%)
+
+More info: https://sass-lang.com/d/color-functions
+
+29 | $warning-light:         lighten($warning, $amountOfLight);
+
+
+src\app\shared\styles\app\variables.scss 30:25                     @import
+src\app\routes\log-entry\simple-log\simple-log.component.scss 2:9  root stylesheet
+
+
+./src/app/routes/log-entry/simple-log/simple-log.component.scss?ngResource - Warning: Module Warning (from ./node_modules/sass-loader/dist/cjs.js):
+Deprecation Warning on line 30, column 24 of file:///C:/Dev/log-your-wo/src/app/shared/styles/app/variables.scss:30:24:
+Global built-in functions are deprecated and will be removed in Dart Sass 3.0.0.
+Use color.adjust instead.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+30 | $danger-light:          lighten($danger, $amountOfLight);
+
+
+src\app\shared\styles\app\variables.scss 31:25                     @import
+src\app\routes\log-entry\simple-log\simple-log.component.scss 2:9  root stylesheet
+
+
+./src/app/routes/log-entry/simple-log/simple-log.component.scss?ngResource - Warning: Module Warning (from ./node_modules/sass-loader/dist/cjs.js):
+Deprecation Warning on line 30, column 24 of file:///C:/Dev/log-your-wo/src/app/shared/styles/app/variables.scss:30:24:
+lighten() is deprecated. Suggestions:
+
+color.scale($color, $lightness: 15.4078549849%)
+color.adjust($color, $lightness: 10%)
+
+More info: https://sass-lang.com/d/color-functions
+
+30 | $danger-light:          lighten($danger, $amountOfLight);
+
+
+src\app\shared\styles\app\variables.scss 31:25                     @import
+src\app\routes\log-entry\simple-log\simple-log.component.scss 2:9  root stylesheet
+
+
+./src/app/routes/log-entry/simple-log/simple-log.component.scss?ngResource - Warning: Module Warning (from ./node_modules/sass-loader/dist/cjs.js):
+32 repetitive deprecation warnings omitted.
+Run in verbose mode to see all warnings.
+
+Warning: C:\Dev\log-your-wo\node_modules\canvg\lib\index.es.js depends on 'core-js/modules/es.array.index-of.js'. CommonJS or AMD dependencies can cause optimization bailouts.
+For more info see: https://angular.dev/tools/cli/build#configuring-commonjs-dependencies
+
+Warning: C:\Dev\log-your-wo\node_modules\canvg\lib\index.es.js depends on 'core-js/modules/es.array.iterator.js'. CommonJS or AMD dependencies can cause optimization bailouts.
+For more info see: https://angular.dev/tools/cli/build#configuring-commonjs-dependencies
+
+Warning: C:\Dev\log-your-wo\node_modules\canvg\lib\index.es.js depends on 'core-js/modules/es.array.reduce.js'. CommonJS or AMD dependencies can cause optimization bailouts.
+For more info see: https://angular.dev/tools/cli/build#configuring-commonjs-dependencies
+
+Warning: C:\Dev\log-your-wo\node_modules\canvg\lib\index.es.js depends on 'core-js/modules/es.array.reverse.js'. CommonJS or AMD dependencies can cause optimization bailouts.
+For more info see: https://angular.dev/tools/cli/build#configuring-commonjs-dependencies
+
+Warning: C:\Dev\log-your-wo\node_modules\canvg\lib\index.es.js depends on 'core-js/modules/es.promise.js'. CommonJS or AMD dependencies can cause optimization bailouts.
+For more info see: https://angular.dev/tools/cli/build#configuring-commonjs-dependencies
+
+Warning: C:\Dev\log-your-wo\node_modules\canvg\lib\index.es.js depends on 'core-js/modules/es.regexp.to-string.js'. CommonJS or AMD dependencies can cause optimization bailouts.
+For more info see: https://angular.dev/tools/cli/build#configuring-commonjs-dependencies
+
+Warning: C:\Dev\log-your-wo\node_modules\canvg\lib\index.es.js depends on 'core-js/modules/es.string.ends-with.js'. CommonJS or AMD dependencies can cause optimization bailouts.
+For more info see: https://angular.dev/tools/cli/build#configuring-commonjs-dependencies
+
+Warning: C:\Dev\log-your-wo\node_modules\canvg\lib\index.es.js depends on 'core-js/modules/es.string.includes.js'. CommonJS or AMD dependencies can cause optimization bailouts.
+For more info see: https://angular.dev/tools/cli/build#configuring-commonjs-dependencies
+
+Warning: C:\Dev\log-your-wo\node_modules\canvg\lib\index.es.js depends on 'core-js/modules/es.string.match.js'. CommonJS or AMD dependencies can cause optimization bailouts.
+For more info see: https://angular.dev/tools/cli/build#configuring-commonjs-dependencies
+
+Warning: C:\Dev\log-your-wo\node_modules\canvg\lib\index.es.js depends on 'core-js/modules/es.string.replace.js'. CommonJS or AMD dependencies can cause optimization bailouts.
+For more info see: https://angular.dev/tools/cli/build#configuring-commonjs-dependencies
+
+Warning: C:\Dev\log-your-wo\node_modules\canvg\lib\index.es.js depends on 'core-js/modules/es.string.split.js'. CommonJS or AMD dependencies can cause optimization bailouts.
+For more info see: https://angular.dev/tools/cli/build#configuring-commonjs-dependencies
+
+Warning: C:\Dev\log-your-wo\node_modules\canvg\lib\index.es.js depends on 'core-js/modules/es.string.starts-with.js'. CommonJS or AMD dependencies can cause optimization bailouts.
+For more info see: https://angular.dev/tools/cli/build#configuring-commonjs-dependencies
+
+Warning: C:\Dev\log-your-wo\node_modules\canvg\lib\index.es.js depends on 'core-js/modules/es.string.trim.js'. CommonJS or AMD dependencies can cause optimization bailouts.
+For more info see: https://angular.dev/tools/cli/build#configuring-commonjs-dependencies
+
+Warning: C:\Dev\log-your-wo\node_modules\canvg\lib\index.es.js depends on 'core-js/modules/web.dom-collections.iterator.js'. CommonJS or AMD dependencies can cause optimization bailouts.
+For more info see: https://angular.dev/tools/cli/build#configuring-commonjs-dependencies
+
+Warning: C:\Dev\log-your-wo\node_modules\canvg\lib\index.es.js depends on 'raf'. CommonJS or AMD dependencies can cause optimization bailouts.
+For more info see: https://angular.dev/tools/cli/build#configuring-commonjs-dependencies
+
+Warning: C:\Dev\log-your-wo\node_modules\canvg\lib\index.es.js depends on 'rgbcolor'. CommonJS or AMD dependencies can cause optimization bailouts.
+For more info see: https://angular.dev/tools/cli/build#configuring-commonjs-dependencies
+
+[39m[22m
