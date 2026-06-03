@@ -41,6 +41,8 @@ speed-measure-plugin*.json
 npm-debug.log
 yarn-error.log
 testem.log
+ng-serve.err.log
+ng-serve.out.log
 /typings
 
 # System Files
