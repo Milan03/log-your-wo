@@ -1,6 +1,6 @@
 import { Component, OnInit, ViewChild, Injector, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
-const screenfull = require('screenfull');
+import screenfull from 'screenfull';
 
 import { UserblockService } from '../sidebar/userblock/userblock.service';
 import { SettingsService } from '../../core/settings/settings.service';

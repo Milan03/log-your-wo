@@ -1,5 +1,5 @@
 import { OnInit, OnDestroy, Directive, Input, ElementRef } from '@angular/core';
-import * as moment from 'moment';
+import moment = require('moment');
 
 @Directive({
     selector: '[now]'
