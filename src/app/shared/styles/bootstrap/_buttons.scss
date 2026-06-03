@@ -1,3 +1,7 @@
+@use "variables" as *;
+@use "mixins" as *;
+@use "functions" as *;
+
 // stylelint-disable selector-no-qualifying-type
 
 //
@@ -12,7 +16,9 @@
   text-align: center;
   white-space: $btn-white-space;
   vertical-align: middle;
-  cursor: if($enable-pointer-cursor-for-buttons, pointer, null);
+  @if $enable-pointer-cursor-for-buttons {
+    cursor: pointer;
+  }
   user-select: none;
   background-color: transparent;
   border: $btn-border-width solid transparent;

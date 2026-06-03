@@ -1,3 +1,4 @@
+@use "sass:meta";
 // stylelint-disable property-blacklist, scss/dollar-variable-default
 
 // SCSS RFS mixin
@@ -24,7 +25,7 @@ $rfs-two-dimensional: false !default;
 // Factor of decrease
 $rfs-factor: 10 !default;
 
-@if type-of($rfs-factor) != "number" or $rfs-factor <= 1 {
+@if meta.type-of($rfs-factor) != "number" or $rfs-factor <= 1 {
   @error "`#{$rfs-factor}` is not a valid  $rfs-factor, it must be greater than 1.";
 }
 
@@ -41,7 +42,7 @@ $rfs-safari-iframe-resize-bug-fix: false !default;
 $enable-responsive-font-sizes: true !default;
 
 // Cache $rfs-base-font-size unit
-$rfs-base-font-size-unit: unit($rfs-base-font-size);
+$rfs-base-font-size-unit: math.unit($rfs-base-font-size);
 
 // Remove px-unit from $rfs-base-font-size for calculations
 @if $rfs-base-font-size-unit == "px" {
@@ -52,7 +53,7 @@ $rfs-base-font-size-unit: unit($rfs-base-font-size);
 }
 
 // Cache $rfs-breakpoint unit to prevent multiple calls
-$rfs-breakpoint-unit-cache: unit($rfs-breakpoint);
+$rfs-breakpoint-unit-cache: math.unit($rfs-breakpoint);
 
 // Remove unit from $rfs-breakpoint for calculations
 @if $rfs-breakpoint-unit-cache == "px" {
@@ -65,10 +66,16 @@ $rfs-breakpoint-unit-cache: unit($rfs-breakpoint);
 // Responsive font-size mixin
 @mixin rfs($fs, $important: false) {
   // Cache $fs unit
-  $fs-unit: if(type-of($fs) == "number", unit($fs), false);
+  $fs-unit: false;
+  @if meta.type-of($fs) == "number" {
+    $fs-unit: math.unit($fs);
+  }
 
   // Add !important suffix if needed
-  $rfs-suffix: if($important, " !important", "");
+  $rfs-suffix: "";
+  @if $important {
+    $rfs-suffix: " !important";
+  }
 
   // If $fs isn't a number (like inherit) or $fs has a unit (not px or rem, like 1.5em) or $ is 0, just print the value
   @if not $fs-unit or $fs-unit != "" and $fs-unit != "px" and $fs-unit != "rem" or $fs == 0 {
@@ -112,10 +119,16 @@ $rfs-breakpoint-unit-cache: unit($rfs-breakpoint);
 
       // Base font-size formatting
       // No need to check if the unit is valid, because we did that before
-      $min-width: if($rfs-font-size-unit == rem, #{math.div($fs-min, $rfs-rem-value)}rem, #{$fs-min}px);
+      $min-width: #{$fs-min}px;
+      @if $rfs-font-size-unit == rem {
+        $min-width: #{math.div($fs-min, $rfs-rem-value)}rem;
+      }
 
       // If two-dimensional, use smallest of screen width and height
-      $variable-unit: if($rfs-two-dimensional, vmin, vw);
+      $variable-unit: vw;
+      @if $rfs-two-dimensional {
+        $variable-unit: vmin;
+      }
 
       // Calculate the variable width between 0 and $rfs-breakpoint
       $variable-width: #{math.div($fs-diff * 100, $rfs-breakpoint)}#{$variable-unit};

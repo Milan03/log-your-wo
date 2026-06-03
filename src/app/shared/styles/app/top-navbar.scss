@@ -1,3 +1,9 @@
+@use "sass:color";
+@use "../bootstrap/functions" as *;
+@use "../bootstrap/mixins" as *;
+@use "variables" as *;
+@use "layout" as *;
+@use "utils-mixins" as *;
 /* ========================================================================
      Component: top-navbar
  ========================================================================== */
@@ -18,7 +24,7 @@ $nav-top-bg-end:                $nav-top-bg;
 $nav-header-bg:                 transparent;
 
 $nav-top-item-mobile:           $nav-top-bg;
-$nav-top-item-mobile-active:    darken($nav-top-item-mobile, 20%);
+$nav-top-item-mobile-active:    color.adjust($nav-top-item-mobile, $lightness: -20%);
 
 $nav-top-item-desktop:          #fff;
 $nav-top-item-desktop-active:   $nav-top-item-mobile-active;
@@ -277,7 +283,7 @@ $nav-top-item-desktop-active:   $nav-top-item-mobile-active;
             &,
             &:hover,
             &:focus {
-                box-shadow: 0 -3px 0 darken($nav-top-bg, 6%) inset;
+                box-shadow: 0 -3px 0 color.adjust($nav-top-bg, $lightness: -6%) inset;
                 @include transition(all .2s);
             }
         }

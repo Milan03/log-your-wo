@@ -1,3 +1,10 @@
+@use "sass:map";
+@use "../bootstrap/functions" as *;
+@use "../bootstrap/variables" as bootstrap;
+@use "../bootstrap/mixins" as *;
+@use "variables" as *;
+@use "layout" as *;
+@use "utils-mixins" as *;
 /* ========================================================================
      Component: bootstrap-custom
  ========================================================================== */
@@ -9,17 +16,17 @@
 
 // Different container size to wrap content
 .container-sm {
-    max-width: map-get($container-max-widths, "sm");
+    max-width: map.get(bootstrap.$container-max-widths, "sm");
     width: auto;
 }
 
 .container-md {
-    max-width: map-get($container-max-widths, "md");
+    max-width: map.get(bootstrap.$container-max-widths, "md");
     width: auto;
 }
 
 .container-lg {
-    max-width: map-get($container-max-widths, "lg");
+    max-width: map.get(bootstrap.$container-max-widths, "lg");
     width: auto;
 }
 

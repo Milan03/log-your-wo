@@ -1,3 +1,10 @@
+@use "../bootstrap/functions" as *;
+@use "../bootstrap/variables" as bootstrap;
+@use "../bootstrap/mixins" as *;
+@use "variables" as *;
+@use "layout" as *;
+@use "utils-mixins" as *;
+
 /* ========================================================================
      Component: button-extra
  ========================================================================== */
@@ -118,11 +125,11 @@
 }
 
 .btn-sm .btn-label {
-    @include button-label-size($input-btn-padding-y-sm, $input-btn-padding-x-sm, $border-radius-sm);
+    @include button-label-size($input-btn-padding-y-sm, $input-btn-padding-x-sm, bootstrap.$border-radius-sm);
 }
 
 .btn-xs .btn-label {
-    @include button-label-size(1px, 5px, $border-radius-sm);
+    @include button-label-size(1px, 5px, bootstrap.$border-radius-sm);
 }
 
 

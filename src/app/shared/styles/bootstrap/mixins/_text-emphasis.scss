@@ -1,3 +1,8 @@
+@use "sass:color";
+@use "../variables" as *;
+@use "../functions" as *;
+@use "hover" as *;
+@use "deprecate" as *;
 // stylelint-disable declaration-no-important
 
 // Typography
@@ -9,7 +14,7 @@
   @if $emphasized-link-hover-darken-percentage != 0 {
     a#{$parent} {
       @include hover-focus() {
-        color: darken($color, $emphasized-link-hover-darken-percentage) !important;
+        color: color.adjust($color, $lightness: -($emphasized-link-hover-darken-percentage)) !important;
       }
     }
   }

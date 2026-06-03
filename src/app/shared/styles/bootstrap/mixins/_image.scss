@@ -1,3 +1,7 @@
+@use "../variables" as *;
+@use "../functions" as *;
+@use "deprecate" as *;
+
 // Image Mixins
 // - Responsive image
 // - Retina image

@@ -1,9 +1,17 @@
+@use "sass:color";
+@use "../variables" as *;
+@use "../functions" as *;
+@use "gradients" as *;
+@use "box-shadow" as *;
+@use "hover" as *;
+@use "../vendor/rfs" as *;
+@use "border-radius" as *;
 // Button variants
 //
 // Easily pump out default styles, as well as :hover, :focus, :active,
 // and disabled options for all buttons
 
-@mixin button-variant($background, $border, $hover-background: darken($background, 7.5%), $hover-border: darken($border, 10%), $active-background: darken($background, 10%), $active-border: darken($border, 12.5%)) {
+@mixin button-variant($background, $border, $hover-background: color.adjust($background, $lightness: -7.5%), $hover-border: color.adjust($border, $lightness: -10%), $active-background: color.adjust($background, $lightness: -10%), $active-border: color.adjust($border, $lightness: -12.5%)) {
   color: color-yiq($background);
   @include gradient-bg($background);
   border-color: $border;
@@ -22,9 +30,9 @@
     border-color: $hover-border;
     // Avoid using mixin so we can pass custom focus shadow properly
     @if $enable-shadows {
-      box-shadow: $btn-box-shadow, 0 0 0 $btn-focus-width rgba(mix(color-yiq($background), $border, 15%), .5);
+      box-shadow: $btn-box-shadow, 0 0 0 $btn-focus-width rgba(color.mix(color-yiq($background), $border, 15%), .5);
     } @else {
-      box-shadow: 0 0 0 $btn-focus-width rgba(mix(color-yiq($background), $border, 15%), .5);
+      box-shadow: 0 0 0 $btn-focus-width rgba(color.mix(color-yiq($background), $border, 15%), .5);
     }
   }
 
@@ -53,9 +61,9 @@
     &:focus {
       // Avoid using mixin so we can pass custom focus shadow properly
       @if $enable-shadows and $btn-active-box-shadow != none {
-        box-shadow: $btn-active-box-shadow, 0 0 0 $btn-focus-width rgba(mix(color-yiq($background), $border, 15%), .5);
+        box-shadow: $btn-active-box-shadow, 0 0 0 $btn-focus-width rgba(color.mix(color-yiq($background), $border, 15%), .5);
       } @else {
-        box-shadow: 0 0 0 $btn-focus-width rgba(mix(color-yiq($background), $border, 15%), .5);
+        box-shadow: 0 0 0 $btn-focus-width rgba(color.mix(color-yiq($background), $border, 15%), .5);
       }
     }
   }

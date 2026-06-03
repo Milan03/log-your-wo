@@ -1,3 +1,7 @@
+@use "../variables" as *;
+@use "../functions" as *;
+@use "deprecate" as *;
+
 // stylelint-disable declaration-no-important
 
 @mixin float-left() {

@@ -1,3 +1,7 @@
+@use "sass:color";
+@use "variables" as *;
+@use "functions" as *;
+@use "mixins" as *;
 .popover {
   position: absolute;
   top: 0;
@@ -156,7 +160,7 @@
   @include font-size($font-size-base);
   color: $popover-header-color;
   background-color: $popover-header-bg;
-  border-bottom: $popover-border-width solid darken($popover-header-bg, 5%);
+  border-bottom: $popover-border-width solid color.adjust($popover-header-bg, $lightness: -5%);
   @include border-top-radius($popover-inner-border-radius);
 
   &:empty {

@@ -1,3 +1,8 @@
+@use "sass:map";
+@use "../../bootstrap/functions" as *;
+@use "../../bootstrap/mixins" as *;
+@use "../variables" as *;
+@use "../utils-mixins" as *;
 /*
   Google material colors
  */ 
@@ -623,7 +628,7 @@ $md-colors: (
 //= Mixins
 
 @function mdcolor($key) {
-  @return map-get($md-colors, $key);
+  @return map.get($md-colors, $key);
 }
 
 

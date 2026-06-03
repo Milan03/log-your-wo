@@ -8,6 +8,9 @@
 // Base class takes care of all the key behavioral aspects.
 
 @use "sass:list";
+@use "variables" as *;
+@use "functions" as *;
+@use "mixins" as *;
 
 .custom-control {
   position: relative;

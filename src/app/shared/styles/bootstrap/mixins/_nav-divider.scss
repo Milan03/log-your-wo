@@ -1,3 +1,7 @@
+@use "../variables" as *;
+@use "../functions" as *;
+@use "deprecate" as *;
+
 // Horizontal dividers
 //
 // Dividers (basically an hr) within dropdowns and nav lists

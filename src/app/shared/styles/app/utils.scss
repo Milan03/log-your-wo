@@ -1,3 +1,9 @@
+@use "sass:map";
+@use "../bootstrap/functions" as *;
+@use "../bootstrap/mixins" as *;
+@use "variables" as *;
+@use "layout" as *;
+@use "utils-mixins" as *;
 /* ========================================================================
          Component: utils
  ========================================================================== */
@@ -8,7 +14,7 @@
 
 // Extra Background helpers
 @function custom-color($key) {
-  @return map-get($colors, $key);
+  @return map.get($colors, $key);
 }
 
 @mixin bgcolor-variant($bgcolor, $text-color: #fff) {

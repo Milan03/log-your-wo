@@ -10,39 +10,39 @@
  */
 
 // Bootstrap
-@import "bootstrap/functions";
-@import "bootstrap/variables";
-@import "bootstrap/mixins";
+@use "bootstrap/functions";
+@use "bootstrap/variables";
+@use "bootstrap/mixins";
 // Variables
-@import "app/variables";
+@use "app/variables" as variables2;
 // Globals
-@import "app/material/colors";
-@import "app/utils-mixins";
+@use "app/material/colors";
+@use "app/utils-mixins";
 // Layout
-@import "app/layout";
-@import "app/layout-extra";
-@import "app/layout-animation";
-@import "app/top-navbar";
-@import "app/sidebar";
-@import "app/offsidebar";
-@import "app/user-block";
-@import "app/settings";
+@use "app/layout";
+@use "app/layout-extra";
+@use "app/layout-animation";
+@use "app/top-navbar";
+@use "app/sidebar";
+@use "app/offsidebar";
+@use "app/user-block";
+@use "app/settings";
 // Common
-@import "app/typo";
-@import "app/bootstrap-reset";
-@import "app/bootstrap-custom";
-@import "app/button-extra";
-@import "app/placeholder";
-@import "app/cards";
-@import "app/circles";
-@import "app/dropdown-extra";
-@import "app/half-float";
-@import "app/animate";
-@import "app/slim-scroll";
-@import "app/datepicker";
-@import "app/inputs";
-@import "app/utils";
-@import "app/print";
+@use "app/typo";
+@use "app/bootstrap-reset";
+@use "app/bootstrap-custom";
+@use "app/button-extra";
+@use "app/placeholder";
+@use "app/cards";
+@use "app/circles";
+@use "app/dropdown-extra";
+@use "app/half-float";
+@use "app/animate";
+@use "app/slim-scroll";
+@use "app/datepicker";
+@use "app/inputs";
+@use "app/utils";
+@use "app/print";
 // Elements
 // @import "app/spinner";
 // Charts
@@ -68,9 +68,9 @@
 // @import "app/mailbox";
 // @import "app/plans";
 // Material
-@import "app/material/welcome";
-@import "app/material/cards";
-@import "app/material/md-forms";
-@import "app/material/md-list";
-@import "app/material/md-inputs";
-@import "app/material/ngmaterial";
+@use "app/material/welcome";
+@use "app/material/cards" as cards2;
+@use "app/material/md-forms";
+@use "app/material/md-list";
+@use "app/material/md-inputs";
+@use "app/material/ngmaterial";

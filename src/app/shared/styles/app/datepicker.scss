@@ -1,3 +1,9 @@
+@use "../bootstrap/functions" as *;
+@use "../bootstrap/mixins" as *;
+@use "variables" as *;
+@use "layout" as *;
+@use "utils-mixins" as *;
+
 /* ========================================================================
    Component: datepicker
  ========================================================================== */

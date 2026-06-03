@@ -1,5 +1,7 @@
-@import 'src/app/shared/styles/common';
-@import 'src/app/shared/styles/app/variables.scss';
+@use "sass:color";
+
+@use 'src/app/shared/styles/common';
+@use 'src/app/shared/styles/app/variables.scss';
 
 /* General Form Group Styling */
 .header-row {
@@ -100,7 +102,7 @@
 button[mat-button],
 button[mat-raised-button],
 button[mat-stroked-button] {
-    background-color: $primary;
+    background-color: variables.$primary;
     min-height: 36px;
     line-height: 36px;
     margin-top: 4px;
@@ -116,11 +118,11 @@ button[mat-stroked-button]:focus {
 }
 
 button[mat-button][color="secondary"] {
-    background-color: $danger;
+    background-color: variables.$danger;
     color: white;
 
     &:hover {
-        background-color: darken($danger, 10%);
+        background-color: color.adjust(variables.$danger, $lightness: -10%);
     }
 }
 

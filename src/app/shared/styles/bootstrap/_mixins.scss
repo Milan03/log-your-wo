@@ -3,45 +3,45 @@
 // Used in conjunction with global variables to enable certain theme features.
 
 // Vendor
-@import "vendor/rfs";
+@forward "vendor/rfs";
 
 // Deprecate
-@import "mixins/deprecate";
+@forward "mixins/deprecate";
 
 // Utilities
-@import "mixins/breakpoints";
-@import "mixins/hover";
-@import "mixins/image";
-@import "mixins/badge";
-@import "mixins/resize";
-@import "mixins/screen-reader";
-@import "mixins/size";
-@import "mixins/reset-text";
-@import "mixins/text-emphasis";
-@import "mixins/text-hide";
-@import "mixins/text-truncate";
-@import "mixins/visibility";
+@forward "mixins/breakpoints";
+@forward "mixins/hover";
+@forward "mixins/image";
+@forward "mixins/badge";
+@forward "mixins/resize";
+@forward "mixins/screen-reader";
+@forward "mixins/size";
+@forward "mixins/reset-text";
+@forward "mixins/text-emphasis";
+@forward "mixins/text-hide";
+@forward "mixins/text-truncate";
+@forward "mixins/visibility";
 
 // Components
-@import "mixins/alert";
-@import "mixins/buttons";
-@import "mixins/caret";
-@import "mixins/pagination";
-@import "mixins/lists";
-@import "mixins/list-group";
-@import "mixins/nav-divider";
-@import "mixins/forms";
-@import "mixins/table-row";
+@forward "mixins/alert";
+@forward "mixins/buttons";
+@forward "mixins/caret";
+@forward "mixins/pagination";
+@forward "mixins/lists";
+@forward "mixins/list-group";
+@forward "mixins/nav-divider";
+@forward "mixins/forms";
+@forward "mixins/table-row";
 
 // Skins
-@import "mixins/background-variant";
-@import "mixins/border-radius";
-@import "mixins/box-shadow";
-@import "mixins/gradients";
-@import "mixins/transition";
+@forward "mixins/background-variant";
+@forward "mixins/border-radius";
+@forward "mixins/box-shadow";
+@forward "mixins/gradients";
+@forward "mixins/transition";
 
 // Layout
-@import "mixins/clearfix";
-@import "mixins/grid-framework";
-@import "mixins/grid";
-@import "mixins/float";
+@forward "mixins/clearfix";
+@forward "mixins/grid-framework";
+@forward "mixins/grid";
+@forward "mixins/float";

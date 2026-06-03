@@ -1,3 +1,10 @@
+@use "sass:color";
+@use "../bootstrap/functions" as *;
+@use "../bootstrap/mixins" as *;
+@use "variables" as *;
+@use "layout" as *;
+@use "top-navbar" as *;
+@use "utils-mixins" as *;
 /* ========================================================================
      Component: sidebar
  ========================================================================== */
@@ -6,7 +13,7 @@ $sidebar-bg:                      $aside-bg;
 
 $sidebar-item-color:              #515253;
 $sidebar-item-color-active:       $nav-top-bg;
-$sidebar-item-bg-active:          darken($sidebar-bg, 1%);
+$sidebar-item-bg-active:          color.adjust($sidebar-bg, $lightness: -1%);
 
 $sidebar-icon-color:              inherits;
 $sidebar-icon-color-active:       $nav-top-bg;

@@ -1,3 +1,7 @@
+@use "../variables" as *;
+@use "../functions" as *;
+@use "deprecate" as *;
+
 // Sizing shortcuts
 
 @mixin size($width, $height: $width) {

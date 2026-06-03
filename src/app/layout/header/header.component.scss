@@ -1,4 +1,4 @@
-@import 'src/app/shared/styles/app/variables.scss';
+@use 'src/app/shared/styles/app/variables.scss';
 
 #log-header:hover, #log-header:active, #log-header:focus {
     color: #fff !important;
@@ -6,7 +6,7 @@
 
 #exercise-btns button {
     background-color: white;
-    color: $info;
+    color: variables.$info;
 }
 
 #add-exercise-label {

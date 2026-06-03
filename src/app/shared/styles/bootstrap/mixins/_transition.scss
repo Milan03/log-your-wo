@@ -1,7 +1,10 @@
+@use "sass:list";
+@use "../variables" as *;
+@use "../functions" as *;
 // stylelint-disable property-blacklist
 @mixin transition($transition...) {
   @if $enable-transitions {
-    @if length($transition) == 0 {
+    @if list.length($transition) == 0 {
       transition: $transition-base;
     } @else {
       transition: $transition;

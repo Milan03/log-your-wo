@@ -1,3 +1,4 @@
+@use "sass:color";
 
 // Cutoms Gray colors for theme
 $gray-darker:           #232735;
@@ -24,26 +25,26 @@ $dark:                  #607D8B;
 // Custom color variants
 $amountOfLight: 10%;
 
-$primary-light:         lighten($primary, $amountOfLight);
-$success-light:         lighten($success, $amountOfLight);
-$info-light:            lighten($info, $amountOfLight);
-$warning-light:         lighten($warning, $amountOfLight);
-$danger-light:          lighten($danger, $amountOfLight);
-$inverse-light:         lighten($inverse, $amountOfLight);
-$green-light:           lighten($green, $amountOfLight);
-$pink-light:            lighten($pink, $amountOfLight);
-$purple-light:          lighten($purple, $amountOfLight);
-$yellow-light:          lighten($yellow, $amountOfLight);
-$primary-dark:          darken($primary, $amountOfLight);
-$success-dark:          darken($success, $amountOfLight);
-$info-dark:             darken($info, $amountOfLight);
-$warning-dark:          darken($warning, $amountOfLight);
-$danger-dark:           darken($danger, $amountOfLight);
-$inverse-dark:          darken($inverse, $amountOfLight);
-$green-dark:            darken($green, $amountOfLight);
-$pink-dark:             darken($pink, $amountOfLight);
-$purple-dark:           darken($purple, $amountOfLight);
-$yellow-dark:           darken($yellow, $amountOfLight);
+$primary-light:         color.adjust($primary, $lightness: $amountOfLight);
+$success-light:         color.adjust($success, $lightness: $amountOfLight);
+$info-light:            color.adjust($info, $lightness: $amountOfLight);
+$warning-light:         color.adjust($warning, $lightness: $amountOfLight);
+$danger-light:          color.adjust($danger, $lightness: $amountOfLight);
+$inverse-light:         color.adjust($inverse, $lightness: $amountOfLight);
+$green-light:           color.adjust($green, $lightness: $amountOfLight);
+$pink-light:            color.adjust($pink, $lightness: $amountOfLight);
+$purple-light:          color.adjust($purple, $lightness: $amountOfLight);
+$yellow-light:          color.adjust($yellow, $lightness: $amountOfLight);
+$primary-dark:          color.adjust($primary, $lightness: -$amountOfLight);
+$success-dark:          color.adjust($success, $lightness: -$amountOfLight);
+$info-dark:             color.adjust($info, $lightness: -$amountOfLight);
+$warning-dark:          color.adjust($warning, $lightness: -$amountOfLight);
+$danger-dark:           color.adjust($danger, $lightness: -$amountOfLight);
+$inverse-dark:          color.adjust($inverse, $lightness: -$amountOfLight);
+$green-dark:            color.adjust($green, $lightness: -$amountOfLight);
+$pink-dark:             color.adjust($pink, $lightness: -$amountOfLight);
+$purple-dark:           color.adjust($purple, $lightness: -$amountOfLight);
+$yellow-dark:           color.adjust($yellow, $lightness: -$amountOfLight);
 
 // Theme variables
 
@@ -182,7 +183,7 @@ $input-placeholder-color:               #b7bac9;
 $form-feedback-icon-valid:              none;
 $form-feedback-icon-invalid:            none;
 
-$custom-control-indicator-active-bg:    lighten($primary, 25%);
+$custom-control-indicator-active-bg:    color.adjust($primary, $lightness: 25%);
 
 // Dropdowns
 

@@ -1,3 +1,11 @@
+@use "sass:color";
+@use "../bootstrap/functions" as *;
+@use "../bootstrap/variables" as bootstrap;
+@use "../bootstrap/mixins" as *;
+@use "variables" as *;
+@use "layout" as *;
+@use "utils-mixins" as *;
+@use "material/colors" as *;
 /* ========================================================================
      Component: bootstrap-reset
  ========================================================================== */
@@ -16,7 +24,7 @@ a {
     &.text-muted {
         &:hover,
         &:focus {
-            color: darken($text-muted, 10%);
+            color: color.adjust($text-muted, $lightness: -10%);
         }
     }
 }
@@ -114,7 +122,7 @@ hr {
     border: 1px solid $gray;
     background-color: #fff;
     @include media-breakpoint-up(md) {
-        padding: $jumbotron-padding ($jumbotron-padding*0.5);
+        padding: bootstrap.$jumbotron-padding (bootstrap.$jumbotron-padding*0.5);
     }
 }
 
@@ -303,8 +311,8 @@ fieldset {
 
 .progress {
     @include box-shadow(0 0 0 #000);
-    border-radius: $border-radius-sm;
-    border: 1px solid $progress-bg;
+    border-radius: bootstrap.$border-radius-sm;
+    border: 1px solid bootstrap.$progress-bg;
     background-color: #fff;
     .progress-bar {
         @include box-shadow(0 0 0 #000);
@@ -317,7 +325,7 @@ fieldset {
     box-shadow: 0 0 0 #000;
     border-color: #eee;
     border-bottom: 2px solid $gray-light;
-    border-radius: $border-radius-sm;
+    border-radius: bootstrap.$border-radius-sm;
     .popover-title {
         border: 0;
     }
@@ -335,7 +343,7 @@ fieldset {
 
 // DROPDOWN
 .dropdown-menu {
-    border-radius: $border-radius-sm;
+    border-radius: bootstrap.$border-radius-sm;
     font-size: 14px;
     padding: 0.3125rem 0;
     box-shadow: rgba(0, 0, 0, 0.176) 0px 6px 12px;

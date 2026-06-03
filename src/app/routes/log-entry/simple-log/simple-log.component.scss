@@ -1,5 +1,5 @@
-@import '../../../shared/styles/common.scss';
-@import '../../../shared/styles/app/variables.scss';
+@use '../../../shared/styles/common.scss';
+@use '../../../shared/styles/app/variables.scss';
 
 .container-lg {
     margin-top: 50px;
@@ -19,7 +19,7 @@ input.mda-form-control[name="title"] {
 
 .btn-row-close:focus,
 .btn-row-close:active {
-    color: $danger;
+    color: variables.$danger;
 }
 
 .fa-window-close {
@@ -31,7 +31,7 @@ input.mda-form-control[name="title"] {
 .fa-window-close:hover,
 .fa-window-close:focus,
 .fa-window-close:active {
-    color: $danger
+    color: variables.$danger
 }
 
 .first-col-cv,
@@ -93,12 +93,12 @@ table {
 }
 
 .add-icon {
-    background-color: $primary;
+    background-color: variables.$primary;
     color: white;
 }
 
 .remove-icon {
-    background-color: $danger;
+    background-color: variables.$danger;
     color: white;
 }
 
