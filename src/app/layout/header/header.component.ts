@@ -1,12 +1,12 @@
 import { Component, OnInit, ViewChild, Injector, OnDestroy } from '@angular/core';
-import { Router } from '@angular/router';
+import { NavigationEnd, Router } from '@angular/router';
 import screenfull from 'screenfull';
 
 import { UserblockService } from '../sidebar/userblock/userblock.service';
 import { SettingsService } from '../../core/settings/settings.service';
 import { MenuService } from '../../core/menu/menu.service';
 import { SharedService } from '../../shared/services/shared.service';
-import { Subscription } from 'rxjs';
+import { filter, Subscription } from 'rxjs';
 import { FormValues, LogTypes } from 'src/app/shared/common/common.constants';
 import { TranslatorService } from 'src/app/core/translator/translator.service';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
@@ -30,12 +30,15 @@ export class HeaderComponent implements OnInit, OnDestroy {
     public logStartDatim: Date;
     public isNavSearchVisible: boolean;
     public isEditingTitle: boolean;
+    public showLogActions: boolean = false;
+    public showOffsidebarToggle: boolean = false;
 
     public readonly titleCharLimit: number = 25;
 
     private logTypeSub: Subscription;
     private logStartDatimSub: Subscription;
     private langSub: Subscription;
+    private routerSub: Subscription;
 
     constructor(
         private _formBuilder: UntypedFormBuilder,
@@ -43,13 +46,14 @@ export class HeaderComponent implements OnInit, OnDestroy {
         public userblockService: UserblockService,
         public settings: SettingsService,
         public injector: Injector,
+        private _router: Router,
         private sharedService: SharedService,
         private translatorService: TranslatorService
     ) {
-        this.currentLogType = LogTypes.SimpleLog;
+        this.currentLogType = undefined;
         this.logStartDatim = new Date();
         this.headerForm = this._formBuilder.group({
-            'title': [this.currentLogType, Validators.compose([Validators.maxLength(25)])],
+            'title': [LogTypes.SimpleLog, Validators.compose([Validators.maxLength(25)])],
             'date': [this.formatDateTime(this.logStartDatim)]
         });
         this.menuItems = menu.getMenu().slice(0, 4); // for horizontal layout
@@ -57,6 +61,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
         this.subToLogType();
         this.subToLogStartDatim();
         this.subToLanguageChange();
+        this.subToRouteChange();
     }
 
     ngOnInit() {
@@ -93,6 +98,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
             this.logStartDatimSub.unsubscribe();
         if (this.langSub)
             this.langSub.unsubscribe();
+        if (this.routerSub)
+            this.routerSub.unsubscribe();
     }
 
     private formatDateTime(date: Date): string {
@@ -148,6 +155,20 @@ export class HeaderComponent implements OnInit, OnDestroy {
                 }
             }
         );
+    }
+
+    private subToRouteChange(): void {
+        this.updateLogActionVisibility(this._router.url);
+        this.routerSub = this._router.events.pipe(
+            filter(event => event instanceof NavigationEnd)
+        ).subscribe((event: NavigationEnd) => {
+            this.updateLogActionVisibility(event.urlAfterRedirects);
+        });
+    }
+
+    private updateLogActionVisibility(url: string): void {
+        this.showLogActions = url.startsWith('/log-entry/simple-log');
+        this.showOffsidebarToggle = url.startsWith('/log-entry/simple-log') || url.startsWith('/log-entry/import-program');
     }
 
     // toggleUserBlock(event) {

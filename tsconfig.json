@@ -17,6 +17,7 @@
     "strictNullChecks": false,
     "strictPropertyInitialization": false,
     "types": [
+      "jasmine",
       "node"
     ],
     "typeRoots": [
@@ -32,7 +33,6 @@
     "strictInjectionParameters": true
   },
   "exclude": [
-    "src/**/*.spec.ts",
     "e2e/**/*.ts"
   ]
 }

@@ -13,6 +13,13 @@ const SimpleLog = {
     translate: 'log-entry.SimpleLog'
 };
 
+const ImportProgram = {
+    text: 'Import Program',
+    link: '/log-entry/import-program',
+    icon: 'icon-cloud-upload',
+    translate: ''
+};
+
 const headingMain = {
     text: '',
     heading: true,
@@ -22,5 +29,6 @@ const headingMain = {
 export const menu = [
     headingMain,
     //Home,
-    SimpleLog
+    SimpleLog,
+    ImportProgram
 ];

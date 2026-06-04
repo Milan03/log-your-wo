@@ -12,10 +12,14 @@ export class Exercise {
         public weight?: number,
         public duration?: moment.Duration,
         public distance?: number, // in kilometers
-        public intensity?: Intensity
+        public intensity?: Intensity,
+        public completed?: boolean,
+        public sourceId?: string,
+        public prescription?: string
     ) {
         this.exerciseId = Guid.create();
         this.duration = moment.duration();
+        this.completed = false;
     }
 }
 

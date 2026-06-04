@@ -1,6 +1,7 @@
 import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { UntypedFormGroup, UntypedFormBuilder, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 
 import { ExerciseDialogComponent } from '../exercise-dialog/exercise-dialog.component';
@@ -13,6 +14,8 @@ import { SharedService } from '../../../shared/services/shared.service';
 import { TranslatorService } from '../../../core/translator/translator.service';
 import { EmailService } from '../../../shared/services/email.service';
 import { GoogleAnalyticsService } from '../../../shared/services/google-analytics.service';
+import { ProgramImportService } from '../../../shared/services/program-import.service';
+import { ImportedProgramDay, ImportedProgramWeek, ImportedWorkoutState } from '../../../shared/models/imported-program.model';
 
 import { LogTypes, FormValues } from '../../../shared/common/common.constants';
 
@@ -55,6 +58,17 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     private measureToggleSub: Subscription;
     private openDialogSub: Subscription;
     private exerciseTitleSub: Subscription;
+    private routeSub: Subscription;
+    private elapsedTimerId: any;
+
+    public importedWeek: ImportedProgramWeek;
+    public importedDay: ImportedProgramDay;
+    public isImportedWorkout = false;
+    public workoutStartedAt: string;
+    public workoutCompletedAt: string;
+    public workoutPausedAt: string;
+    public totalPausedMs = 0;
+    public elapsedMs = 0;
 
     constructor(
         private _formBuilder: UntypedFormBuilder,
@@ -62,7 +76,10 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         private _translatorService: TranslatorService,
         private _dialog: MatDialog,
         private _emailService: EmailService,
-        private _googleAnalyticsService: GoogleAnalyticsService
+        private _googleAnalyticsService: GoogleAnalyticsService,
+        private _programImportService: ProgramImportService,
+        private _activatedRoute: ActivatedRoute,
+        private _router: Router
     ) {
         this.simpleLogForm = this._formBuilder.group({
             'title': ['', Validators.compose([Validators.maxLength(25)])]
@@ -79,9 +96,11 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         this.subToMeasureToggleChange();
         this.subToOpenDialogStream();
         this.subToExerciseTitleStream();
+        this.subToRouteParams();
     }
 
     ngOnDestroy(): void {
+        this.pauseActiveWorkoutForNavigation();
         if (this.langSub)
             this.langSub.unsubscribe();
         if (this.sbToggleSub)
@@ -92,6 +111,9 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             this.openDialogSub.unsubscribe();
         if (this.exerciseTitleSub)
             this.exerciseTitleSub.unsubscribe();
+        if (this.routeSub)
+            this.routeSub.unsubscribe();
+        this.stopElapsedTimer();
     }
 
     /**
@@ -252,6 +274,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         dialogRef.afterClosed().subscribe(result => {
             if (result) {
                 this.addExerciseToLog(type, result);
+                this.saveImportedWorkoutState();
             }
         });
     }
@@ -268,6 +291,134 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         } else {
             this.currentLog.cardioExercises = this.currentLog.cardioExercises.filter(currentExercise => currentExercise.exerciseId !== exercise.exerciseId);
         }
+        this.saveImportedWorkoutState();
+    }
+
+    public onExerciseRowClick(exercise: Exercise): void {
+        this.toggleExerciseComplete(exercise);
+    }
+
+    public editRow(exercise: Exercise): void {
+        const data: ExerciseDialogData = {
+            exerciseType: exercise.exerciseType,
+            exerciseName: exercise.exerciseName,
+            exercise,
+            isEdit: true,
+            measure: exercise.exerciseType === 'strength' ? this.weightMeasure : this.distanceMeasure
+        };
+        const dialogRef = this._dialog.open(ExerciseDialogComponent, { data });
+        dialogRef.afterClosed().subscribe(result => {
+            if (result) {
+                this.replaceExercise(exercise, result);
+                this.saveImportedWorkoutState();
+            }
+        });
+    }
+
+    public toggleExerciseComplete(exercise: Exercise): void {
+        if (!this.isImportedWorkout) {
+            return;
+        }
+
+        this.ensureWorkoutStarted();
+        exercise.completed = !exercise.completed;
+        this.currentLog.exercises = [...this.currentLog.exercises];
+        this.syncWorkoutCompletion();
+        this.saveImportedWorkoutState();
+    }
+
+    public startWorkout(): void {
+        this.ensureWorkoutStarted();
+        this.refreshElapsedMs();
+        this.saveImportedWorkoutState();
+    }
+
+    public navigateBackToWeek(): void {
+        if (!this.importedWeek) {
+            this._router.navigate(['/log-entry/import-program']);
+            return;
+        }
+
+        this._router.navigate(['/log-entry/import-program'], {
+            queryParams: {
+                weekId: this.importedWeek.id
+            }
+        });
+    }
+
+    public markWorkoutComplete(): void {
+        this.ensureWorkoutStarted();
+        this.currentLog.exercises = this.currentLog.exercises.map(exercise => ({
+            ...exercise,
+            completed: true
+        }));
+        this.completeWorkout();
+        this.saveImportedWorkoutState();
+    }
+
+    public markWorkoutIncomplete(): void {
+        const lastCompletedIndex = this.findLastCompletedExerciseIndex();
+
+        if (lastCompletedIndex < 0) {
+            return;
+        }
+
+        this.currentLog.exercises = this.currentLog.exercises.map((exercise, index) => ({
+            ...exercise,
+            completed: index === lastCompletedIndex ? false : exercise.completed
+        }));
+        this.workoutCompletedAt = undefined;
+        this.workoutPausedAt = undefined;
+        this.syncElapsedTimer();
+        this.saveImportedWorkoutState();
+    }
+
+    public unselectAllExercises(): void {
+        this.currentLog.exercises = this.currentLog.exercises.map(exercise => ({
+            ...exercise,
+            completed: false
+        }));
+        this.workoutCompletedAt = undefined;
+        this.syncElapsedTimer();
+        this.saveImportedWorkoutState();
+    }
+
+    public pauseWorkout(): void {
+        if (!this.isImportedWorkout || this.workoutPausedAt || this.workoutCompletedAt) {
+            return;
+        }
+
+        this.ensureWorkoutStarted();
+        this.workoutPausedAt = new Date().toISOString();
+        this.refreshElapsedMs();
+        this.syncElapsedTimer();
+        this.saveImportedWorkoutState();
+    }
+
+    public resumeWorkout(): void {
+        if (!this.workoutPausedAt) {
+            return;
+        }
+
+        this.totalPausedMs += Date.now() - new Date(this.workoutPausedAt).getTime();
+        this.workoutPausedAt = undefined;
+        this.refreshElapsedMs();
+        this.syncElapsedTimer();
+        this.saveImportedWorkoutState();
+    }
+
+    public getElapsedTimeLabel(): string {
+        return this._programImportService.formatElapsedMs(this.elapsedMs);
+    }
+
+    public getWeightDisplay(exercise: Exercise): string {
+        const weight = exercise.weight === undefined || exercise.weight === null ? '' : String(exercise.weight).trim();
+
+        if (!weight || weight.toLowerCase() === 'x') {
+            return '';
+        }
+
+        return `${weight} ${this.weightMeasure}`;
     }
 
     private addExerciseToLog(type: string, newExercise: Exercise): void {
@@ -275,6 +426,19 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             this.currentLog.exercises = [...this.currentLog.exercises, newExercise];
         } else {
             this.currentLog.cardioExercises = [...this.currentLog.cardioExercises, newExercise];
+        }
+    }
+
+    private replaceExercise(originalExercise: Exercise, updatedExercise: Exercise): void {
+        updatedExercise.exerciseId = originalExercise.exerciseId;
+        updatedExercise.sourceId = originalExercise.sourceId;
+        updatedExercise.completed = originalExercise.completed;
+        updatedExercise.prescription = updatedExercise.prescription || originalExercise.prescription;
+
+        if (originalExercise.exerciseType === 'strength') {
+            this.currentLog.exercises = this.currentLog.exercises.map(exercise => exercise.exerciseId === originalExercise.exerciseId ? updatedExercise : exercise);
+        } else {
+            this.currentLog.cardioExercises = this.currentLog.cardioExercises.map(exercise => exercise.exerciseId === originalExercise.exerciseId ? updatedExercise : exercise);
         }
     }
 
@@ -360,8 +524,186 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         this.exerciseTitleSub = this._sharedService.exerciseTitleEmitted$.subscribe(
           data => {
             this.currentLog.title = data;
+            this.saveImportedWorkoutState();
           }  
         );
+    }
+
+    private subToRouteParams(): void {
+        this.routeSub = this._activatedRoute.queryParamMap.subscribe(params => {
+            const weekId = params.get('weekId');
+            const dayId = params.get('dayId');
+
+            if (weekId && dayId) {
+                if (this.isImportedWorkout && (this.importedWeek?.id !== weekId || this.importedDay?.id !== dayId)) {
+                    this.pauseActiveWorkoutForNavigation();
+                }
+                this.loadImportedWorkout(weekId, dayId);
+            } else {
+                this.pauseActiveWorkoutForNavigation();
+                this.isImportedWorkout = false;
+                this.importedWeek = undefined;
+                this.importedDay = undefined;
+                this.displayedColumns = ['exerciseName', 'weight', 'reps', 'sets', 'controls'];
+                this.clearWorkoutTiming();
+            }
+        });
+    }
+
+    private loadImportedWorkout(weekId: string, dayId: string): void {
+        this.importedWeek = this._programImportService.getWeek(weekId);
+        this.importedDay = this._programImportService.getDay(weekId, dayId);
+
+        if (!this.importedWeek || !this.importedDay) {
+            return;
+        }
+
+        const state = this._programImportService.getWorkoutState(weekId, dayId);
+        this.currentLog = new SimpleLog();
+        this.currentLog.title = `${this.importedWeek.name} - ${this.importedDay.name}`;
+        this.currentLog.exercises = state ? this.hydrateExercises(state.exercises) : this._programImportService.createExercisesForDay(this.importedDay);
+        this.currentLog.cardioExercises = [];
+        this.isImportedWorkout = true;
+        this.displayedColumns = ['completed', 'exerciseName', 'weight', 'reps', 'sets', 'prescription', 'controls'];
+        this.loadWorkoutTiming(state);
+        this._sharedService.emitLogType(this.currentLog.title);
+        this._sharedService.emitLogStartDatim(this.currentLog.startDatim);
+        this.saveImportedWorkoutState();
+    }
+
+    private hydrateExercises(exercises: Exercise[]): Exercise[] {
+        return exercises.map(exercise => Object.assign(new Exercise(), exercise));
+    }
+
+    private findLastCompletedExerciseIndex(): number {
+        for (let index = this.currentLog.exercises.length - 1; index >= 0; index--) {
+            if (this.currentLog.exercises[index].completed) {
+                return index;
+            }
+        }
+
+        return -1;
+    }
+
+    private pauseActiveWorkoutForNavigation(): void {
+        if (!this.isImportedWorkout || !this.workoutStartedAt || this.workoutPausedAt || this.workoutCompletedAt) {
+            return;
+        }
+
+        this.workoutPausedAt = new Date().toISOString();
+        this.refreshElapsedMs();
+        this.saveImportedWorkoutState();
+    }
+
+    private saveImportedWorkoutState(): void {
+        if (!this.isImportedWorkout || !this.importedWeek || !this.importedDay) {
+            return;
+        }
+
+        const program = this._programImportService.getProgram();
+        if (!program) {
+            return;
+        }
+
+        this._programImportService.saveWorkoutState({
+            programId: program.id,
+            weekId: this.importedWeek.id,
+            dayId: this.importedDay.id,
+            exercises: this.currentLog.exercises,
+            startedAt: this.workoutStartedAt,
+            completedAt: this.workoutCompletedAt,
+            pausedAt: this.workoutPausedAt,
+            totalPausedMs: this.totalPausedMs,
+            elapsedMs: this.elapsedMs
+        });
+    }
+
+    private ensureWorkoutStarted(): void {
+        if (!this.isImportedWorkout || this.workoutStartedAt) {
+            return;
+        }
+
+        this.workoutStartedAt = new Date().toISOString();
+        this.syncElapsedTimer();
+    }
+
+    private syncWorkoutCompletion(): void {
+        if (!this.currentLog.exercises.length) {
+            return;
+        }
+
+        if (this.currentLog.exercises.every(exercise => exercise.completed)) {
+            this.completeWorkout();
+        } else {
+            this.workoutCompletedAt = undefined;
+            this.syncElapsedTimer();
+        }
+    }
+
+    private completeWorkout(): void {
+        const completedAt = new Date().toISOString();
+        if (this.workoutPausedAt) {
+            this.totalPausedMs += new Date(completedAt).getTime() - new Date(this.workoutPausedAt).getTime();
+        }
+        this.workoutCompletedAt = completedAt;
+        this.workoutPausedAt = undefined;
+        this.refreshElapsedMs(completedAt);
+        this.syncElapsedTimer();
+    }
+
+    private loadWorkoutTiming(state: ImportedWorkoutState): void {
+        this.workoutStartedAt = state ? state.startedAt : undefined;
+        this.workoutCompletedAt = state ? state.completedAt : undefined;
+        this.workoutPausedAt = state ? state.pausedAt : undefined;
+        this.totalPausedMs = state && state.totalPausedMs ? state.totalPausedMs : 0;
+        this.elapsedMs = state && state.elapsedMs ? state.elapsedMs : 0;
+        this.refreshElapsedMs();
+        this.syncElapsedTimer();
+    }
+
+    private clearWorkoutTiming(): void {
+        this.workoutStartedAt = undefined;
+        this.workoutCompletedAt = undefined;
+        this.workoutPausedAt = undefined;
+        this.totalPausedMs = 0;
+        this.elapsedMs = 0;
+
+        this.stopElapsedTimer();
+    }
+
+    private startElapsedTimer(): void {
+        if (this.elapsedTimerId) {
+            clearInterval(this.elapsedTimerId);
+        }
+
+        this.elapsedTimerId = setInterval(() => this.refreshElapsedMs(), 1000);
+    }
+
+    private stopElapsedTimer(): void {
+        if (this.elapsedTimerId) {
+            clearInterval(this.elapsedTimerId);
+            this.elapsedTimerId = undefined;
+        }
+    }
+
+    private syncElapsedTimer(): void {
+        if (this.workoutStartedAt && !this.workoutPausedAt && !this.workoutCompletedAt) {
+            this.startElapsedTimer();
+        } else {
+            this.stopElapsedTimer();
+        }
+    }
+
+    private refreshElapsedMs(nowIso?: string): void {
+        if (!this.workoutStartedAt) {
+            this.elapsedMs = 0;
+            return;
+        }
+
+        const now = nowIso ? new Date(nowIso).getTime() : Date.now();
+        const endTime = this.workoutCompletedAt ? new Date(this.workoutCompletedAt).getTime() : now;
+        const pausedWindowMs = this.workoutPausedAt && !this.workoutCompletedAt ? now - new Date(this.workoutPausedAt).getTime() : 0;
+        this.elapsedMs = Math.max(endTime - new Date(this.workoutStartedAt).getTime() - this.totalPausedMs - pausedWindowMs, 0);
     }
 
     /**

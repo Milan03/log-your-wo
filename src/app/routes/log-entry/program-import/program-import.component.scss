@@ -1,0 +1,232 @@
+@use '../../../shared/styles/app/variables.scss';
+
+.program-import {
+    margin-top: 48px;
+}
+
+.program-import__header,
+.program-import__meta,
+.program-import__day-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.program-import__header {
+    margin-bottom: 24px;
+}
+
+.program-import__header h1,
+.program-import__meta h2 {
+    margin: 0;
+}
+
+.program-import__header p {
+    margin: 6px 0 0;
+    color: #6c757d;
+}
+
+.program-import__actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.program-import__actions em {
+    margin-right: 6px;
+}
+
+.program-import__actions .btn-outline-danger em {
+    margin-right: 0;
+}
+
+.program-import__empty {
+    display: grid;
+    justify-items: center;
+    gap: 10px;
+    padding: 56px 16px;
+    text-align: center;
+    border: 1px dashed #cbd3da;
+    border-radius: 8px;
+    background: #fff;
+}
+
+.program-import__empty img {
+    width: 88px;
+}
+
+.program-import__empty h2,
+.program-import__empty p {
+    margin: 0;
+}
+
+.program-import__content {
+    display: grid;
+    gap: 18px;
+}
+
+.program-import__meta {
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e5e9ed;
+}
+
+.program-import__meta-actions {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.program-import__color-picker {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #4f5b67;
+    font-size: 0.85rem;
+}
+
+.program-import__color-swatch {
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border: 2px solid #fff;
+    border-radius: 999px;
+    box-shadow: 0 0 0 1px #cbd3da;
+    cursor: pointer;
+}
+
+.program-import__color-swatch--active {
+    box-shadow: 0 0 0 2px #1f2933;
+}
+
+.program-import__color-swatch:hover,
+.program-import__color-swatch:focus {
+    box-shadow: 0 0 0 2px variables.$primary;
+}
+
+.program-import__eyebrow,
+.program-import__count {
+    font-size: 0.8rem;
+    color: #6c757d;
+    text-transform: uppercase;
+}
+
+.program-import__weeks {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+}
+
+.program-import__week {
+    flex: 0 0 auto;
+    border: 1px solid #cbd3da;
+    border-radius: 4px;
+    background: #fff;
+    padding: 8px 12px;
+    cursor: pointer;
+}
+
+.program-import__week--active {
+    border-color: variables.$primary;
+    color: variables.$primary;
+    font-weight: 600;
+}
+
+.program-import__week--complete {
+    border-color: var(--completion-color);
+    background: var(--completion-color-soft);
+    color: #1f2933;
+}
+
+.program-import__week--active.program-import__week--complete {
+    box-shadow: inset 0 -2px 0 var(--completion-color);
+}
+
+.program-import__days {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(260px, 1fr);
+    grid-template-rows: repeat(2, minmax(160px, auto));
+    gap: 14px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+}
+
+.program-import__day {
+    display: grid;
+    gap: 12px;
+    min-height: 160px;
+    padding: 16px;
+    text-align: left;
+    border: 1px solid #dce1e6;
+    border-radius: 8px;
+    background: #fff;
+    cursor: pointer;
+}
+
+.program-import__day:hover,
+.program-import__day:focus {
+    border-color: variables.$primary;
+}
+
+.program-import__day--complete {
+    border-color: var(--completion-color);
+    background: linear-gradient(180deg, var(--completion-color-soft), var(--completion-color-softer));
+    box-shadow: inset 3px 0 0 var(--completion-color);
+}
+
+.program-import__day--complete:hover,
+.program-import__day--complete:focus {
+    border-color: var(--completion-color);
+}
+
+.program-import__day-title {
+    font-weight: 600;
+}
+
+.program-import__preview {
+    display: grid;
+    gap: 4px;
+    color: #4f5b67;
+    font-size: 0.9rem;
+}
+
+.program-import__day-actions {
+    align-self: end;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+.program-import__day-actions .btn {
+    font-weight: 600;
+}
+
+.program-import__elapsed {
+    color: #4f5b67;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+@media only screen and (max-width: 768px) {
+    .program-import__header,
+    .program-import__meta {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .program-import__meta-actions {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .program-import__days {
+        grid-auto-flow: row;
+        grid-auto-columns: auto;
+        grid-template-rows: none;
+        grid-template-columns: 1fr;
+    }
+}

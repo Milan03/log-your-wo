@@ -9,7 +9,6 @@
             <div class="col-xl-9 col-lg-8 home-text">
                 <h1 class="home-text-big">{{ 'global.LogYourWorkout' | translate }}</h1>
                 <p class="lead"><small>{{ 'global.LogYourWorkoutDescription' | translate }}</small></p>
-                <p><a class="btn btn-primary btn-lg" href="https://angular.io/" target="_blank">Learn more</a></p>
             </div>
         </div>
     </div>
@@ -26,16 +25,19 @@
                 </button>
             </div>
         </div>
-        <!-- <div class="col-lg-4">
+        <div class="col-lg-4">
             <div class="card b">
-                <div class="card-header">
-                    <h3>Router</h3>
-                </div>
-                <div class="card-body">
-                    Powerful and modern routes definitions. Easily declare routes and nested routes with components association.
-                </div>
+                <button class="btn-transparent" (click)="navigateToImportProgram()">
+                    <div class="card-header">
+                        <h3>Import Excel Program</h3>
+                    </div>
+                    <div class="card-body">
+                        Upload a spreadsheet, browse weeks, and open a planned workout as a log.
+                    </div>
+                </button>
             </div>
         </div>
+        <!-- 
         <div class="col-lg-4">
             <div class="card b">
                 <div class="card-header">

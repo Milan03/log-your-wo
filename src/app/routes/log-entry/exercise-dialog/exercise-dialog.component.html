@@ -1,5 +1,5 @@
 <div class="header-row">
-    <h1 mat-dialog-title>{{ 'log-entry.AddExercise' | translate }}</h1>
+    <h1 mat-dialog-title>{{ _exerciseDialogData.isEdit ? 'Edit Exercise' : ('log-entry.AddExercise' | translate) }}</h1>
     <div *ngIf="currentExercise.exerciseType === 'strength'" class="chip-set-container">
         <mat-chip-set aria-label="Measure selection">
             <mat-chip (click)="onChipClick('lbs')" [ngClass]="{'selected-chip': selectedWeightChip === 'lbs'}">lbs</mat-chip>
@@ -137,7 +137,7 @@
                 }}</button>
         </div>
         <div class="col-auto">
-            <button mat-raised-button type="submit" color="primary">{{ 'log-entry.AddExercise' | translate }}</button>
+            <button mat-raised-button type="submit" color="primary">{{ _exerciseDialogData.isEdit ? 'Save Exercise' : ('log-entry.AddExercise' | translate) }}</button>
         </div>
     </div>
 </form>

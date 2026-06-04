@@ -5,6 +5,71 @@
     margin-top: 50px;
 }
 
+.imported-log-toolbar {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.imported-log-toolbar em {
+    margin-right: 6px;
+}
+
+.imported-log-toolbar__left {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.imported-log-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: flex-start;
+    margin: 4px 0 16px;
+}
+
+.imported-log-toolbar__timer {
+    display: grid;
+    justify-items: end;
+    gap: 2px;
+    color: #4f5b67;
+}
+
+.imported-log-toolbar__timer-main {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.imported-log-toolbar__timer-main span,
+.imported-log-toolbar__status {
+    font-size: 0.8rem;
+}
+
+.imported-log-toolbar__timer-main strong {
+    color: #1f2933;
+    font-size: 1.25rem;
+}
+
+.imported-log-toolbar__paused-pill {
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: variables.$danger;
+    color: #fff;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.imported-log-toolbar__status {
+    color: #5f6b76;
+    line-height: 1.2;
+    text-align: right;
+}
+
 input.mda-form-control[name="title"] {
     width: 15em;
 }
@@ -102,6 +167,34 @@ table {
     color: white;
 }
 
+.edit-icon {
+    background-color: #4f5b67;
+    color: white;
+    font-size: 0.75rem;
+}
+
+.completed-exercise {
+    color: #6c757d;
+    text-decoration: line-through;
+}
+
+.completed-row {
+    background-color: rgba(47, 179, 121, 0.08);
+}
+
+tr.mat-mdc-row,
+tr.mat-row {
+    cursor: pointer;
+}
+
+.mat-column-completed {
+    width: 56px;
+}
+
+.mat-column-prescription {
+    min-width: 130px;
+}
+
 .mat-column-controls {
     padding: 0;
 }
@@ -112,6 +205,21 @@ table {
 }*/
 
 /* phones */
-/*@media only screen and (max-width: 768px) {
+@media only screen and (max-width: 768px) {
+    .imported-log-toolbar {
+        align-items: flex-start;
+        flex-direction: column;
+    }
 
-}*/
+    .imported-log-toolbar__timer {
+        justify-items: start;
+    }
+
+    .imported-log-toolbar__timer-main {
+        flex-wrap: wrap;
+    }
+
+    .imported-log-toolbar__status {
+        text-align: left;
+    }
+}
