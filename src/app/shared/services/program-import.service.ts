@@ -16,12 +16,15 @@ import {
 })
 export class ProgramImportService {
     private readonly programStorageKey = 'logYourWo.importedProgram';
+    private readonly programsStorageKey = 'logYourWo.importedPrograms';
     private readonly workoutStorageKey = 'logYourWo.importedWorkoutStates';
     private readonly completionColorStorageKey = 'logYourWo.completionColor';
     private readonly defaultCompletionColor = '#2fb379';
     private readonly programSource = new BehaviorSubject<ImportedProgram>(this.getProgram());
+    private readonly programsSource = new BehaviorSubject<ImportedProgram[]>(this.getPrograms());
 
     public program$ = this.programSource.asObservable();
+    public programs$ = this.programsSource.asObservable();
 
     public async importWorkbook(file: File): Promise<ImportedProgram> {
         const data = await file.arrayBuffer();
@@ -52,18 +55,74 @@ export class ProgramImportService {
 
     public getProgram(): ImportedProgram {
         const stored = localStorage.getItem(this.programStorageKey);
-        return stored ? JSON.parse(stored) : undefined;
+        const program = stored ? JSON.parse(stored) : undefined;
+
+        if (program) {
+            return program;
+        }
+
+        const programs = this.getPrograms();
+        return programs.length ? programs[0] : undefined;
+    }
+
+    public getPrograms(): ImportedProgram[] {
+        const stored = localStorage.getItem(this.programsStorageKey);
+
+        if (stored) {
+            return JSON.parse(stored);
+        }
+
+        const legacyProgram = localStorage.getItem(this.programStorageKey);
+        return legacyProgram ? [JSON.parse(legacyProgram)] : [];
     }
 
     public saveProgram(program: ImportedProgram): void {
+        this.saveProgramList([
+            program,
+            ...this.getPrograms().filter(currentProgram => currentProgram.id !== program.id)
+        ]);
         localStorage.setItem(this.programStorageKey, JSON.stringify(program));
         this.programSource.next(program);
     }
 
-    public clearProgram(): void {
-        localStorage.removeItem(this.programStorageKey);
-        localStorage.removeItem(this.workoutStorageKey);
-        this.programSource.next(undefined);
+    public setActiveProgram(programId: string): ImportedProgram {
+        const program = this.getPrograms().find(currentProgram => currentProgram.id === programId);
+
+        if (!program) {
+            return undefined;
+        }
+
+        const activeProgram = this.getProgram();
+        if (activeProgram && activeProgram.id === program.id) {
+            return program;
+        }
+
+        localStorage.setItem(this.programStorageKey, JSON.stringify(program));
+        this.programSource.next(program);
+        return program;
+    }
+
+    public clearProgram(programId?: string): void {
+        const activeProgram = this.getProgram();
+        const idToDelete = programId || (activeProgram ? activeProgram.id : undefined);
+
+        if (!idToDelete) {
+            return;
+        }
+
+        const remainingPrograms = this.getPrograms().filter(program => program.id !== idToDelete);
+        this.saveProgramList(remainingPrograms);
+        this.deleteWorkoutStatesForProgram(idToDelete);
+
+        const nextProgram = activeProgram && activeProgram.id === idToDelete ? remainingPrograms[0] : activeProgram;
+
+        if (nextProgram) {
+            localStorage.setItem(this.programStorageKey, JSON.stringify(nextProgram));
+        } else {
+            localStorage.removeItem(this.programStorageKey);
+        }
+
+        this.programSource.next(nextProgram);
     }
 
     public getCompletionColor(): string {
@@ -84,14 +143,25 @@ export class ProgramImportService {
         return week ? week.days.find(day => day.id === dayId) : undefined;
     }
 
-    public getWorkoutState(weekId: string, dayId: string): ImportedWorkoutState {
+    public getWorkoutState(weekId: string, dayId: string, programId?: string): ImportedWorkoutState {
         const states = this.getWorkoutStates();
-        return states.find(state => state.weekId === weekId && state.dayId === dayId);
+        const activeProgram = this.getProgram();
+        const selectedProgramId = programId || (activeProgram ? activeProgram.id : undefined);
+
+        return states.find(state =>
+            state.weekId === weekId &&
+            state.dayId === dayId &&
+            (!selectedProgramId || !state.programId || state.programId === selectedProgramId)
+        );
     }
 
     public saveWorkoutState(state: ImportedWorkoutState): void {
         const states = this.getWorkoutStates();
-        const existingIndex = states.findIndex(currentState => currentState.weekId === state.weekId && currentState.dayId === state.dayId);
+        const existingIndex = states.findIndex(currentState =>
+            currentState.programId === state.programId &&
+            currentState.weekId === state.weekId &&
+            currentState.dayId === state.dayId
+        );
         const cleanedState = {
             ...state,
             exercises: state.exercises.map(exercise => ({
@@ -107,6 +177,8 @@ export class ProgramImportService {
         }
 
         localStorage.setItem(this.workoutStorageKey, JSON.stringify(states));
+        this.programsSource.next(this.getPrograms());
+        this.programSource.next(this.getProgram());
     }
 
     public createExercisesForDay(day: ImportedProgramDay): Exercise[] {
@@ -145,6 +217,53 @@ export class ProgramImportService {
             const completion = this.getDayCompletion(weekId, day.id);
             return completion.total > 0 && completion.completed === completion.total;
         });
+    }
+
+    public getProgramProgress(program: ImportedProgram): { completed: number, total: number, started: number } {
+        const states = this.getWorkoutStates().filter(state => state.programId === program.id);
+        let completed = 0;
+        let started = 0;
+        let total = 0;
+
+        program.weeks.forEach(week => {
+            week.days.forEach(day => {
+                total++;
+                const state = states.find(currentState => currentState.weekId === week.id && currentState.dayId === day.id);
+
+                if (!state) {
+                    return;
+                }
+
+                const completedExercises = state.exercises.filter(exercise => exercise.completed).length;
+                if (state.exercises.length > 0 && completedExercises === state.exercises.length) {
+                    completed++;
+                }
+
+                if (state.startedAt || state.completedAt || state.elapsedMs || completedExercises > 0) {
+                    started++;
+                }
+            });
+        });
+
+        return {
+            completed,
+            total,
+            started
+        };
+    }
+
+    public getProgramStatus(program: ImportedProgram): 'complete' | 'in-progress' | 'not-started' {
+        const progress = this.getProgramProgress(program);
+
+        if (progress.total > 0 && progress.completed === progress.total) {
+            return 'complete';
+        }
+
+        if (progress.started > 0) {
+            return 'in-progress';
+        }
+
+        return 'not-started';
     }
 
     public getDayElapsedMs(weekId: string, dayId: string): number {
@@ -213,6 +332,26 @@ export class ProgramImportService {
     private getWorkoutStates(): ImportedWorkoutState[] {
         const stored = localStorage.getItem(this.workoutStorageKey);
         return stored ? JSON.parse(stored) : [];
+    }
+
+    private saveProgramList(programs: ImportedProgram[]): void {
+        if (programs.length) {
+            localStorage.setItem(this.programsStorageKey, JSON.stringify(programs));
+        } else {
+            localStorage.removeItem(this.programsStorageKey);
+        }
+
+        this.programsSource.next(programs);
+    }
+
+    private deleteWorkoutStatesForProgram(programId: string): void {
+        const states = this.getWorkoutStates().filter(state => state.programId !== programId);
+
+        if (states.length) {
+            localStorage.setItem(this.workoutStorageKey, JSON.stringify(states));
+        } else {
+            localStorage.removeItem(this.workoutStorageKey);
+        }
     }
 
     private parseSheet(rows: any[][]): ImportedProgramWeek[] {

@@ -92,6 +92,58 @@ describe('ProgramImportService', () => {
         expect(service.isWeekComplete('week-1')).toBeTrue();
     });
 
+    it('keeps imported programs in a selectable list', () => {
+        const firstProgram = createProgram('program-1', 'First Program');
+        const secondProgram = createProgram('program-2', 'Second Program');
+
+        service.saveProgram(firstProgram);
+        service.saveProgram(secondProgram);
+
+        expect(service.getPrograms().map(program => program.name)).toEqual(['Second Program', 'First Program']);
+        expect(service.getProgram().id).toBe('program-2');
+
+        service.setActiveProgram('program-1');
+
+        expect(service.getProgram().id).toBe('program-1');
+    });
+
+    it('removes a deleted import and its workout state from the import list', () => {
+        const firstProgram = createProgram('program-1', 'First Program');
+        const secondProgram = createProgram('program-2', 'Second Program');
+        service.saveProgram(firstProgram);
+        service.saveProgram(secondProgram);
+        service.saveWorkoutState({
+            programId: secondProgram.id,
+            weekId: 'week-1',
+            dayId: 'week-1-day-1',
+            exercises: [createExercise('Clean', true)]
+        });
+
+        service.clearProgram(secondProgram.id);
+
+        expect(service.getPrograms().map(program => program.id)).toEqual(['program-1']);
+        expect(service.getWorkoutState('week-1', 'week-1-day-1', secondProgram.id)).toBeUndefined();
+    });
+
+    it('marks an import as in progress once a workout has filled-in state', () => {
+        const program = createProgram();
+        service.saveProgram(program);
+
+        expect(service.getProgramStatus(program)).toBe('not-started');
+
+        service.saveWorkoutState({
+            programId: program.id,
+            weekId: 'week-1',
+            dayId: 'week-1-day-1',
+            exercises: [
+                createExercise('Clean', true),
+                createExercise('Clean', false)
+            ]
+        });
+
+        expect(service.getProgramStatus(program)).toBe('in-progress');
+    });
+
     it('formats elapsed milliseconds consistently', () => {
         expect(service.formatElapsedMs(0)).toBe('00:00:00');
         expect(service.formatElapsedMs(3723000)).toBe('01:02:03');
@@ -111,10 +163,10 @@ function workbookToFile(workbook: XLSX.WorkBook, fileName: string): File {
     });
 }
 
-function createProgram(): ImportedProgram {
+function createProgram(id = 'program-1', name = 'Program'): ImportedProgram {
     return {
-        id: 'program-1',
-        name: 'Program',
+        id,
+        name,
         importedAt: '2026-06-04T00:00:00.000Z',
         weeks: [{
             id: 'week-1',

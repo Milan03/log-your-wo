@@ -136,6 +136,7 @@ describe('SimpleLogComponent', () => {
 
     expect(routerSpy.navigate).toHaveBeenCalledWith(['/log-entry/import-program'], {
       queryParams: {
+        programId: 'program-1',
         weekId: 'week-1'
       }
     });

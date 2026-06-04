@@ -341,6 +341,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
 
         this._router.navigate(['/log-entry/import-program'], {
             queryParams: {
+                programId: this._programImportService.getProgram()?.id,
                 weekId: this.importedWeek.id
             }
         });
@@ -533,8 +534,12 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         this.routeSub = this._activatedRoute.queryParamMap.subscribe(params => {
             const weekId = params.get('weekId');
             const dayId = params.get('dayId');
+            const programId = params.get('programId');
 
             if (weekId && dayId) {
+                if (programId) {
+                    this._programImportService.setActiveProgram(programId);
+                }
                 if (this.isImportedWorkout && (this.importedWeek?.id !== weekId || this.importedDay?.id !== dayId)) {
                     this.pauseActiveWorkoutForNavigation();
                 }
