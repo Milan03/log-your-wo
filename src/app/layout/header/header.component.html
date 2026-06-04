@@ -28,7 +28,7 @@
             </a>
         </li>
         <!-- START Offsidebar button START -->
-        <li class="nav-item">
+        <li *ngIf="showOffsidebarToggle" class="nav-item">
             <a class="nav-link" (click)="toggleOffsidebar(); $event.stopPropagation()">
                 <em class="icon-notebook"></em>
             </a>
@@ -50,7 +50,7 @@
         </li> -->
         <!-- END lock screen-->
     </ul>
-    <ul *ngIf="currentLogType" class="navbar-nav mr-auto flex-row">
+    <ul *ngIf="showLogActions && currentLogType" class="navbar-nav mr-auto flex-row">
         <li class="nav-item d-none d-md-block">
             <div id="log-header" class="nav-link">
                 <span *ngIf="!isEditingTitle" (click)="editTitle()">{{ currentLogType }} - {{ logStartDatim | date:
@@ -78,7 +78,7 @@
     <!-- START Right Navbar-->
     <ul class="navbar-nav flex-row">
         <!-- START Add Exercise Buttons START -->
-        <li class="nav-item">
+        <li *ngIf="showLogActions" class="nav-item">
             <div id="add-exercise-label">{{ 'log-entry.AddExercise' | translate }}</div>
             <div id="exercise-btns">
                 <button class="mb-1 mr-1 btn btn-primary" type="button" (click)="sendOpenRequest('strength')">+

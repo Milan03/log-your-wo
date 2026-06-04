@@ -5,11 +5,13 @@ import { SimpleLogComponent } from './simple-log/simple-log.component'
 import { DurationDialogComponent } from './duration-dialog/duration-dialog.component';
 import { EmailDialogComponent } from './email-dialog/email-dialog.component';
 import { ExerciseDialogComponent } from './exercise-dialog/exercise-dialog.component';
+import { ProgramImportComponent } from './program-import/program-import.component';
 
 import { SharedModule } from '../../shared/shared.module';
 
 const routes: Routes = [
     { path: 'simple-log', component: SimpleLogComponent },
+    { path: 'import-program', component: ProgramImportComponent },
 ];
 
 @NgModule({
@@ -21,7 +23,8 @@ const routes: Routes = [
         SimpleLogComponent,
         DurationDialogComponent,
         EmailDialogComponent,
-        ExerciseDialogComponent
+        ExerciseDialogComponent,
+        ProgramImportComponent
     ],
     exports: [
         RouterModule

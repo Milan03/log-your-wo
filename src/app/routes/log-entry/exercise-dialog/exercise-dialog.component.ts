@@ -68,9 +68,9 @@ export class ExerciseDialogComponent {
             'distance': ['', Validators.maxLength(15)],
             'intensity': ['']
         });
-        this.currentExercise = new Exercise();
+        this.currentExercise = _exerciseDialogData.exercise ? Object.assign(new Exercise(), _exerciseDialogData.exercise) : new Exercise();
         this.currentExercise.exerciseType = _exerciseDialogData.exerciseType;
-        this.currentExercise.exerciseName = _exerciseDialogData.exerciseName;
+        this.currentExercise.exerciseName = _exerciseDialogData.exerciseName || this.currentExercise.exerciseName;
         this.setSelectedChip(_exerciseDialogData.measure);
     }
 
@@ -235,6 +235,11 @@ export class ExerciseDialogComponent {
                 });
             }
             this.exerciseLogForm.get('exerciseName').setValue(this.currentExercise.exerciseName);
+            this.exerciseLogForm.get('weight').setValue(this.currentExercise.weight);
+            this.exerciseLogForm.get('sets').setValue(this.currentExercise.sets);
+            this.exerciseLogForm.get('reps').setValue(this.currentExercise.reps);
+            this.exerciseLogForm.get('distance').setValue(this.currentExercise.distance);
+            this.exerciseLogForm.get('intensity').setValue(this.currentExercise.intensity);
             this.exerciseLogForm.get('exerciseName').updateValueAndValidity();
         }, 250);
     }

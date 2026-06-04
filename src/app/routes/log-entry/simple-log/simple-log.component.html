@@ -1,17 +1,54 @@
 <div [formGroup]="simpleLogForm">
     <!-- START Content Body START -->
     <div class="container-lg">
+        <div *ngIf="isImportedWorkout" class="imported-log-toolbar">
+            <div class="imported-log-toolbar__left">
+                <button class="btn btn-outline-primary" type="button" (click)="navigateBackToWeek()">
+                    <em class="fa fa-arrow-left"></em>
+                    Back to {{ importedWeek?.name }}
+                </button>
+            </div>
+            <div class="imported-log-toolbar__timer">
+                <div class="imported-log-toolbar__timer-main">
+                    <button *ngIf="!workoutStartedAt" class="btn btn-primary btn-sm" type="button" (click)="startWorkout()">
+                        Start Workout
+                    </button>
+                    <button *ngIf="workoutStartedAt && !workoutPausedAt && !workoutCompletedAt" class="btn btn-danger btn-sm" type="button" (click)="pauseWorkout()">
+                        Pause
+                    </button>
+                    <button *ngIf="workoutPausedAt && !workoutCompletedAt" class="btn btn-success btn-sm" type="button" (click)="resumeWorkout()">
+                        Resume
+                    </button>
+                    <span *ngIf="workoutPausedAt && !workoutCompletedAt" class="imported-log-toolbar__paused-pill">
+                        Paused
+                    </span>
+                    <span>Elapsed Time</span>
+                    <strong>{{ getElapsedTimeLabel() }}</strong>
+                </div>
+                <small *ngIf="workoutCompletedAt" class="imported-log-toolbar__status">
+                    Completed {{ workoutCompletedAt | date:'MM/dd/yyyy h:mm a' }}
+                </small>
+            </div>
+        </div>
         <!-- START Exercise Grid START -->
         <table mat-table *ngIf="currentLog.exercises.length > 0" [dataSource]="currentLog.exercises" class="mat-elevation-z8">
+            <ng-container matColumnDef="completed">
+                <th mat-header-cell *matHeaderCellDef></th>
+                <td mat-cell *matCellDef="let exercise">
+                    <mat-checkbox [checked]="exercise.completed"
+                        (click)="$event.stopPropagation()"
+                        (change)="toggleExerciseComplete(exercise)"></mat-checkbox>
+                </td>
+            </ng-container>
             <ng-container matColumnDef="exerciseName">
                 <th mat-header-cell *matHeaderCellDef> {{ 'log-entry.ExerciseName' | translate }} </th>
-                <td mat-cell *matCellDef="let exercise; let i = index">
+                <td mat-cell *matCellDef="let exercise; let i = index" [class.completed-exercise]="exercise.completed">
                     {{ currentLog.exercises | duplicateName:exercise:i }}
                 </td>
             </ng-container>
             <ng-container matColumnDef="weight">
                 <th mat-header-cell *matHeaderCellDef> {{ 'log-entry.ExerciseWeight' | translate }} </th>
-                <td mat-cell *matCellDef="let exercise"> {{ exercise.weight }} {{ weightMeasure }} </td>
+                <td mat-cell *matCellDef="let exercise"> {{ getWeightDisplay(exercise) }} </td>
             </ng-container>
             <ng-container matColumnDef="reps">
                 <th mat-header-cell *matHeaderCellDef> {{ 'log-entry.ExerciseReps' | translate }} </th>
@@ -21,17 +58,27 @@
                 <th mat-header-cell *matHeaderCellDef> {{ 'log-entry.ExerciseSets' | translate }} </th>
                 <td mat-cell *matCellDef="let exercise"> {{ exercise.sets }} </td>
             </ng-container>
+            <ng-container matColumnDef="prescription">
+                <th mat-header-cell *matHeaderCellDef> Prescription </th>
+                <td mat-cell *matCellDef="let exercise"> {{ exercise.prescription }} </td>
+            </ng-container>
             <ng-container matColumnDef="controls">
                 <th mat-header-cell *matHeaderCellDef></th>
                 <td mat-cell *matCellDef="let exercise">
                     <div class="control-icons">
-                        <div class="icon add-icon" (click)="addRow(exercise)">+</div>
-                        <div class="icon remove-icon" (click)="removeRow(exercise)">-</div>
+                        <div class="icon edit-icon" (click)="$event.stopPropagation(); editRow(exercise)">
+                            <em class="fa fa-pen"></em>
+                        </div>
+                        <div class="icon add-icon" (click)="$event.stopPropagation(); addRow(exercise)">+</div>
+                        <div class="icon remove-icon" (click)="$event.stopPropagation(); removeRow(exercise)">-</div>
                     </div>
                 </td>
             </ng-container>
             <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+            <tr mat-row
+                *matRowDef="let row; columns: displayedColumns;"
+                [class.completed-row]="row.completed"
+                (click)="onExerciseRowClick(row)"></tr>
         </table>
         <!-- END Exercise Grid END -->
         <!-- START Cardio Exercise Grid START -->
@@ -71,6 +118,23 @@
             </table>
         </div>
         <!-- END Cardio Exercise Grid END -->
+        <div *ngIf="isImportedWorkout" class="imported-log-actions">
+            <button *ngIf="!workoutCompletedAt" class="btn btn-primary" type="button" (click)="markWorkoutComplete()">
+                Mark as Complete
+            </button>
+            <button *ngIf="workoutCompletedAt" class="btn btn-danger" type="button" (click)="markWorkoutIncomplete()">
+                Mark as Incomplete
+            </button>
+            <button *ngIf="!workoutCompletedAt" class="btn btn-outline-secondary" type="button" (click)="unselectAllExercises()">
+                Unselect All
+            </button>
+            <button *ngIf="!workoutPausedAt && !workoutCompletedAt" class="btn btn-danger" type="button" (click)="pauseWorkout()">
+                Pause Workout
+            </button>
+            <button *ngIf="workoutPausedAt" class="btn btn-success" type="button" (click)="resumeWorkout()">
+                Resume Workout
+            </button>
+        </div>
         <!-- START Submit Buttons START -->
         <div *ngIf="currentLog.exercises.length > 0 || currentLog.cardioExercises.length > 0" class="row">
             <div class="col-md-12 text-right">
@@ -97,7 +161,7 @@
         </tr>
         <tr *ngFor="let exercise of currentLog.exercises; let i = index">
             <td>{{ currentLog.exercises | duplicateName:exercise:i }}</td>
-            <td>{{ exercise.weight }}</td>
+            <td>{{ getWeightDisplay(exercise) }}</td>
             <td>{{ exercise.reps }}</td>
             <td>{{ exercise.sets }}</td>
         </tr>
