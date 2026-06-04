@@ -1,13 +1,15 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
-    "baseUrl": "./",
     "rootDir": "./src",
     "outDir": "./dist/out-tsc",
     "sourceMap": true,
     "declaration": false,
-    "ignoreDeprecations": "5.0",
-    "downlevelIteration": true,
+    "paths": {
+      "src/*": [
+        "./src/*"
+      ]
+    },
     "experimentalDecorators": true,
     "module": "preserve",
     "moduleResolution": "bundler",
