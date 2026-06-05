@@ -4,6 +4,7 @@ import * as XLSX from 'xlsx';
 import { ProgramImportService } from './program-import.service';
 import { ImportedProgram } from '../models/imported-program.model';
 import { Exercise } from '../models/exercise.model';
+import * as moment from 'moment';
 
 describe('ProgramImportService', () => {
     let service: ProgramImportService;
@@ -147,6 +148,49 @@ describe('ProgramImportService', () => {
     it('formats elapsed milliseconds consistently', () => {
         expect(service.formatElapsedMs(0)).toBe('00:00:00');
         expect(service.formatElapsedMs(3723000)).toBe('01:02:03');
+    });
+
+    it('persists cardio exercises in imported workout state', () => {
+        const program = createProgram();
+        const cardio = createExercise('Run', false);
+        cardio.exerciseType = 'cardio';
+        cardio.distance = 5;
+        service.saveProgram(program);
+
+        service.saveWorkoutState({
+            programId: program.id,
+            weekId: 'week-1',
+            dayId: 'week-1-day-1',
+            exercises: [createExercise('Clean', false)],
+            cardioExercises: [cardio]
+        });
+
+        const state = service.getWorkoutState('week-1', 'week-1-day-1');
+        expect(state.cardioExercises.length).toBe(1);
+        expect(state.cardioExercises[0].exerciseName).toBe('Run');
+        expect(state.cardioExercises[0].distance).toBe(5);
+    });
+
+    it('can save cardio state again after it has been read from storage', () => {
+        const program = createProgram();
+        const cardio = createExercise('Run', false);
+        cardio.exerciseType = 'cardio';
+        cardio.duration = moment.duration({ minutes: 12, seconds: 30 });
+        service.saveProgram(program);
+
+        service.saveWorkoutState({
+            programId: program.id,
+            weekId: 'week-1',
+            dayId: 'week-1-day-1',
+            exercises: [createExercise('Clean', false)],
+            cardioExercises: [cardio]
+        });
+
+        const storedState = service.getWorkoutState('week-1', 'week-1-day-1');
+
+        expect(() => service.saveWorkoutState(storedState)).not.toThrow();
+        expect((service.getWorkoutState('week-1', 'week-1-day-1').cardioExercises[0].duration as any))
+            .toBe(750000);
     });
 });
 

@@ -224,7 +224,8 @@ mat-form-field {
 }
 
 .completed-row {
-    background-color: rgba(47, 179, 121, 0.08);
+    background: linear-gradient(90deg, var(--completion-color-soft), var(--completion-color-softer));
+    box-shadow: inset 4px 0 0 var(--completion-color);
 }
 
 tr.mat-mdc-row,
@@ -246,10 +247,6 @@ tr.mat-row {
     width: 112px;
 }
 
-.mat-column-prescription {
-    min-width: 150px;
-}
-
 .mat-column-controls {
     width: 128px;
     text-align: right;
@@ -263,10 +260,163 @@ tr.mat-row {
     display: none;
 }
 
-/* tablets */
-/*@media (min-width: 769px) and (max-width: 1200px) {
+.imported-log-context {
+    display: none;
+}
 
-}*/
+.imported-log-back {
+    display: flex;
+}
+
+.imported-log-back em {
+    margin-right: 6px;
+}
+
+.imported-log-back--bottom {
+    margin: 4px 0 18px;
+}
+
+@media only screen and (min-width: 769px) {
+    .table-responsive {
+        display: none;
+    }
+
+    .log-mobile-list--strength,
+    .log-mobile-list--cardio {
+        display: grid;
+        gap: 14px;
+        margin-bottom: 24px;
+    }
+
+    .log-mobile-card--group {
+        display: grid;
+        gap: 0;
+        overflow: hidden;
+        border: 1px solid #dce1e6;
+        border-radius: 8px;
+        background: #fff;
+        box-shadow: 0 8px 20px rgba(31, 41, 51, 0.07);
+    }
+
+    .log-mobile-card--group > .log-mobile-card__header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 16px 18px;
+        background: #f7f9fb;
+    }
+
+    .log-mobile-card--group > .log-mobile-card__header > div {
+        min-width: 0;
+    }
+
+    .log-mobile-card--group > .log-mobile-card__header strong {
+        display: block;
+        overflow-wrap: anywhere;
+        color: #1f2933;
+        font-size: 1.05rem;
+        line-height: 1.25;
+    }
+
+    .log-mobile-card--group > .log-mobile-card__header small {
+        display: block;
+        margin-top: 4px;
+        color: #6c757d;
+        font-size: 0.78rem;
+    }
+
+    .log-mobile-card--group > .log-mobile-card__header .icon {
+        flex: 0 0 auto;
+    }
+
+    .log-mobile-card__eyebrow,
+    .log-mobile-group span {
+        display: block;
+        color: #6c757d;
+        font-size: 0.7rem;
+        font-weight: 700;
+        line-height: 1.2;
+        text-transform: uppercase;
+    }
+
+    .log-mobile-card__eyebrow {
+        margin-bottom: 4px;
+        color: variables.$primary;
+    }
+
+    .log-mobile-group {
+        display: grid;
+    }
+
+    .log-mobile-group__row {
+        display: grid;
+        grid-template-columns: 52px minmax(110px, 1.25fr) minmax(70px, 0.75fr) minmax(70px, 0.75fr) auto;
+        align-items: center;
+        gap: 14px;
+        min-height: 66px;
+        padding: 10px 16px;
+        border-top: 1px solid #e7ebef;
+        cursor: pointer;
+    }
+
+    .log-mobile-group__row:first-child {
+        border-top: 0;
+    }
+
+    .log-mobile-group__row:hover {
+        background: #f8fbfd;
+    }
+
+    .log-mobile-group__index {
+        text-align: center;
+    }
+
+    .log-mobile-group__index strong,
+    .log-mobile-group__metric strong {
+        display: block;
+        margin-top: 3px;
+        color: #1f2933;
+        font-size: 0.92rem;
+        line-height: 1.2;
+    }
+
+    .log-mobile-group__index strong {
+        color: variables.$primary;
+    }
+
+    .log-mobile-group__metric .log-mobile-group__weight {
+        color: #173f67;
+        font-size: 1.08rem;
+        font-weight: 800;
+    }
+
+    .log-mobile-group__controls {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+    }
+
+    .log-mobile-group__row.completed-row .log-mobile-group__metric strong {
+        color: #6c757d;
+        text-decoration: line-through;
+    }
+}
+
+@media only screen and (min-width: 1100px) {
+    .log-mobile-card--group {
+        grid-template-columns: minmax(220px, 28%) 1fr;
+    }
+
+    .log-mobile-card--group > .log-mobile-card__header {
+        align-items: flex-start;
+        border-right: 1px solid #e7ebef;
+    }
+
+    .log-mobile-group__row:first-child {
+        border-top: 0;
+    }
+}
 
 /* phones */
 @media only screen and (max-width: 768px) {
@@ -305,6 +455,41 @@ tr.mat-row {
 
     .imported-log-toolbar__status {
         text-align: left;
+    }
+
+    .imported-log-context {
+        display: grid;
+        gap: 2px;
+        width: 100%;
+        margin: 0;
+        padding: 11px 13px;
+        border-left: 4px solid variables.$primary;
+        border-radius: 0 6px 6px 0;
+        background: #f2f6fa;
+    }
+
+    .imported-log-context span {
+        color: #6c757d;
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+
+    .imported-log-context strong {
+        color: #1f2933;
+        font-size: 1rem;
+    }
+
+    .imported-log-back--bottom,
+    .imported-log-back--bottom .btn {
+        width: 100%;
+    }
+
+    .imported-log-back--bottom .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 38px;
     }
 
     .log-table,
@@ -349,9 +534,16 @@ tr.mat-row {
         line-height: 1.25;
     }
 
+    .log-mobile-card__header small {
+        display: block;
+        margin-top: 3px;
+        color: #6c757d;
+        font-size: 0.75rem;
+    }
+
     .log-mobile-card__eyebrow,
     .log-mobile-card__metrics span,
-    .log-mobile-card__prescription span {
+    .log-mobile-group span {
         display: block;
         color: #6c757d;
         font-size: 0.72rem;
@@ -371,16 +563,14 @@ tr.mat-row {
         gap: 8px;
     }
 
-    .log-mobile-card__metrics div,
-    .log-mobile-card__prescription {
+    .log-mobile-card__metrics div {
         min-width: 0;
         padding: 10px;
         border-radius: 6px;
         background: #f7f9fb;
     }
 
-    .log-mobile-card__metrics strong,
-    .log-mobile-card__prescription strong {
+    .log-mobile-card__metrics strong {
         display: block;
         margin-top: 4px;
         overflow-wrap: anywhere;
@@ -399,11 +589,99 @@ tr.mat-row {
         height: 38px;
     }
 
+    .log-mobile-card--group {
+        gap: 10px;
+        padding: 0;
+        overflow: hidden;
+        cursor: default;
+    }
+
+    .log-mobile-card--group > .log-mobile-card__header {
+        padding: 14px 14px 4px;
+    }
+
+    .log-mobile-card--group > .log-mobile-card__header .icon {
+        flex: 0 0 auto;
+        width: 38px;
+        height: 38px;
+    }
+
+    .log-mobile-group {
+        display: grid;
+    }
+
+    .log-mobile-group__row {
+        display: grid;
+        grid-template-columns: 42px repeat(3, minmax(0, 1fr)) auto;
+        align-items: center;
+        gap: 8px;
+        padding: 11px 14px;
+        border-top: 1px solid #e7ebef;
+        cursor: pointer;
+    }
+
+    .log-mobile-group__index {
+        text-align: center;
+    }
+
+    .log-mobile-group__index strong,
+    .log-mobile-group__metric strong {
+        display: block;
+        margin-top: 3px;
+        overflow-wrap: anywhere;
+        color: #1f2933;
+        font-size: 0.88rem;
+        line-height: 1.2;
+    }
+
+    .log-mobile-group__index strong {
+        color: variables.$primary;
+    }
+
+    .log-mobile-group__metric .log-mobile-group__weight {
+        color: #173f67;
+        font-size: 1.02rem;
+        font-weight: 800;
+    }
+
+    .log-mobile-group__controls {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .log-mobile-group__controls .icon {
+        width: 32px;
+        height: 32px;
+    }
+
+    .log-mobile-group__row.completed-row .log-mobile-group__metric strong {
+        color: #6c757d;
+        text-decoration: line-through;
+    }
+
     .imported-log-actions {
         margin-top: 4px;
     }
 
     .imported-log-actions .btn {
         flex: 1 1 150px;
+    }
+}
+
+@media only screen and (max-width: 420px) {
+    .log-mobile-group__row {
+        grid-template-columns: 36px minmax(88px, 1.4fr) repeat(2, minmax(42px, 0.7fr));
+        column-gap: 7px;
+    }
+
+    .log-mobile-group__controls {
+        grid-column: 1 / -1;
+        justify-content: flex-end;
+    }
+
+    .log-mobile-group__metric span,
+    .log-mobile-group__index span {
+        white-space: nowrap;
     }
 }

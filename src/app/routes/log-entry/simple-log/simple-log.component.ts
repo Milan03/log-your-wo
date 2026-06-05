@@ -24,6 +24,11 @@ import { jsPDF, jsPDFOptions } from 'jspdf';
 
 const swal = require('sweetalert');
 
+interface ExerciseGroup {
+    exerciseName: string;
+    exercises: Exercise[];
+}
+
 @Component({
     selector: 'app-simple-log',
     standalone: false,
@@ -39,17 +44,12 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     private currentPDF: any
     public sbIsCollapsed: boolean;
 
-    public selectedIntensity: string;
-
     public readonly exerciseNameCharLimit: number = 50;
-    public readonly exerciseNumericCharLimit: number = 5;
     public readonly exerciseAlphaNumericCharLimit: number = 15;
     public readonly titleCharLimit: number = 25;
     public readonly exerciseType: string = FormValues.ExerciseNameFormControl;
     public readonly cardioExerciseType: string = FormValues.CardioExerciseNameFormControl;
     public intensities = FormValues.ExerciseIntensities;
-    public displayedColumns: string[] = ['exerciseName', 'weight', 'reps', 'sets', 'controls'];
-    public cardioColumns: string[] = ['exerciseName', 'distance', 'duration', 'intensity', 'controls'];
     public weightMeasure: string = 'lbs';
     public distanceMeasure: string = 'km';
 
@@ -60,6 +60,10 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     private exerciseTitleSub: Subscription;
     private routeSub: Subscription;
     private elapsedTimerId: any;
+    private strengthGroupSource: Exercise[];
+    private strengthGroups: ExerciseGroup[] = [];
+    private cardioGroupSource: Exercise[];
+    private cardioGroups: ExerciseGroup[] = [];
 
     public importedWeek: ImportedProgramWeek;
     public importedDay: ImportedProgramDay;
@@ -69,6 +73,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     public workoutPausedAt: string;
     public totalPausedMs = 0;
     public elapsedMs = 0;
+    public completionStyles: { [key: string]: string } = {};
 
     constructor(
         private _formBuilder: UntypedFormBuilder,
@@ -89,6 +94,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     ngOnInit(): void {
         this.currentLanguage = FormValues.ENCode;
         this.currentLog = new SimpleLog();
+        this.refreshCompletionStyles();
         this._sharedService.emitLogType(LogTypes.SimpleLog);
         this._sharedService.emitLogStartDatim(this.currentLog.startDatim);
         this.subToLanguageChange();
@@ -264,25 +270,28 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         });
     }
 
-    public openExerciseDialog(type: string, name?: string): void {
+    public openExerciseDialog(type: string, name?: string, insertAfter?: Exercise): void {
         let data: ExerciseDialogData = { exerciseType: type, measure: undefined };
         if (name) {
             data = { ...data, exerciseName: name };
         }
         data.measure = (type === 'strength') ? this.weightMeasure : this.distanceMeasure;
-        const dialogRef = this._dialog.open(ExerciseDialogComponent, { data });
+        const dialogRef = this._dialog.open(ExerciseDialogComponent, {
+            data,
+            panelClass: 'exercise-dialog-panel',
+            maxWidth: 'calc(100vw - 24px)',
+            maxHeight: 'calc(100dvh - 24px)'
+        });
         dialogRef.afterClosed().subscribe(result => {
             if (result) {
-                this.addExerciseToLog(type, result);
+                this.addExerciseToLog(type, result, insertAfter);
                 this.saveImportedWorkoutState();
             }
         });
     }
 
     public addRow(exercise: Exercise) {
-        let newExercise: Exercise = new Exercise();
-        newExercise.exerciseName = exercise.exerciseName;
-        this.openExerciseDialog(exercise.exerciseType, exercise.exerciseName);
+        this.openExerciseDialog(exercise.exerciseType, exercise.exerciseName, exercise);
     }
 
     public removeRow(exercise: Exercise) {
@@ -306,7 +315,12 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             isEdit: true,
             measure: exercise.exerciseType === 'strength' ? this.weightMeasure : this.distanceMeasure
         };
-        const dialogRef = this._dialog.open(ExerciseDialogComponent, { data });
+        const dialogRef = this._dialog.open(ExerciseDialogComponent, {
+            data,
+            panelClass: 'exercise-dialog-panel',
+            maxWidth: 'calc(100vw - 24px)',
+            maxHeight: 'calc(100dvh - 24px)'
+        });
         dialogRef.afterClosed().subscribe(result => {
             if (result) {
                 this.replaceExercise(exercise, result);
@@ -316,15 +330,19 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     }
 
     public toggleExerciseComplete(exercise: Exercise): void {
-        if (!this.isImportedWorkout) {
-            return;
+        if (this.isImportedWorkout) {
+            this.ensureWorkoutStarted();
         }
-
-        this.ensureWorkoutStarted();
         exercise.completed = !exercise.completed;
-        this.currentLog.exercises = [...this.currentLog.exercises];
-        this.syncWorkoutCompletion();
-        this.saveImportedWorkoutState();
+        if (exercise.exerciseType === 'strength') {
+            this.currentLog.exercises = [...this.currentLog.exercises];
+        } else {
+            this.currentLog.cardioExercises = [...this.currentLog.cardioExercises];
+        }
+        if (this.isImportedWorkout) {
+            this.syncWorkoutCompletion();
+            this.saveImportedWorkoutState();
+        }
     }
 
     public startWorkout(): void {
@@ -353,20 +371,28 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             ...exercise,
             completed: true
         }));
+        this.currentLog.cardioExercises = this.currentLog.cardioExercises.map(exercise => ({
+            ...exercise,
+            completed: true
+        }));
         this.completeWorkout();
         this.saveImportedWorkoutState();
     }
 
     public markWorkoutIncomplete(): void {
-        const lastCompletedIndex = this.findLastCompletedExerciseIndex();
+        const lastCompletedExercise = this.findLastCompletedExercise();
 
-        if (lastCompletedIndex < 0) {
+        if (!lastCompletedExercise) {
             return;
         }
 
-        this.currentLog.exercises = this.currentLog.exercises.map((exercise, index) => ({
+        this.currentLog.exercises = this.currentLog.exercises.map(exercise => ({
             ...exercise,
-            completed: index === lastCompletedIndex ? false : exercise.completed
+            completed: exercise.exerciseId === lastCompletedExercise.exerciseId ? false : exercise.completed
+        }));
+        this.currentLog.cardioExercises = this.currentLog.cardioExercises.map(exercise => ({
+            ...exercise,
+            completed: exercise.exerciseId === lastCompletedExercise.exerciseId ? false : exercise.completed
         }));
         this.workoutCompletedAt = undefined;
         this.workoutPausedAt = undefined;
@@ -376,6 +402,10 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
 
     public unselectAllExercises(): void {
         this.currentLog.exercises = this.currentLog.exercises.map(exercise => ({
+            ...exercise,
+            completed: false
+        }));
+        this.currentLog.cardioExercises = this.currentLog.cardioExercises.map(exercise => ({
             ...exercise,
             completed: false
         }));
@@ -422,12 +452,113 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         return `${weight} ${this.weightMeasure}`;
     }
 
-    private addExerciseToLog(type: string, newExercise: Exercise): void {
-        if (type === 'strength') {
-            this.currentLog.exercises = [...this.currentLog.exercises, newExercise];
-        } else {
-            this.currentLog.cardioExercises = [...this.currentLog.cardioExercises, newExercise];
+    public getStrengthExerciseGroups(): ExerciseGroup[] {
+        if (this.strengthGroupSource !== this.currentLog.exercises) {
+            this.strengthGroupSource = this.currentLog.exercises;
+            this.strengthGroups = this.getSequentialExerciseGroups(this.currentLog.exercises);
         }
+
+        return this.strengthGroups;
+    }
+
+    public getCardioExerciseGroups(): ExerciseGroup[] {
+        if (this.cardioGroupSource !== this.currentLog.cardioExercises) {
+            this.cardioGroupSource = this.currentLog.cardioExercises;
+            this.cardioGroups = this.getSequentialExerciseGroups(this.currentLog.cardioExercises);
+        }
+
+        return this.cardioGroups;
+    }
+
+    public getDistanceDisplay(exercise: Exercise): string {
+        const distance = exercise.distance === undefined || exercise.distance === null ? '' : String(exercise.distance).trim();
+        return distance ? `${distance} ${this.distanceMeasure}` : '';
+    }
+
+    public getDurationDisplay(exercise: Exercise): string {
+        return exercise.duration && exercise.duration.asMilliseconds() > 0
+            ? this.formatDuration(exercise.duration)
+            : 'N/A';
+    }
+
+    private getSequentialExerciseGroups(exercises: Exercise[]): ExerciseGroup[] {
+        return exercises.reduce((groups: ExerciseGroup[], exercise: Exercise) => {
+            const previousGroup = groups[groups.length - 1];
+
+            if (previousGroup && previousGroup.exerciseName === exercise.exerciseName) {
+                previousGroup.exercises.push(exercise);
+            } else {
+                groups.push({
+                    exerciseName: exercise.exerciseName,
+                    exercises: [exercise]
+                });
+            }
+
+            return groups;
+        }, []);
+    }
+
+    private formatDuration(duration: moment.Duration): string {
+        const hours = Math.floor(duration.asHours());
+        const minutes = duration.minutes();
+        const seconds = duration.seconds();
+        const parts = [];
+
+        if (hours) {
+            parts.push(`${hours}h`);
+        }
+        if (minutes) {
+            parts.push(`${minutes}m`);
+        }
+        if (seconds || !parts.length) {
+            parts.push(`${seconds}s`);
+        }
+
+        return parts.join(' ');
+    }
+
+    private refreshCompletionStyles(): void {
+        const completionColor = this._programImportService.getCompletionColor();
+        this.completionStyles = {
+            '--completion-color': completionColor,
+            '--completion-color-soft': this.hexToRgba(completionColor, 0.16),
+            '--completion-color-softer': this.hexToRgba(completionColor, 0.09)
+        };
+    }
+
+    private hexToRgba(hex: string, alpha: number): string {
+        const normalized = hex.replace('#', '');
+        const red = parseInt(normalized.substring(0, 2), 16);
+        const green = parseInt(normalized.substring(2, 4), 16);
+        const blue = parseInt(normalized.substring(4, 6), 16);
+
+        return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
+    }
+
+    private addExerciseToLog(type: string, newExercise: Exercise, insertAfter?: Exercise): void {
+        if (type === 'strength') {
+            this.currentLog.exercises = this.insertExercise(this.currentLog.exercises, newExercise, insertAfter);
+        } else {
+            this.currentLog.cardioExercises = this.insertExercise(this.currentLog.cardioExercises, newExercise, insertAfter);
+        }
+    }
+
+    private insertExercise(exercises: Exercise[], newExercise: Exercise, insertAfter?: Exercise): Exercise[] {
+        if (!insertAfter) {
+            return [...exercises, newExercise];
+        }
+
+        const insertIndex = exercises.findIndex(exercise => exercise.exerciseId === insertAfter.exerciseId);
+
+        if (insertIndex < 0) {
+            return [...exercises, newExercise];
+        }
+
+        return [
+            ...exercises.slice(0, insertIndex + 1),
+            newExercise,
+            ...exercises.slice(insertIndex + 1)
+        ];
     }
 
     private replaceExercise(originalExercise: Exercise, updatedExercise: Exercise): void {
@@ -444,25 +575,35 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     }
 
     private transformWeightMeasure(data: string) {
-        for (let i = 0; i < this.currentLog.exercises.length; ++i) {
-            let currExercise = this.currentLog.exercises[i];
-            if (data === 'kg') {
-                currExercise.weight =  Math.round(currExercise.weight / 2.205);
-            } else {
-                currExercise.weight = Math.round(currExercise.weight * 2.205);
-            }
-        }
+        const factor = data === 'kg' ? 1 / 2.205 : 2.205;
+        this.currentLog.exercises = this.currentLog.exercises.map(exercise => ({
+            ...exercise,
+            weight: this.convertMeasurementValue(exercise.weight, factor)
+        }));
     }
 
     private tranformDistanceMeasure(data: string) {
-        for (let i = 0; i < this.currentLog.cardioExercises.length; ++i) {
-            let currExercise = this.currentLog.cardioExercises[i];
-            if (data === 'mi') {
-                currExercise.distance =  Math.round(currExercise.distance / 1.609);
-            } else {
-                currExercise.distance = Math.round(currExercise.distance * 1.609);
-            }
+        const factor = data === 'mi' ? 1 / 1.609 : 1.609;
+        this.currentLog.cardioExercises = this.currentLog.cardioExercises.map(exercise => ({
+            ...exercise,
+            distance: this.convertMeasurementValue(exercise.distance, factor)
+        }));
+    }
+
+    private convertMeasurementValue(value: any, factor: number): any {
+        if (value === undefined || value === null || String(value).trim() === '') {
+            return value;
         }
+
+        const normalized = String(value).trim();
+        if (!/^-?\d+(?:\.\d+)?$/.test(normalized)) {
+            return value;
+        }
+
+        const numericValue = Number(normalized);
+        return Number.isFinite(numericValue)
+            ? Math.round(numericValue * factor * 10) / 10
+            : value;
     }
 
     /**
@@ -549,7 +690,6 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
                 this.isImportedWorkout = false;
                 this.importedWeek = undefined;
                 this.importedDay = undefined;
-                this.displayedColumns = ['exerciseName', 'weight', 'reps', 'sets', 'controls'];
                 this.clearWorkoutTiming();
             }
         });
@@ -567,9 +707,10 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         this.currentLog = new SimpleLog();
         this.currentLog.title = `${this.importedWeek.name} - ${this.importedDay.name}`;
         this.currentLog.exercises = state ? this.hydrateExercises(state.exercises) : this._programImportService.createExercisesForDay(this.importedDay);
-        this.currentLog.cardioExercises = [];
+        this.currentLog.cardioExercises = state && state.cardioExercises
+            ? this.hydrateExercises(state.cardioExercises)
+            : [];
         this.isImportedWorkout = true;
-        this.displayedColumns = ['completed', 'exerciseName', 'weight', 'reps', 'sets', 'prescription', 'controls'];
         this.loadWorkoutTiming(state);
         this._sharedService.emitLogType(this.currentLog.title);
         this._sharedService.emitLogStartDatim(this.currentLog.startDatim);
@@ -577,17 +718,23 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     }
 
     private hydrateExercises(exercises: Exercise[]): Exercise[] {
-        return exercises.map(exercise => Object.assign(new Exercise(), exercise));
+        return exercises.map(exercise => {
+            const hydratedExercise = Object.assign(new Exercise(), exercise);
+            hydratedExercise.duration = moment.duration((exercise as any).duration || 0);
+            return hydratedExercise;
+        });
     }
 
-    private findLastCompletedExerciseIndex(): number {
-        for (let index = this.currentLog.exercises.length - 1; index >= 0; index--) {
-            if (this.currentLog.exercises[index].completed) {
-                return index;
+    private findLastCompletedExercise(): Exercise | undefined {
+        const exercises = [...this.currentLog.exercises, ...this.currentLog.cardioExercises];
+
+        for (let index = exercises.length - 1; index >= 0; index--) {
+            if (exercises[index].completed) {
+                return exercises[index];
             }
         }
 
-        return -1;
+        return undefined;
     }
 
     private pauseActiveWorkoutForNavigation(): void {
@@ -615,6 +762,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             weekId: this.importedWeek.id,
             dayId: this.importedDay.id,
             exercises: this.currentLog.exercises,
+            cardioExercises: this.currentLog.cardioExercises,
             startedAt: this.workoutStartedAt,
             completedAt: this.workoutCompletedAt,
             pausedAt: this.workoutPausedAt,
@@ -633,11 +781,13 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     }
 
     private syncWorkoutCompletion(): void {
-        if (!this.currentLog.exercises.length) {
+        const exercises = [...this.currentLog.exercises, ...this.currentLog.cardioExercises];
+
+        if (!exercises.length) {
             return;
         }
 
-        if (this.currentLog.exercises.every(exercise => exercise.completed)) {
+        if (exercises.every(exercise => exercise.completed)) {
             this.completeWorkout();
         } else {
             this.workoutCompletedAt = undefined;

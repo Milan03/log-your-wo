@@ -1,12 +1,16 @@
 <div [formGroup]="simpleLogForm">
     <!-- START Content Body START -->
-    <div class="container-lg">
+    <div class="container-lg" [ngStyle]="completionStyles">
         <div *ngIf="isImportedWorkout" class="imported-log-toolbar">
             <div class="imported-log-toolbar__left">
                 <button class="btn btn-outline-primary" type="button" (click)="navigateBackToWeek()">
                     <em class="fa fa-arrow-left"></em>
                     Back to {{ importedWeek?.name }}
                 </button>
+                <div class="imported-log-context">
+                    <span>Current workout</span>
+                    <strong>{{ importedWeek?.name }} - {{ importedDay?.name }}</strong>
+                </div>
             </div>
             <div class="imported-log-toolbar__timer">
                 <div class="imported-log-toolbar__timer-main">
@@ -32,166 +36,105 @@
         </div>
         <!-- START Exercise Grid START -->
         <div *ngIf="currentLog.exercises.length > 0" class="log-mobile-list log-mobile-list--strength">
-            <div *ngFor="let exercise of currentLog.exercises; let i = index"
-                class="log-mobile-card"
-                [class.completed-row]="exercise.completed"
-                (click)="onExerciseRowClick(exercise)">
+            <div *ngFor="let group of getStrengthExerciseGroups()" class="log-mobile-card log-mobile-card--group">
                 <div class="log-mobile-card__header">
                     <div>
                         <span class="log-mobile-card__eyebrow">Exercise</span>
-                        <strong [class.completed-exercise]="exercise.completed">
-                            {{ currentLog.exercises | duplicateName:exercise:i }}
+                        <strong [class.completed-exercise]="group.exercises.length === 1 && group.exercises[0].completed">
+                            {{ group.exerciseName }}
                         </strong>
+                        <small *ngIf="group.exercises.length > 1">{{ group.exercises.length }} entries</small>
                     </div>
-                    <mat-checkbox *ngIf="isImportedWorkout"
-                        [checked]="exercise.completed"
-                        aria-label="Complete exercise"
-                        (click)="$event.stopPropagation()"
-                        (change)="toggleExerciseComplete(exercise)"></mat-checkbox>
+                    <button type="button" class="icon add-icon" aria-label="Add another set" (click)="addRow(group.exercises[group.exercises.length - 1])">+</button>
                 </div>
-                <div class="log-mobile-card__metrics">
-                    <div>
-                        <span>Weight</span>
-                        <strong>{{ getWeightDisplay(exercise) }}</strong>
+
+                <div class="log-mobile-group">
+                    <div *ngFor="let exercise of group.exercises; let rowIndex = index"
+                        class="log-mobile-group__row"
+                        [class.completed-row]="exercise.completed"
+                        (click)="onExerciseRowClick(exercise)">
+                        <div class="log-mobile-group__index">
+                            <span>Entry</span>
+                            <strong>{{ rowIndex + 1 }}</strong>
+                        </div>
+                        <div class="log-mobile-group__metric">
+                            <span>Weight</span>
+                            <strong class="log-mobile-group__weight">{{ getWeightDisplay(exercise) || '-' }}</strong>
+                        </div>
+                        <div class="log-mobile-group__metric">
+                            <span>Reps</span>
+                            <strong>{{ exercise.reps || '-' }}</strong>
+                        </div>
+                        <div class="log-mobile-group__metric">
+                            <span>Sets</span>
+                            <strong>{{ exercise.sets || '-' }}</strong>
+                        </div>
+                        <div class="log-mobile-group__controls">
+                            <mat-checkbox [checked]="exercise.completed"
+                                aria-label="Complete exercise entry"
+                                (click)="$event.stopPropagation()"
+                                (change)="toggleExerciseComplete(exercise)"></mat-checkbox>
+                            <button type="button" class="icon edit-icon" aria-label="Edit exercise entry" (click)="$event.stopPropagation(); editRow(exercise)">
+                                <em class="fa fa-pen"></em>
+                            </button>
+                            <button type="button" class="icon remove-icon" aria-label="Remove exercise entry" (click)="$event.stopPropagation(); removeRow(exercise)">-</button>
+                        </div>
                     </div>
-                    <div>
-                        <span>Reps</span>
-                        <strong>{{ exercise.reps }}</strong>
-                    </div>
-                    <div>
-                        <span>Sets</span>
-                        <strong>{{ exercise.sets }}</strong>
-                    </div>
-                </div>
-                <div *ngIf="isImportedWorkout && exercise.prescription" class="log-mobile-card__prescription">
-                    <span>Prescription</span>
-                    <strong>{{ exercise.prescription }}</strong>
-                </div>
-                <div class="log-mobile-card__actions" (click)="$event.stopPropagation()">
-                    <button type="button" class="icon edit-icon" aria-label="Edit exercise" (click)="editRow(exercise)">
-                        <em class="fa fa-pen"></em>
-                    </button>
-                    <button type="button" class="icon add-icon" aria-label="Add another set" (click)="addRow(exercise)">+</button>
-                    <button type="button" class="icon remove-icon" aria-label="Remove exercise" (click)="removeRow(exercise)">-</button>
                 </div>
             </div>
         </div>
-        <table mat-table *ngIf="currentLog.exercises.length > 0" [dataSource]="currentLog.exercises" class="log-table log-table--strength">
-            <ng-container matColumnDef="completed">
-                <th mat-header-cell *matHeaderCellDef></th>
-                <td mat-cell *matCellDef="let exercise" data-label="Complete" class="log-table__complete-cell">
-                    <mat-checkbox [checked]="exercise.completed"
-                        (click)="$event.stopPropagation()"
-                        (change)="toggleExerciseComplete(exercise)"></mat-checkbox>
-                </td>
-            </ng-container>
-            <ng-container matColumnDef="exerciseName">
-                <th mat-header-cell *matHeaderCellDef> {{ 'log-entry.ExerciseName' | translate }} </th>
-                <td mat-cell *matCellDef="let exercise; let i = index" data-label="Exercise" class="log-table__exercise-cell" [class.completed-exercise]="exercise.completed">
-                    {{ currentLog.exercises | duplicateName:exercise:i }}
-                </td>
-            </ng-container>
-            <ng-container matColumnDef="weight">
-                <th mat-header-cell *matHeaderCellDef> {{ 'log-entry.ExerciseWeight' | translate }} </th>
-                <td mat-cell *matCellDef="let exercise" data-label="Weight"> {{ getWeightDisplay(exercise) }} </td>
-            </ng-container>
-            <ng-container matColumnDef="reps">
-                <th mat-header-cell *matHeaderCellDef> {{ 'log-entry.ExerciseReps' | translate }} </th>
-                <td mat-cell *matCellDef="let exercise" data-label="Reps"> {{ exercise.reps }} </td>
-            </ng-container>
-            <ng-container matColumnDef="sets">
-                <th mat-header-cell *matHeaderCellDef> {{ 'log-entry.ExerciseSets' | translate }} </th>
-                <td mat-cell *matCellDef="let exercise" data-label="Sets"> {{ exercise.sets }} </td>
-            </ng-container>
-            <ng-container matColumnDef="prescription">
-                <th mat-header-cell *matHeaderCellDef> Prescription </th>
-                <td mat-cell *matCellDef="let exercise" data-label="Prescription"> {{ exercise.prescription }} </td>
-            </ng-container>
-            <ng-container matColumnDef="controls">
-                <th mat-header-cell *matHeaderCellDef></th>
-                <td mat-cell *matCellDef="let exercise" data-label="Actions" class="log-table__actions-cell">
-                    <div class="control-icons">
-                        <button type="button" class="icon edit-icon" aria-label="Edit exercise" (click)="$event.stopPropagation(); editRow(exercise)">
-                            <em class="fa fa-pen"></em>
-                        </button>
-                        <button type="button" class="icon add-icon" aria-label="Add another set" (click)="$event.stopPropagation(); addRow(exercise)">+</button>
-                        <button type="button" class="icon remove-icon" aria-label="Remove exercise" (click)="$event.stopPropagation(); removeRow(exercise)">-</button>
-                    </div>
-                </td>
-            </ng-container>
-            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-            <tr mat-row
-                *matRowDef="let row; columns: displayedColumns;"
-                [class.completed-row]="row.completed"
-                (click)="onExerciseRowClick(row)"></tr>
-        </table>
         <!-- END Exercise Grid END -->
         <!-- START Cardio Exercise Grid START -->
         <div *ngIf="currentLog.cardioExercises.length > 0" class="log-mobile-list log-mobile-list--cardio">
-            <div *ngFor="let exercise of currentLog.cardioExercises" class="log-mobile-card">
+            <div *ngFor="let group of getCardioExerciseGroups()" class="log-mobile-card log-mobile-card--group log-mobile-card--cardio-group">
                 <div class="log-mobile-card__header">
                     <div>
                         <span class="log-mobile-card__eyebrow">Cardio</span>
-                        <strong>{{ exercise.exerciseName }}</strong>
-                    </div>
-                </div>
-                <div class="log-mobile-card__metrics">
-                    <div>
-                        <span>Distance</span>
-                        <strong>{{ exercise.distance }} {{ distanceMeasure }}</strong>
-                    </div>
-                    <div>
-                        <span>Duration</span>
-                        <strong>
-                            <span *ngIf="exercise.duration.asMilliseconds() > 0">{{ exercise.duration | formatDuration }}</span>
-                            <span *ngIf="exercise.duration.asMilliseconds() === 0">N/A</span>
+                        <strong [class.completed-exercise]="group.exercises.length === 1 && group.exercises[0].completed">
+                            {{ group.exerciseName }}
                         </strong>
+                        <small *ngIf="group.exercises.length > 1">{{ group.exercises.length }} entries</small>
                     </div>
-                    <div>
-                        <span>Intensity</span>
-                        <strong>{{ exercise.intensity | formatIntensity }}</strong>
-                    </div>
+                    <button type="button" class="icon add-icon" aria-label="Add another cardio entry"
+                        (click)="addRow(group.exercises[group.exercises.length - 1])">+</button>
                 </div>
-                <div class="log-mobile-card__actions">
-                    <button type="button" class="icon add-icon" aria-label="Add another cardio entry" (click)="addRow(exercise)">+</button>
-                    <button type="button" class="icon remove-icon" aria-label="Remove cardio exercise" (click)="removeRow(exercise)">-</button>
+
+                <div class="log-mobile-group log-mobile-group--cardio">
+                    <div *ngFor="let exercise of group.exercises; let rowIndex = index"
+                        class="log-mobile-group__row log-mobile-group__row--cardio"
+                        [class.completed-row]="exercise.completed"
+                        (click)="onExerciseRowClick(exercise)">
+                        <div class="log-mobile-group__index">
+                            <span>Entry</span>
+                            <strong>{{ rowIndex + 1 }}</strong>
+                        </div>
+                        <div class="log-mobile-group__metric">
+                            <span>Distance</span>
+                            <strong>{{ getDistanceDisplay(exercise) || '-' }}</strong>
+                        </div>
+                        <div class="log-mobile-group__metric">
+                            <span>Duration</span>
+                            <strong>{{ getDurationDisplay(exercise) }}</strong>
+                        </div>
+                        <div class="log-mobile-group__metric">
+                            <span>Intensity</span>
+                            <strong>{{ (exercise.intensity | formatIntensity) || '-' }}</strong>
+                        </div>
+                        <div class="log-mobile-group__controls">
+                            <mat-checkbox [checked]="exercise.completed"
+                                aria-label="Complete cardio entry"
+                                (click)="$event.stopPropagation()"
+                                (change)="toggleExerciseComplete(exercise)"></mat-checkbox>
+                            <button type="button" class="icon edit-icon" aria-label="Edit cardio entry"
+                                (click)="$event.stopPropagation(); editRow(exercise)">
+                                <em class="fa fa-pen"></em>
+                            </button>
+                            <button type="button" class="icon remove-icon" aria-label="Remove cardio entry"
+                                (click)="$event.stopPropagation(); removeRow(exercise)">-</button>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="table-responsive">
-            <table mat-table *ngIf="currentLog.cardioExercises.length > 0" [dataSource]="currentLog.cardioExercises"
-                class="log-table log-table--cardio">
-                <ng-container matColumnDef="exerciseName">
-                    <th mat-header-cell *matHeaderCellDef> {{ 'log-entry.ExerciseName' | translate }} </th>
-                    <td mat-cell *matCellDef="let exercise" data-label="Exercise" class="log-table__exercise-cell"> {{ exercise.exerciseName }} </td>
-                </ng-container>
-                <ng-container matColumnDef="distance">
-                    <th mat-header-cell *matHeaderCellDef> {{ 'log-entry.ExerciseDistance' | translate }} </th>
-                    <td mat-cell *matCellDef="let exercise" data-label="Distance"> {{ exercise.distance }} {{ distanceMeasure }}  </td>
-                </ng-container>
-                <ng-container matColumnDef="duration">
-                    <th mat-header-cell *matHeaderCellDef> {{ 'log-entry.ExerciseDuration' | translate }} </th>
-                    <td mat-cell *matCellDef="let exercise" data-label="Duration">
-                        <div *ngIf="exercise.duration.asMilliseconds() > 0"> {{ exercise.duration | formatDuration }}
-                        </div>
-                    </td>
-                </ng-container>
-                <ng-container matColumnDef="intensity">
-                    <th mat-header-cell *matHeaderCellDef> {{ 'log-entry.ExerciseIntensity' | translate }} </th>
-                    <td mat-cell *matCellDef="let exercise" data-label="Intensity"> {{ exercise.intensity | formatIntensity }} </td>
-                </ng-container>
-                <ng-container matColumnDef="controls">
-                    <th mat-header-cell *matHeaderCellDef> </th>
-                    <td mat-cell *matCellDef="let exercise" data-label="Actions" class="log-table__actions-cell">
-                        <div class="control-icons">
-                            <button type="button" class="icon add-icon" aria-label="Add another cardio entry" (click)="addRow(exercise)">+</button>
-                            <button type="button" class="icon remove-icon" aria-label="Remove cardio exercise" (click)="removeRow(exercise)">-</button>
-                        </div>
-                    </td>
-                </ng-container>
-                <tr mat-header-row *matHeaderRowDef="cardioColumns"></tr>
-                <tr mat-row *matRowDef="let row; columns: cardioColumns;"></tr>
-            </table>
         </div>
         <!-- END Cardio Exercise Grid END -->
         <div *ngIf="isImportedWorkout" class="imported-log-actions">
@@ -209,6 +152,12 @@
             </button>
             <button *ngIf="workoutPausedAt" class="btn btn-success" type="button" (click)="resumeWorkout()">
                 Resume Workout
+            </button>
+        </div>
+        <div *ngIf="isImportedWorkout" class="imported-log-back imported-log-back--bottom">
+            <button class="btn btn-outline-primary" type="button" (click)="navigateBackToWeek()">
+                <em class="fa fa-arrow-left"></em>
+                Back to {{ importedWeek?.name }}
             </button>
         </div>
         <!-- START Submit Buttons START -->

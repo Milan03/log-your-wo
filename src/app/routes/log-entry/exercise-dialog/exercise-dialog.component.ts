@@ -1,15 +1,13 @@
 import { Component, ElementRef, Inject, ViewChild } from '@angular/core';
 import { UntypedFormGroup, UntypedFormBuilder, Validators } from '@angular/forms';
-import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { Observable, Subscription, map, startWith } from 'rxjs';
 
 import { Exercise } from '../../../shared/models/exercise.model';
 import { ExerciseDialogData } from 'src/app/shared/interfaces/exercise-dialog-data';
-import { DurationDialogComponent } from '../duration-dialog/duration-dialog.component';
 import { SharedService } from '../../../shared/services/shared.service';
 import { TranslatorService } from '../../../core/translator/translator.service';
-import { GoogleAnalyticsService } from '../../../shared/services/google-analytics.service';
 import { ExerciseDirectoryService } from '../../../shared/services/exercise-directory.service';
 
 import { FormValues } from '../../../shared/common/common.constants';
@@ -37,7 +35,6 @@ export class ExerciseDialogComponent {
     public selectedDistanceChip: string = 'km';
 
     public readonly exerciseNameCharLimit: number = 50;
-    public readonly exerciseNumericCharLimit: number = 5;
     public readonly exerciseAlphaNumericCharLimit: number = 15;
     public intensities = FormValues.ExerciseIntensities;
     public exerciseList: string[] = [];
@@ -53,18 +50,18 @@ export class ExerciseDialogComponent {
         @Inject(MAT_DIALOG_DATA) public _exerciseDialogData: ExerciseDialogData,
         private _formBuilder: UntypedFormBuilder,
         public _dialogRef: MatDialogRef<ExerciseDialogComponent>,
-        public _durrDialogRef: MatDialog,
         private _sharedService: SharedService,
         private _translatorService: TranslatorService,
-        private _googleAnalyticsService: GoogleAnalyticsService,
         private _exerciseDirectoryService: ExerciseDirectoryService
     ) {
         this.exerciseLogForm = this._formBuilder.group({
             'exerciseName': ['', Validators.compose([Validators.required, Validators.maxLength(50)])],
             'weight': ['', Validators.maxLength(15)],
-            'reps': ['', Validators.compose([Validators.pattern(/^\d+(\+\d+)?$/), Validators.maxLength(5)])],
-            'sets': ['', Validators.compose([Validators.pattern(/^[0-9]*$/), Validators.maxLength(5)])],
-            'duration': [''],
+            'reps': ['', Validators.compose([Validators.pattern(/^\d+(?:[-+]\d+)?$/), Validators.maxLength(15)])],
+            'sets': ['', Validators.compose([Validators.pattern(/^\d+(?:[-+]\d+)?$/), Validators.maxLength(15)])],
+            'durationHours': [0, Validators.compose([Validators.min(0), Validators.max(99)])],
+            'durationMinutes': [0, Validators.compose([Validators.min(0), Validators.max(59)])],
+            'durationSeconds': [0, Validators.compose([Validators.min(0), Validators.max(59)])],
             'distance': ['', Validators.maxLength(15)],
             'intensity': ['']
         });
@@ -79,11 +76,8 @@ export class ExerciseDialogComponent {
     }
 
     ngOnInit(): void {
-        this.currentExercise.duration = moment.duration({
-            hours: 0,
-            minutes: 0,
-            seconds: 0
-        });
+        this.currentExercise.duration = this.currentExercise.duration || moment.duration();
+        this.populateForm();
         this.currentLanguage = FormValues.ENCode;
         this.subToLanguageChange();
         this.subToExerciseDirectoryService();
@@ -110,6 +104,12 @@ export class ExerciseDialogComponent {
             this.currentExercise.sets = this.exerciseLogForm.get('sets').value;
             this.currentExercise.reps = this.exerciseLogForm.get('reps').value;
             this.currentExercise.distance = this.exerciseLogForm.get('distance').value;
+            this.currentExercise.duration = moment.duration({
+                hours: Number(this.exerciseLogForm.get('durationHours').value) || 0,
+                minutes: Number(this.exerciseLogForm.get('durationMinutes').value) || 0,
+                seconds: Number(this.exerciseLogForm.get('durationSeconds').value) || 0
+            });
+            this.currentExercise.intensity = this.exerciseLogForm.get('intensity').value;
             this._dialogRef.close(this.currentExercise);
         }
     }
@@ -118,42 +118,21 @@ export class ExerciseDialogComponent {
         this._dialogRef.close();
     }
 
-    onEnter(event: KeyboardEvent) {
-        if (event.key === 'Enter') {
-            this.submitForm(event);
-        }
-    }
-
-    openDurationDialog(event: Event): void {
-        event.preventDefault();
-        let dialogRef = this._durrDialogRef.open(DurationDialogComponent, {
-            data: this.currentExercise
-        });
-        dialogRef.afterClosed().subscribe(result => {
-            if (result) {
-                this.currentExercise = result;
-            }
-        });
-    }
-
     onChipClick(value: string) {
         if (value === 'lbs' || value === 'kg') {
+            if (value === this.selectedWeightChip) {
+                return;
+            }
+            this.convertFormMeasurement('weight', value === 'kg' ? 1 / 2.205 : 2.205);
             this.selectedWeightChip = value;
         } else {
+            if (value === this.selectedDistanceChip) {
+                return;
+            }
+            this.convertFormMeasurement('distance', value === 'mi' ? 1 / 1.609 : 1.609);
             this.selectedDistanceChip = value;
         }
         this._sharedService.emitMeasureToggle(value);
-    }
-
-    /**
-    * Track exercise intensity set for the particular cardio exercise row.
-    * @param intensity - i.e. easy, moderate, hard, maximal
-    * @param exercise - exercise to be updated
-    */
-    public onIntensityChange(intensity: any): void {
-        if (intensity) {
-            this.currentExercise.intensity = intensity.value;
-        }
     }
 
     /**
@@ -207,6 +186,8 @@ export class ExerciseDialogComponent {
             const filterValue = value.toLowerCase();
             return this.exerciseList.filter(option => option.toLowerCase().includes(filterValue));
         }
+
+        return [];
     }
 
     private filterCardioExercises(value: string): string[] {
@@ -214,6 +195,8 @@ export class ExerciseDialogComponent {
             const filterValue = value.toLowerCase();
             return this.cardioExerciseList.filter(option => option.toLowerCase().includes(filterValue));
         }
+
+        return [];
     }
 
     private focusInput(exerciseName: string) {
@@ -234,13 +217,6 @@ export class ExerciseDialogComponent {
                     }
                 });
             }
-            this.exerciseLogForm.get('exerciseName').setValue(this.currentExercise.exerciseName);
-            this.exerciseLogForm.get('weight').setValue(this.currentExercise.weight);
-            this.exerciseLogForm.get('sets').setValue(this.currentExercise.sets);
-            this.exerciseLogForm.get('reps').setValue(this.currentExercise.reps);
-            this.exerciseLogForm.get('distance').setValue(this.currentExercise.distance);
-            this.exerciseLogForm.get('intensity').setValue(this.currentExercise.intensity);
-            this.exerciseLogForm.get('exerciseName').updateValueAndValidity();
         }, 250);
     }
 
@@ -262,5 +238,48 @@ export class ExerciseDialogComponent {
                 this.selectedDistanceChip = measure;
             }
         }
+    }
+
+    private populateForm(): void {
+        this.exerciseLogForm.patchValue({
+            exerciseName: this.currentExercise.exerciseName || '',
+            weight: this.currentExercise.weight,
+            sets: this.currentExercise.sets,
+            reps: this.currentExercise.reps,
+            distance: this.currentExercise.distance,
+            intensity: this.currentExercise.intensity,
+            durationHours: Math.floor(this.currentExercise.duration.asHours()),
+            durationMinutes: this.currentExercise.duration.minutes(),
+            durationSeconds: this.currentExercise.duration.seconds()
+        });
+    }
+
+    private convertFormMeasurement(controlName: string, factor: number): void {
+        const control = this.exerciseLogForm.get(controlName);
+        const numericValue = this.toNumericMeasurement(control.value);
+
+        if (numericValue === undefined) {
+            return;
+        }
+
+        control.setValue(this.roundMeasurement(numericValue * factor));
+    }
+
+    private toNumericMeasurement(value: any): number | undefined {
+        if (value === undefined || value === null || String(value).trim() === '') {
+            return undefined;
+        }
+
+        const normalized = String(value).trim();
+        if (!/^-?\d+(?:\.\d+)?$/.test(normalized)) {
+            return undefined;
+        }
+
+        const numericValue = Number(normalized);
+        return Number.isFinite(numericValue) ? numericValue : undefined;
+    }
+
+    private roundMeasurement(value: number): number {
+        return Math.round(value * 10) / 10;
     }
 }

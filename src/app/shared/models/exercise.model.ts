@@ -7,11 +7,11 @@ export class Exercise {
         public logId?: Guid,
         public exerciseName?: string,
         public exerciseType?: string,
-        public sets?: number,
-        public reps?: number,
-        public weight?: number,
+        public sets?: number | string,
+        public reps?: number | string,
+        public weight?: number | string,
         public duration?: moment.Duration,
-        public distance?: number, // in kilometers
+        public distance?: number | string, // in kilometers
         public intensity?: Intensity,
         public completed?: boolean,
         public sourceId?: string,

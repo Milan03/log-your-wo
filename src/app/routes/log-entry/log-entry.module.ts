@@ -2,7 +2,6 @@ import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
 
 import { SimpleLogComponent } from './simple-log/simple-log.component'
-import { DurationDialogComponent } from './duration-dialog/duration-dialog.component';
 import { EmailDialogComponent } from './email-dialog/email-dialog.component';
 import { ExerciseDialogComponent } from './exercise-dialog/exercise-dialog.component';
 import { ProgramImportComponent } from './program-import/program-import.component';
@@ -21,7 +20,6 @@ const routes: Routes = [
     ],
     declarations: [
         SimpleLogComponent,
-        DurationDialogComponent,
         EmailDialogComponent,
         ExerciseDialogComponent,
         ProgramImportComponent
