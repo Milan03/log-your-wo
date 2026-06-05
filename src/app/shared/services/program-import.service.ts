@@ -162,11 +162,15 @@ export class ProgramImportService {
             currentState.weekId === state.weekId &&
             currentState.dayId === state.dayId
         );
-        const cleanedState = {
+        const cleanedState: ImportedWorkoutState = {
             ...state,
             exercises: state.exercises.map(exercise => ({
                 ...exercise,
                 duration: undefined
+            })),
+            cardioExercises: (state.cardioExercises || []).map(exercise => ({
+                ...exercise,
+                duration: this.getDurationMilliseconds(exercise.duration) as any
             }))
         };
 
@@ -186,9 +190,9 @@ export class ProgramImportService {
             const exercise = new Exercise();
             exercise.exerciseType = 'strength';
             exercise.exerciseName = programExercise.exerciseName;
-            exercise.weight = programExercise.weight as any;
-            exercise.reps = programExercise.reps as any;
-            exercise.sets = programExercise.sets as any;
+            exercise.weight = programExercise.weight;
+            exercise.reps = programExercise.reps;
+            exercise.sets = programExercise.sets;
             exercise.prescription = programExercise.prescription;
             exercise.sourceId = programExercise.id;
             exercise.completed = false;
@@ -200,10 +204,21 @@ export class ProgramImportService {
         const day = this.getDay(weekId, dayId);
         const state = this.getWorkoutState(weekId, dayId);
         const exercises = state ? state.exercises : (day ? this.createExercisesForDay(day) : []);
+        const cardioExercises = state && state.cardioExercises ? state.cardioExercises : [];
+        const allExercises = [...exercises, ...cardioExercises];
         return {
-            completed: exercises.filter(exercise => exercise.completed).length,
-            total: exercises.length
+            completed: allExercises.filter(exercise => exercise.completed).length,
+            total: allExercises.length
         };
+    }
+
+    private getDurationMilliseconds(duration: moment.Duration | number | undefined): number {
+        if (duration && typeof (duration as moment.Duration).asMilliseconds === 'function') {
+            return (duration as moment.Duration).asMilliseconds();
+        }
+
+        const milliseconds = Number(duration);
+        return Number.isFinite(milliseconds) ? milliseconds : 0;
     }
 
     public isWeekComplete(weekId: string): boolean {
@@ -234,8 +249,9 @@ export class ProgramImportService {
                     return;
                 }
 
-                const completedExercises = state.exercises.filter(exercise => exercise.completed).length;
-                if (state.exercises.length > 0 && completedExercises === state.exercises.length) {
+                const allExercises = [...state.exercises, ...(state.cardioExercises || [])];
+                const completedExercises = allExercises.filter(exercise => exercise.completed).length;
+                if (allExercises.length > 0 && completedExercises === allExercises.length) {
                     completed++;
                 }
 
@@ -314,6 +330,10 @@ export class ProgramImportService {
             weekId,
             dayId,
             exercises: exercises.map(exercise => ({
+                ...exercise,
+                completed: true
+            })),
+            cardioExercises: (state && state.cardioExercises ? state.cardioExercises : []).map(exercise => ({
                 ...exercise,
                 completed: true
             })),

@@ -11,6 +11,7 @@ import { SharedModule } from '../../../shared/shared.module';
 import { EmailService } from '../../../shared/services/email.service';
 import { TranslatorService } from '../../../core/translator/translator.service';
 import { ProgramImportService } from '../../../shared/services/program-import.service';
+import { SharedService } from '../../../shared/services/shared.service';
 import { Exercise } from '../../../shared/models/exercise.model';
 import { ImportedProgram } from '../../../shared/models/imported-program.model';
 
@@ -19,6 +20,7 @@ describe('SimpleLogComponent', () => {
   let fixture: ComponentFixture<SimpleLogComponent>;
   let routeParams: BehaviorSubject<any>;
   let programImportService: ProgramImportService;
+  let sharedService: SharedService;
   let routerSpy: jasmine.SpyObj<Router>;
 
   beforeEach(waitForAsync(() => {
@@ -64,6 +66,7 @@ describe('SimpleLogComponent', () => {
   beforeEach(() => {
     localStorage.clear();
     programImportService = TestBed.inject(ProgramImportService);
+    sharedService = TestBed.inject(SharedService);
     fixture = TestBed.createComponent(SimpleLogComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
@@ -78,14 +81,62 @@ describe('SimpleLogComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('does not toggle row completion for a plain simple log', () => {
+  it('toggles row completion for a plain simple log', () => {
     const exercise = createExercise('Clean', false);
     component.currentLog.exercises = [exercise];
     component.isImportedWorkout = false;
 
     component.onExerciseRowClick(exercise);
 
-    expect(exercise.completed).toBeFalse();
+    expect(exercise.completed).toBeTrue();
+  });
+
+  it('groups only sequential exercises with the same name', () => {
+    const firstClean = createExercise('Clean', false);
+    const secondClean = createExercise('Clean', true);
+    const squat = createExercise('Squat', false);
+    const thirdClean = createExercise('Clean', false);
+    component.currentLog.exercises = [firstClean, secondClean, squat, thirdClean];
+
+    const groups = component.getStrengthExerciseGroups();
+
+    expect(groups.length).toBe(3);
+    expect(groups[0].exerciseName).toBe('Clean');
+    expect(groups[0].exercises).toEqual([firstClean, secondClean]);
+    expect(groups[1].exercises).toEqual([squat]);
+    expect(groups[2].exercises).toEqual([thirdClean]);
+  });
+
+  it('groups sequential cardio exercises with the same name', () => {
+    const firstRun = createExercise('Run', false);
+    firstRun.exerciseType = 'cardio';
+    const secondRun = createExercise('Run', false);
+    secondRun.exerciseType = 'cardio';
+    const bike = createExercise('Bike', false);
+    bike.exerciseType = 'cardio';
+    component.currentLog.cardioExercises = [firstRun, secondRun, bike];
+
+    const groups = component.getCardioExerciseGroups();
+
+    expect(groups.length).toBe(2);
+    expect(groups[0].exercises).toEqual([firstRun, secondRun]);
+    expect(groups[1].exercises).toEqual([bike]);
+  });
+
+  it('converts numeric weights without changing ranges or placeholders', () => {
+    const numeric = createExercise('Clean', false);
+    numeric.weight = 220.5;
+    const range = createExercise('Clean', false);
+    range.weight = '4-5';
+    const placeholder = createExercise('Clean', false);
+    placeholder.weight = 'x';
+    component.currentLog.exercises = [numeric, range, placeholder];
+
+    sharedService.emitMeasureToggle('kg');
+
+    expect(component.currentLog.exercises[0].weight).toBe(100);
+    expect(component.currentLog.exercises[1].weight).toBe('4-5');
+    expect(component.currentLog.exercises[2].weight).toBe('x');
   });
 
   it('loads imported workouts from route params', () => {
@@ -99,15 +150,22 @@ describe('SimpleLogComponent', () => {
     expect(component.isImportedWorkout).toBeTrue();
     expect(component.currentLog.title).toBe('Week 1 - Day 01');
     expect(component.currentLog.exercises?.length).toBe(2);
-    expect(component.displayedColumns).toEqual([
-      'completed',
-      'exerciseName',
-      'weight',
-      'reps',
-      'sets',
-      'prescription',
-      'controls'
-    ]);
+  });
+
+  it('reuses grouped exercise arrays until the source rows change', () => {
+    component.currentLog.exercises = [
+      createExercise('Clean', false),
+      createExercise('Clean', false)
+    ];
+
+    const firstGroups = component.getStrengthExerciseGroups();
+    const secondGroups = component.getStrengthExerciseGroups();
+
+    expect(secondGroups).toBe(firstGroups);
+
+    component.currentLog.exercises = [...component.currentLog.exercises];
+
+    expect(component.getStrengthExerciseGroups()).not.toBe(firstGroups);
   });
 
   it('marks an imported workout incomplete by unchecking only the last completed row', () => {
@@ -140,6 +198,29 @@ describe('SimpleLogComponent', () => {
         weekId: 'week-1'
       }
     });
+  });
+
+  it('restores cardio exercises added to an imported workout', () => {
+    programImportService.saveProgram(createProgram());
+    routeParams.next(convertToParamMap({
+      weekId: 'week-1',
+      dayId: 'week-1-day-1'
+    }));
+    const cardio = createExercise('Run', false);
+    cardio.exerciseType = 'cardio';
+    cardio.distance = 5;
+    component.currentLog.cardioExercises = [cardio];
+
+    component.toggleExerciseComplete(cardio);
+    routeParams.next(convertToParamMap({}));
+    routeParams.next(convertToParamMap({
+      weekId: 'week-1',
+      dayId: 'week-1-day-1'
+    }));
+
+    expect(component.currentLog.cardioExercises.length).toBe(1);
+    expect(component.currentLog.cardioExercises[0].exerciseName).toBe('Run');
+    expect(component.currentLog.cardioExercises[0].completed).toBeTrue();
   });
 });
 

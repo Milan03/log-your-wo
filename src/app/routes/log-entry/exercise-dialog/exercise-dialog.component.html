@@ -1,143 +1,130 @@
-<div class="header-row">
-    <h1 mat-dialog-title>{{ _exerciseDialogData.isEdit ? 'Edit Exercise' : ('log-entry.AddExercise' | translate) }}</h1>
-    <div *ngIf="currentExercise.exerciseType === 'strength'" class="chip-set-container">
-        <mat-chip-set aria-label="Measure selection">
-            <mat-chip (click)="onChipClick('lbs')" [ngClass]="{'selected-chip': selectedWeightChip === 'lbs'}">lbs</mat-chip>
-            <mat-chip (click)="onChipClick('kg')" [ngClass]="{'selected-chip': selectedWeightChip === 'kg'}">kgs</mat-chip>
-        </mat-chip-set>
+<div class="exercise-dialog">
+    <div class="exercise-dialog__header">
+        <div>
+            <span class="exercise-dialog__eyebrow">{{ currentExercise.exerciseType === 'cardio' ? 'Cardio' : 'Strength' }}</span>
+            <h1 mat-dialog-title>{{ _exerciseDialogData.isEdit ? 'Edit Exercise' : ('log-entry.AddExercise' | translate) }}</h1>
+        </div>
+
     </div>
-    <div *ngIf="currentExercise.exerciseType === 'cardio'" class="chip-set-container">
-        <mat-chip-set aria-label="Measure selection">
-            <mat-chip (click)="onChipClick('km')" [ngClass]="{'selected-chip': selectedDistanceChip === 'km'}">kms</mat-chip>
-            <mat-chip (click)="onChipClick('mi')" [ngClass]="{'selected-chip': selectedDistanceChip === 'mi'}">miles</mat-chip>
-        </mat-chip-set>
-    </div>    
-</div>
-<form [formGroup]="exerciseLogForm" class="container" (ngSubmit)="submitForm($event)" (keydown.enter)="onEnter($event)">
-    <div class="row">
-        <div class="col-md-3">
-            <div class="mda-form-group float-label first-fg">
-                <mat-form-field appearance="fill" class="mda-form-control" floatLabel="always">
-                    <div *ngIf="currentExercise.exerciseType === 'strength'">
-                        <input #strExerciseName type="text" matInput [matAutocomplete]="auto" name="exerciseName"
-                            formControlName="exerciseName" tabindex="0">
-                        <mat-autocomplete #auto="matAutocomplete">
-                            <mat-option *ngFor="let exerciseName of filteredExercises | async" [value]="exerciseName">
-                                {{ exerciseName }}
-                            </mat-option>
-                        </mat-autocomplete>
-                    </div>
-                    <div *ngIf="currentExercise.exerciseType === 'cardio'">
-                        <input #carExerciseName type="text" matInput [matAutocomplete]="auto" name="exerciseName"
-                            formControlName="exerciseName" tabindex="0">
-                        <mat-autocomplete #auto="matAutocomplete">
-                            <mat-option *ngFor="let exerciseName of filteredCardioExercises | async"
-                                [value]="exerciseName">
-                                {{ exerciseName }}
-                            </mat-option>
-                        </mat-autocomplete>
-                    </div>
-                    <mat-label>{{ 'log-entry.ExerciseName' | translate }}</mat-label>
-                    <mat-error class="text-danger"
-                        *ngIf="exerciseLogForm.get('exerciseName').hasError('required') && (exerciseLogForm.get('exerciseName').dirty || exerciseLogForm.get('exerciseName').touched)">{{
-                        'global.Required' | translate }}</mat-error>
-                    <mat-error class="text-danger"
-                        *ngIf="exerciseLogForm.get('exerciseName').hasError('maxlength') && (exerciseLogForm.get('exerciseName').dirty || exerciseLogForm.get('exerciseName').touched)">{{
-                        'global.CharacterLimit' | translate }} {{ exerciseNameCharLimit }}</mat-error>
-                </mat-form-field>
-            </div>
+
+    <form [formGroup]="exerciseLogForm" class="exercise-dialog__form" (ngSubmit)="submitForm($event)">
+        <div class="exercise-dialog__top-row">
+            <mat-form-field appearance="outline" subscriptSizing="dynamic" class="exercise-dialog__name">
+                <input *ngIf="currentExercise.exerciseType === 'strength'"
+                    #strExerciseName type="text" matInput [matAutocomplete]="strengthAuto" formControlName="exerciseName">
+                <mat-autocomplete #strengthAuto="matAutocomplete">
+                    <mat-option *ngFor="let exerciseName of filteredExercises | async" [value]="exerciseName">
+                        {{ exerciseName }}
+                    </mat-option>
+                </mat-autocomplete>
+
+                <input *ngIf="currentExercise.exerciseType === 'cardio'"
+                    #carExerciseName type="text" matInput [matAutocomplete]="cardioAuto" formControlName="exerciseName">
+                <mat-autocomplete #cardioAuto="matAutocomplete">
+                    <mat-option *ngFor="let exerciseName of filteredCardioExercises | async" [value]="exerciseName">
+                        {{ exerciseName }}
+                    </mat-option>
+                </mat-autocomplete>
+
+                <mat-label>{{ 'log-entry.ExerciseName' | translate }}</mat-label>
+                <mat-error *ngIf="exerciseLogForm.get('exerciseName').hasError('required')">
+                    {{ 'global.Required' | translate }}
+                </mat-error>
+                <mat-error *ngIf="exerciseLogForm.get('exerciseName').hasError('maxlength')">
+                    {{ 'global.CharacterLimit' | translate }} {{ exerciseNameCharLimit }}
+                </mat-error>
+            </mat-form-field>
+
+            <mat-button-toggle-group *ngIf="currentExercise.exerciseType === 'strength'"
+                class="exercise-dialog__unit-toggle" aria-label="Weight unit"
+                [value]="selectedWeightChip" (change)="onChipClick($event.value)">
+                <mat-button-toggle value="lbs">lb</mat-button-toggle>
+                <mat-button-toggle value="kg">kg</mat-button-toggle>
+            </mat-button-toggle-group>
+
+            <mat-button-toggle-group *ngIf="currentExercise.exerciseType === 'cardio'"
+                class="exercise-dialog__unit-toggle" aria-label="Distance unit"
+                [value]="selectedDistanceChip" (change)="onChipClick($event.value)">
+                <mat-button-toggle value="km">km</mat-button-toggle>
+                <mat-button-toggle value="mi">mi</mat-button-toggle>
+            </mat-button-toggle-group>
         </div>
-        <div *ngIf="currentExercise.exerciseType === 'strength'" class="col-md-3">
-            <div class="mda-form-group float-label">
-                <mat-form-field appearance="fill" class="mda-form-control">
-                    <input #weight matInput name="weight" formControlName="weight" tabindex="0" aria-invalid="false" />
-                    <mat-label>{{ 'log-entry.ExerciseWeight' | translate }}</mat-label>
-                    <mat-error
-                        *ngIf="exerciseLogForm.get('weight').hasError('maxlength') && (exerciseLogForm.get('weight').dirty || exerciseLogForm.get('weight').touched)">
+
+        <div *ngIf="currentExercise.exerciseType === 'strength'"
+            class="exercise-dialog__grid exercise-dialog__grid--strength">
+            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                <input #weight matInput formControlName="weight" inputmode="decimal">
+                <mat-label>Weight ({{ selectedWeightChip }})</mat-label>
+                <mat-error *ngIf="exerciseLogForm.get('weight').hasError('maxlength')">
+                    {{ 'global.CharacterLimit' | translate }} {{ exerciseAlphaNumericCharLimit }}
+                </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                <input matInput formControlName="reps" type="text" inputmode="text">
+                <mat-label>{{ 'log-entry.ExerciseReps' | translate }}</mat-label>
+                <mat-error *ngIf="exerciseLogForm.get('reps').hasError('pattern')">
+                    Use a number, range, or + notation
+                </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                <input matInput formControlName="sets" type="text" inputmode="text">
+                <mat-label>{{ 'log-entry.ExerciseSets' | translate }}</mat-label>
+                <mat-error *ngIf="exerciseLogForm.get('sets').hasError('pattern')">
+                    Use a number, range, or + notation
+                </mat-error>
+            </mat-form-field>
+        </div>
+
+        <ng-container *ngIf="currentExercise.exerciseType === 'cardio'">
+            <div class="exercise-dialog__grid exercise-dialog__grid--cardio">
+                <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                    <input #distance matInput formControlName="distance" inputmode="decimal">
+                    <mat-label>Distance ({{ selectedDistanceChip }})</mat-label>
+                    <mat-error *ngIf="exerciseLogForm.get('distance').hasError('maxlength')">
                         {{ 'global.CharacterLimit' | translate }} {{ exerciseAlphaNumericCharLimit }}
                     </mat-error>
                 </mat-form-field>
-            </div>
-        </div>
-        <div *ngIf="currentExercise.exerciseType === 'strength'" class="col-md-3">
-            <div class="mda-form-group float-label">
-                <mat-form-field appearance="fill" class="mda-form-control">
-                    <input matInput name="reps" formControlName="reps" type="text" inputmode="text" tabindex="0"
-                        aria-invalid="false">
-                    <mat-label>{{ 'log-entry.ExerciseReps' | translate }}</mat-label>
-                    <mat-error
-                        *ngIf="exerciseLogForm.get('reps').hasError('pattern') && (exerciseLogForm.get('reps').dirty || exerciseLogForm.get('reps').touched)">
-                        {{ 'global.NumericOnly' | translate }}
-                    </mat-error>
-                    <mat-error
-                        *ngIf="exerciseLogForm.get('reps').hasError('maxlength') && (exerciseLogForm.get('reps').dirty || exerciseLogForm.get('reps').touched)">
-                        {{ 'global.CharacterLimit' | translate }} {{ exerciseNumericCharLimit }}
-                    </mat-error>
-                </mat-form-field>
-            </div>
-        </div>
-        <div *ngIf="currentExercise.exerciseType === 'strength'" class="col-md-3">
-            <div class="mda-form-group float-label">
-                <mat-form-field appearance="fill" class="mda-form-control">
-                    <input matInput name="sets" formControlName="sets" type="number" inputmode="numeric" tabindex="0"
-                        aria-invalid="false">
-                    <mat-label>{{ 'log-entry.ExerciseSets' | translate }}</mat-label>
-                    <mat-error
-                        *ngIf="exerciseLogForm.get('sets').hasError('pattern') && (exerciseLogForm.get('sets').dirty || exerciseLogForm.get('sets').touched)">
-                        {{ 'global.NumericOnly' | translate }}
-                    </mat-error>
-                    <mat-error
-                        *ngIf="exerciseLogForm.get('sets').hasError('maxlength') && (exerciseLogForm.get('sets').dirty || exerciseLogForm.get('sets').touched)">
-                        {{ 'global.CharacterLimit' | translate }} {{ exerciseNumericCharLimit }}
-                    </mat-error>
-                </mat-form-field>
-            </div>
-        </div>
-        <div *ngIf="currentExercise.exerciseType === 'cardio'" class="col-md-3">
-            <div class="mda-form-group float-label">
-                <mat-form-field appearance="fill" class="mda-form-control">
-                    <input #distance matInput name="distance" formControlName="distance" tabindex="0"
-                        aria-invalid="false">
-                    <mat-label>{{ 'log-entry.ExerciseDistance' | translate }}</mat-label>
-                    <mat-error
-                        *ngIf="exerciseLogForm.get('distance').hasError('maxlength') && (exerciseLogForm.get('distance').dirty || exerciseLogForm.get('distance').touched)">
-                        {{ 'global.CharacterLimit' | translate }} {{ exerciseAlphaNumericCharLimit }}
-                    </mat-error>
-                </mat-form-field>
-            </div>
-        </div>
-        <div *ngIf="currentExercise.exerciseType === 'cardio'" class="col-md-3">
-            <div class="mda-form-group">
-                <mat-form-field appearance="fill" class="mda-form-control">
-                    <input matInput [value]="currentExercise.duration | formatDuration" readonly
-                        (click)="openDurationDialog($event)">
-                    <mat-label>{{ 'log-entry.ExerciseDuration' | translate }}</mat-label>
-                    <button matSuffix mat-icon-button aria-label="Edit duration" (click)="openDurationDialog($event)">
-                        <mat-icon>edit</mat-icon>
-                    </button>
-                </mat-form-field>
-            </div>
-        </div>
-        <div *ngIf="currentExercise.exerciseType === 'cardio'" class="col-md-3">
-            <div class="mda-form-group margin-top-10">
-                <mat-form-field appearance="fill">
-                    <mat-select placeholder="{{ 'log-entry.ExerciseIntensity' | translate }}"
-                        (selectionChange)="onIntensityChange($event)" formControlName="intensity">
+
+                <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                    <mat-select formControlName="intensity">
                         <mat-option *ngFor="let intensity of intensities" [value]="intensity.value">
                             {{ intensity.viewValue }}
                         </mat-option>
                     </mat-select>
+                    <mat-label>{{ 'log-entry.ExerciseIntensity' | translate }}</mat-label>
                 </mat-form-field>
             </div>
+
+            <fieldset class="exercise-dialog__duration">
+                <legend>{{ 'log-entry.ExerciseDuration' | translate }}</legend>
+                <div class="exercise-dialog__duration-grid">
+                    <label class="exercise-dialog__duration-part">
+                        <span>Hours</span>
+                        <input type="number" min="0" max="99" inputmode="numeric" formControlName="durationHours">
+                    </label>
+                    <span class="exercise-dialog__duration-separator" aria-hidden="true">:</span>
+                    <label class="exercise-dialog__duration-part">
+                        <span>Minutes</span>
+                        <input type="number" min="0" max="59" inputmode="numeric" formControlName="durationMinutes">
+                    </label>
+                    <span class="exercise-dialog__duration-separator" aria-hidden="true">:</span>
+                    <label class="exercise-dialog__duration-part">
+                        <span>Seconds</span>
+                        <input type="number" min="0" max="59" inputmode="numeric" formControlName="durationSeconds">
+                    </label>
+                </div>
+            </fieldset>
+        </ng-container>
+
+        <div class="exercise-dialog__actions">
+            <button class="btn btn-outline-secondary" type="button" (click)="onCancel()">
+                {{ 'global.CancelLabel' | translate }}
+            </button>
+            <button class="btn btn-primary" type="submit">
+                {{ _exerciseDialogData.isEdit ? 'Save Exercise' : ('log-entry.AddExercise' | translate) }}
+            </button>
         </div>
-    </div>
-    <div class="row justify-content-end mt-4">
-        <div class="col-auto">
-            <button mat-button type="button" color="secondary" (click)="onCancel()">{{ 'global.CancelLabel' | translate
-                }}</button>
-        </div>
-        <div class="col-auto">
-            <button mat-raised-button type="submit" color="primary">{{ _exerciseDialogData.isEdit ? 'Save Exercise' : ('log-entry.AddExercise' | translate) }}</button>
-        </div>
-    </div>
-</form>
+    </form>
+</div>

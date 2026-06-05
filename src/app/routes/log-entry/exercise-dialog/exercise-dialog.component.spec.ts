@@ -58,4 +58,29 @@ describe('ExerciseDialogComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('accepts range notation for reps and sets', () => {
+    component.exerciseLogForm.get('reps').setValue('3-5');
+    component.exerciseLogForm.get('sets').setValue('4-5');
+
+    expect(component.exerciseLogForm.get('reps').valid).toBeTrue();
+    expect(component.exerciseLogForm.get('sets').valid).toBeTrue();
+  });
+
+  it('converts numeric weights when the selected unit changes', () => {
+    component.exerciseLogForm.get('weight').setValue('220.5');
+
+    component.onChipClick('kg');
+
+    expect(component.exerciseLogForm.get('weight').value).toBe(100);
+    expect(component.selectedWeightChip).toBe('kg');
+  });
+
+  it('leaves nonnumeric weight notation unchanged during unit changes', () => {
+    component.exerciseLogForm.get('weight').setValue('70-80%');
+
+    component.onChipClick('kg');
+
+    expect(component.exerciseLogForm.get('weight').value).toBe('70-80%');
+  });
 });

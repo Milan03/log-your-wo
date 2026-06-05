@@ -34,6 +34,7 @@ export interface ImportedWorkoutState {
     weekId: string;
     dayId: string;
     exercises: Exercise[];
+    cardioExercises?: Exercise[];
     startedAt?: string;
     completedAt?: string;
     pausedAt?: string;
