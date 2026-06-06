@@ -366,6 +366,18 @@
     font-weight: 600;
 }
 
+.program-import__complete-button,
+.program-import__complete-button:hover,
+.program-import__complete-button:focus,
+.program-import__complete-button:active,
+.program-import__complete-button:disabled {
+    border-color: #d5dbe0;
+    background: #f5f6f7;
+    box-shadow: none;
+    color: #4f5b67;
+    opacity: 1;
+}
+
 .program-import__elapsed {
     color: #4f5b67;
     font-size: 0.85rem;

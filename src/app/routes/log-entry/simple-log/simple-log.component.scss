@@ -834,6 +834,10 @@ tr.mat-row {
         margin-top: 24px;
     }
 
+    :host-context(.layout-fixed) .simple-log-shell--imported {
+        padding-top: calc(variables.$navbar-height - 24px);
+    }
+
     .simple-log-library {
         position: sticky;
         top: 56px;
@@ -906,6 +910,10 @@ tr.mat-row {
     .simple-log-shell {
         width: auto;
         margin-top: 0;
+    }
+
+    :host-context(.layout-fixed) .simple-log-shell--imported {
+        padding-top: variables.$navbar-height;
     }
 
     .simple-log-library {

@@ -26,7 +26,7 @@
                 tabindex="0"
                 (click)="selectProgram(card.program)"
                 (keydown.enter)="selectProgram(card.program)"
-                (keydown.space)="selectProgram(card.program)">
+                (keydown.space)="$event.preventDefault(); selectProgram(card.program)">
                 <span class="program-import__library-title">{{ card.program.name }}</span>
                 <span class="program-import__library-meta">
                     <span class="program-import__library-status" [ngClass]="card.statusClass">
@@ -86,6 +86,8 @@
                         <button *ngFor="let color of completionColorOptions"
                             type="button"
                             class="program-import__color-swatch"
+                            [attr.aria-label]="'Use ' + color + ' for completed workouts'"
+                            [attr.aria-pressed]="completionColor === color"
                             [class.program-import__color-swatch--active]="completionColor === color"
                             [style.background]="color"
                             (click)="onCompletionColorChange(color)">
@@ -95,10 +97,13 @@
                 </div>
             </div>
 
-            <div class="program-import__weeks" role="tablist">
-                <button *ngFor="let week of weekCards"
+            <div class="program-import__weeks" aria-label="Program weeks">
+                <button *ngFor="let week of weekCards; trackBy: trackWeekById"
+                    #weekTab
                     type="button"
                     class="program-import__week"
+                    [attr.data-week-id]="week.id"
+                    [attr.aria-pressed]="selectedWeek && selectedWeek.id === week.id"
                     [class.program-import__week--active]="selectedWeek && selectedWeek.id === week.id"
                     [class.program-import__week--complete]="week.complete"
                     [ngStyle]="week.complete ? completionStyles : null"
@@ -108,13 +113,16 @@
             </div>
 
             <div *ngIf="selectedWeek" class="program-import__days">
-                <div *ngFor="let day of dayCards"
+                <div *ngFor="let day of dayCards; trackBy: trackDayById"
+                    #dayCard
                     class="program-import__day"
+                    [attr.data-day-id]="day.id"
                     [class.program-import__day--complete]="day.complete"
                     [ngStyle]="day.complete ? completionStyles : null"
                     role="button"
                     tabindex="0"
-                    (click)="openWorkout(selectedWeek.id, day.id)">
+                    (click)="openWorkout(selectedWeek.id, day.id)"
+                    (keydown)="onDayCardKeydown($event, selectedWeek.id, day.id)">
                     <div class="program-import__day-title">
                         <span>{{ day.name }}</span>
                         <span>{{ day.completionLabel }}</span>
@@ -129,7 +137,7 @@
                         </span>
                         <button class="btn btn-sm"
                             [class.btn-success]="!day.complete"
-                            [class.btn-secondary]="day.complete"
+                            [class.program-import__complete-button]="day.complete"
                             type="button"
                             [disabled]="day.complete"
                             (click)="markDayComplete($event, selectedWeek.id, day.id)">
