@@ -1,6 +1,6 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, QueryList, ViewChildren } from '@angular/core';
+import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
+import { filter, Subscription } from 'rxjs';
 
 import {
     ImportedProgram,
@@ -19,7 +19,10 @@ const swal = require('sweetalert');
     templateUrl: './program-import.component.html',
     styleUrls: ['./program-import.component.scss']
 })
-export class ProgramImportComponent implements OnInit, OnDestroy {
+export class ProgramImportComponent implements OnInit, AfterViewInit, OnDestroy {
+    @ViewChildren('weekTab') private weekTabElements: QueryList<ElementRef<HTMLElement>>;
+    @ViewChildren('dayCard') private dayCardElements: QueryList<ElementRef<HTMLElement>>;
+
     public program: ImportedProgram;
     public programs: ImportedProgram[] = [];
     public programCards: ProgramImportCard[] = [];
@@ -42,7 +45,14 @@ export class ProgramImportComponent implements OnInit, OnDestroy {
     private programSub: Subscription;
     private programsSub: Subscription;
     private routeSub: Subscription;
+    private navigationSub: Subscription;
+    private weekTabsSub: Subscription;
+    private dayCardsSub: Subscription;
+    private focusTimerId: ReturnType<typeof setTimeout>;
+    private scrollFrameId: number;
     private selectedWeekId: string;
+    private pendingFocusWeekId: string;
+    private pendingFocusDayId: string;
     private selectedProgramId: string;
 
     constructor(
@@ -59,6 +69,8 @@ export class ProgramImportComponent implements OnInit, OnDestroy {
         this.routeSub = this._activatedRoute.queryParamMap.subscribe(params => {
             this.selectedProgramId = params.get('programId');
             this.selectedWeekId = params.get('weekId');
+            this.pendingFocusWeekId = this.selectedWeekId;
+            this.pendingFocusDayId = params.get('dayId');
             if (this.selectedProgramId) {
                 this._programImportService.setActiveProgram(this.selectedProgramId);
             }
@@ -67,13 +79,21 @@ export class ProgramImportComponent implements OnInit, OnDestroy {
         this.programSub = this._programImportService.program$.subscribe(program => {
             this.program = program;
             this.selectWeekFromProgram();
-            this.refreshProgramView();
-            this.refreshProgramCards();
+            this.refreshWeekCards();
         });
         this.programsSub = this._programImportService.programs$.subscribe(programs => {
             this.programs = programs;
             this.refreshProgramCards();
         });
+        this.navigationSub = this._router.events.pipe(
+            filter(event => event instanceof NavigationEnd)
+        ).subscribe(() => this.queueRequestedFocus());
+    }
+
+    ngAfterViewInit(): void {
+        this.weekTabsSub = this.weekTabElements.changes.subscribe(() => this.queueRequestedFocus());
+        this.dayCardsSub = this.dayCardElements.changes.subscribe(() => this.queueRequestedFocus());
+        this.queueRequestedFocus();
     }
 
     ngOnDestroy(): void {
@@ -85,6 +105,23 @@ export class ProgramImportComponent implements OnInit, OnDestroy {
         }
         if (this.programsSub) {
             this.programsSub.unsubscribe();
+        }
+        if (this.dayCardsSub) {
+            this.dayCardsSub.unsubscribe();
+        }
+        if (this.weekTabsSub) {
+            this.weekTabsSub.unsubscribe();
+        }
+        if (this.navigationSub) {
+            this.navigationSub.unsubscribe();
+        }
+        if (this.focusTimerId !== undefined) {
+            clearTimeout(this.focusTimerId);
+            this.focusTimerId = undefined;
+        }
+        if (this.scrollFrameId !== undefined) {
+            cancelAnimationFrame(this.scrollFrameId);
+            this.scrollFrameId = undefined;
         }
     }
 
@@ -110,6 +147,9 @@ export class ProgramImportComponent implements OnInit, OnDestroy {
     }
 
     public selectWeek(week: ImportedProgramWeek): void {
+        this.selectedWeekId = week.id;
+        this.pendingFocusWeekId = undefined;
+        this.pendingFocusDayId = undefined;
         this.selectedWeek = week;
         this.refreshDayCards();
     }
@@ -140,7 +180,6 @@ export class ProgramImportComponent implements OnInit, OnDestroy {
             this.selectedWeekId = undefined;
             this.selectWeekFromProgram();
             this.refreshProgramView();
-            this.refreshProgramCards();
         }
 
         this._router.navigate(['/log-entry/import-program'], {
@@ -159,30 +198,39 @@ export class ProgramImportComponent implements OnInit, OnDestroy {
         event.stopPropagation();
 
         if (!this.isDayComplete(weekId, dayId)) {
+            const scrollX = window.scrollX;
+            const scrollY = window.scrollY;
             this._programImportService.markDayComplete(weekId, dayId);
-            this.refreshProgramView();
-            this.refreshProgramCards();
+            if (this.scrollFrameId !== undefined) {
+                cancelAnimationFrame(this.scrollFrameId);
+            }
+            this.scrollFrameId = requestAnimationFrame(() => {
+                this.scrollFrameId = undefined;
+                window.scrollTo(scrollX, scrollY);
+            });
         }
     }
 
-    public getCompletionLabel(weekId: string, dayId: string): string {
-        const completion = this._programImportService.getDayCompletion(weekId, dayId);
-        return `${completion.completed}/${completion.total}`;
+    public onDayCardKeydown(event: KeyboardEvent, weekId: string, dayId: string): void {
+        if (event.target !== event.currentTarget || (event.key !== 'Enter' && event.key !== ' ')) {
+            return;
+        }
+
+        event.preventDefault();
+        this.openWorkout(weekId, dayId);
     }
 
-    public getCompletionPercent(weekId: string, dayId: string): number {
-        const completion = this._programImportService.getDayCompletion(weekId, dayId);
-        return completion.total ? (completion.completed / completion.total) * 100 : 0;
+    public trackDayById(index: number, day: ImportedProgramDay): string {
+        return day.id;
+    }
+
+    public trackWeekById(index: number, week: ImportedProgramWeek): string {
+        return week.id;
     }
 
     public isDayComplete(weekId: string, dayId: string): boolean {
         const completion = this._programImportService.getDayCompletion(weekId, dayId);
         return completion.total > 0 && completion.completed === completion.total;
-    }
-
-    public isWeekComplete(weekId: string): boolean {
-        const weekCard = this.weekCards.find(week => week.id === weekId);
-        return weekCard ? weekCard.complete : false;
     }
 
     public onCompletionColorChange(color: string): void {
@@ -191,21 +239,12 @@ export class ProgramImportComponent implements OnInit, OnDestroy {
         this.refreshCompletionStyles();
     }
 
-    public getCompletionStyles(): { [key: string]: string } {
-        return this.completionStyles;
-    }
-
     private refreshCompletionStyles(): void {
         this.completionStyles = {
             '--completion-color': this.completionColor,
             '--completion-color-soft': this.hexToRgba(this.completionColor, 0.12),
             '--completion-color-softer': this.hexToRgba(this.completionColor, 0.06)
         };
-    }
-
-    public getDayElapsedLabel(weekId: string, dayId: string): string {
-        const dayCard = this.dayCards.find(day => day.id === dayId && this.selectedWeek && this.selectedWeek.id === weekId);
-        return dayCard ? dayCard.elapsedLabel : '';
     }
 
     public getExercisePreview(exercises: ImportedProgramExercise[]): string[] {
@@ -226,7 +265,17 @@ export class ProgramImportComponent implements OnInit, OnDestroy {
             return;
         }
 
-        this.selectedWeek = this.program.weeks.find(week => week.id === this.selectedWeekId) || this.program.weeks[0];
+        const requestedWeek = this.program.weeks.find(week => week.id === this.selectedWeekId);
+        this.selectedWeek = requestedWeek || this.program.weeks[0];
+        this.selectedWeekId = this.selectedWeek.id;
+
+        if (this.pendingFocusWeekId && !requestedWeek) {
+            this.pendingFocusWeekId = undefined;
+        }
+        if (this.pendingFocusDayId && !this.selectedWeek.days.some(day => day.id === this.pendingFocusDayId)) {
+            this.pendingFocusDayId = undefined;
+        }
+
         this.refreshDayCards();
     }
 
@@ -276,6 +325,65 @@ export class ProgramImportComponent implements OnInit, OnDestroy {
         };
     }
 
+    private focusRequestedDay(): void {
+        if (!this.pendingFocusDayId || !this.dayCardElements) {
+            return;
+        }
+
+        const dayElement = this.dayCardElements.find(element =>
+            element.nativeElement.dataset.dayId === this.pendingFocusDayId
+        );
+
+        if (!dayElement) {
+            return;
+        }
+
+        dayElement.nativeElement.scrollIntoView({
+            behavior: 'auto',
+            block: 'center',
+            inline: 'center'
+        });
+        dayElement.nativeElement.focus({ preventScroll: true });
+        this.pendingFocusDayId = undefined;
+    }
+
+    private focusRequestedWeek(): void {
+        if (!this.pendingFocusWeekId || !this.weekTabElements) {
+            return;
+        }
+
+        const weekElement = this.weekTabElements.find(element =>
+            element.nativeElement.dataset.weekId === this.pendingFocusWeekId
+        );
+
+        if (!weekElement) {
+            return;
+        }
+
+        weekElement.nativeElement.scrollIntoView({
+            behavior: 'auto',
+            block: 'nearest',
+            inline: 'center'
+        });
+        this.pendingFocusWeekId = undefined;
+    }
+
+    private queueRequestedFocus(): void {
+        if (!this.pendingFocusWeekId && !this.pendingFocusDayId) {
+            return;
+        }
+
+        if (this.focusTimerId !== undefined) {
+            clearTimeout(this.focusTimerId);
+        }
+
+        this.focusTimerId = setTimeout(() => {
+            this.focusTimerId = undefined;
+            this.focusRequestedWeek();
+            this.focusRequestedDay();
+        });
+    }
+
     private formatProgramStatus(status: ProgramImportStatus): string {
         if (status === 'complete') {
             return 'Complete';
@@ -306,7 +414,6 @@ export class ProgramImportComponent implements OnInit, OnDestroy {
         }
 
         this._programImportService.clearProgram(program.id);
-        this.refreshProgramCards();
     }
 
     private hexToRgba(hex: string, alpha: number): string {

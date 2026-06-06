@@ -344,7 +344,8 @@ describe('SimpleLogComponent', () => {
     expect(routerSpy.navigate).toHaveBeenCalledWith(['/log-entry/import-program'], {
       queryParams: {
         programId: 'program-1',
-        weekId: 'week-1'
+        weekId: 'week-1',
+        dayId: 'week-1-day-1'
       }
     });
   });

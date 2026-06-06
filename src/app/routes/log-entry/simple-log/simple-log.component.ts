@@ -388,7 +388,8 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         this._router.navigate(['/log-entry/import-program'], {
             queryParams: {
                 programId: this._programImportService.getProgram()?.id,
-                weekId: this.importedWeek.id
+                weekId: this.importedWeek.id,
+                dayId: this.importedDay?.id
             }
         });
     }
