@@ -5,6 +5,7 @@ import { ProgramImportService } from './program-import.service';
 import { ImportedProgram } from '../models/imported-program.model';
 import { Exercise } from '../models/exercise.model';
 import * as moment from 'moment';
+import { SupabaseDataService } from './supabase-data.service';
 
 describe('ProgramImportService', () => {
     let service: ProgramImportService;
@@ -191,6 +192,49 @@ describe('ProgramImportService', () => {
         expect(() => service.saveWorkoutState(storedState)).not.toThrow();
         expect((service.getWorkoutState('week-1', 'week-1-day-1').cardioExercises[0].duration as any))
             .toBe(750000);
+    });
+
+    it('uploads a legacy program before its workout state during account migration', async () => {
+        const cloud = jasmine.createSpyObj<SupabaseDataService>(
+            'SupabaseDataService',
+            [
+                'getPrograms',
+                'getWorkoutStates',
+                'getPreferences',
+                'savePrograms',
+                'saveWorkoutStates',
+                'savePreferences'
+            ]
+        );
+        cloud.getPrograms.and.resolveTo([]);
+        cloud.getWorkoutStates.and.resolveTo([]);
+        cloud.getPreferences.and.resolveTo({});
+        const writeOrder: string[] = [];
+        cloud.savePrograms.and.callFake(async () => {
+            writeOrder.push('programs');
+        });
+        cloud.saveWorkoutStates.and.callFake(async () => {
+            writeOrder.push('states');
+        });
+        cloud.savePreferences.and.resolveTo();
+        const migratingService = new ProgramImportService(cloud);
+        const program = createProgram();
+        migratingService.saveProgram(program);
+        migratingService.saveWorkoutState({
+            programId: program.id,
+            weekId: 'week-1',
+            dayId: 'week-1-day-1',
+            exercises: [createExercise('Clean', true)]
+        });
+
+        migratingService.setUserContext('user-1');
+        await migratingService.syncWithCloud();
+
+        expect(cloud.savePrograms).toHaveBeenCalledWith('user-1', [program]);
+        expect(cloud.saveWorkoutStates).toHaveBeenCalled();
+        expect(writeOrder).toEqual(['programs', 'states']);
+        expect(localStorage.getItem('logYourWo.importedPrograms')).toBeNull();
+        expect(localStorage.getItem('logYourWo.user-1.importedPrograms')).toBeTruthy();
     });
 });
 

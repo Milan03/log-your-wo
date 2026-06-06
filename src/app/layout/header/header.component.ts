@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, Injector, OnDestroy } from '@angular/core';
+import { Component, OnInit, ViewChild, Injector, OnDestroy, Optional, HostListener } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import screenfull from 'screenfull';
 
@@ -9,6 +9,9 @@ import { SharedService } from '../../shared/services/shared.service';
 import { filter, Subscription } from 'rxjs';
 import { FormValues, LogTypes } from 'src/app/shared/common/common.constants';
 import { TranslatorService } from 'src/app/core/translator/translator.service';
+import { AuthService } from '../../core/auth/auth.service';
+import { UserDataSyncService } from '../../shared/services/user-data-sync.service';
+import { ProfileService } from '../../shared/services/profile.service';
 
 @Component({
     selector: 'app-header',
@@ -28,13 +31,20 @@ export class HeaderComponent implements OnInit, OnDestroy {
     public logStartDatim: Date;
     public isNavSearchVisible: boolean;
     public showLogActions: boolean = false;
-    public showOffsidebarToggle: boolean = false;
+    public showOffsidebarToggle: boolean = true;
+    public signedIn = false;
+    public accountLabel = 'Guest';
+    public syncError = '';
 
     private logTypeSub: Subscription;
     private logStartDatimSub: Subscription;
     private langSub: Subscription;
     private routerSub: Subscription;
-
+    private sessionSub: Subscription;
+    private syncErrorSub: Subscription;
+    private profileSub: Subscription;
+    private userEmail = '';
+    private sidebarViewport = '';
     constructor(
         public menu: MenuService,
         public userblockService: UserblockService,
@@ -42,19 +52,35 @@ export class HeaderComponent implements OnInit, OnDestroy {
         public injector: Injector,
         private _router: Router,
         private sharedService: SharedService,
-        private translatorService: TranslatorService
+        private translatorService: TranslatorService,
+        @Optional() private authService?: AuthService,
+        @Optional() private userDataSync?: UserDataSyncService,
+        @Optional() private profileService?: ProfileService
     ) {
         this.currentLogType = undefined;
         this.logStartDatim = new Date();
         this.menuItems = menu.getMenu().slice(0, 4); // for horizontal layout
-        this.toggleCollapsedSideabar();
         this.subToLogType();
         this.subToLogStartDatim();
         this.subToLanguageChange();
         this.subToRouteChange();
+        if (this.authService) {
+            this.sessionSub = this.authService.session$.subscribe(session => {
+                this.signedIn = !!session;
+                this.userEmail = session && session.user ? session.user.email || '' : '';
+                this.updateAccountLabel();
+            });
+        }
+        if (this.profileService) {
+            this.profileSub = this.profileService.profile$.subscribe(() => this.updateAccountLabel());
+        }
+        if (this.userDataSync) {
+            this.syncErrorSub = this.userDataSync.error$.subscribe(error => this.syncError = error);
+        }
     }
 
     ngOnInit() {
+        this.syncSidebarForViewport();
         // this.isNavSearchVisible = false;
 
         // var ua = window.navigator.userAgent;
@@ -90,6 +116,12 @@ export class HeaderComponent implements OnInit, OnDestroy {
             this.langSub.unsubscribe();
         if (this.routerSub)
             this.routerSub.unsubscribe();
+        if (this.sessionSub)
+            this.sessionSub.unsubscribe();
+        if (this.syncErrorSub)
+            this.syncErrorSub.unsubscribe();
+        if (this.profileSub)
+            this.profileSub.unsubscribe();
     }
 
     public sendOpenRequest(type: string): void {
@@ -140,7 +172,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
     private updateLogActionVisibility(url: string): void {
         this.showLogActions = url.startsWith('/log-entry/simple-log') || url.startsWith('/log-entry/import-program/workout');
-        this.showOffsidebarToggle = url.startsWith('/log-entry/simple-log') || url.startsWith('/log-entry/import-program');
+        this.showOffsidebarToggle = true;
     }
 
     // toggleUserBlock(event) {
@@ -168,12 +200,65 @@ export class HeaderComponent implements OnInit, OnDestroy {
      }
 
     toggleCollapsedSideabar() {
+        if (window.innerWidth >= 768 && window.innerWidth < 992) {
+            this.settings.toggleLayoutSetting('isCollapsedText');
+            this.settings.setLayoutSetting('isCollapsed', false);
+            this.sharedService.emitSidebarToggle(this.settings.getLayoutSetting('isCollapsedText'));
+            return;
+        }
+
         this.settings.toggleLayoutSetting('isCollapsed');
+        this.settings.setLayoutSetting('isCollapsedText', false);
         this.sharedService.emitSidebarToggle(this.settings.getLayoutSetting('isCollapsed'));
     }
 
     isCollapsedText() {
         return this.settings.getLayoutSetting('isCollapsedText');
+    }
+
+    public async signOut(): Promise<void> {
+        if (!this.authService) {
+            return;
+        }
+
+        await this.authService.signOut();
+        await this._router.navigate(['/home']);
+    }
+
+    public openProfile(): void {
+        void this._router.navigate(['/profile']);
+    }
+
+    public openSignIn(): void {
+        void this._router.navigate(['/auth'], {
+            queryParams: { returnUrl: this._router.url }
+        });
+    }
+
+    @HostListener('window:resize')
+    public syncSidebarForViewport(): void {
+        const viewport = window.innerWidth >= 992
+            ? 'desktop'
+            : window.innerWidth >= 768
+                ? 'tablet'
+                : 'mobile';
+        if (this.sidebarViewport === viewport) {
+            return;
+        }
+
+        this.sidebarViewport = viewport;
+        this.settings.setLayoutSetting('isCollapsed', false);
+        this.settings.setLayoutSetting('isCollapsedText', viewport === 'tablet');
+        this.settings.setLayoutSetting('asideToggled', false);
+        this.sharedService.emitSidebarToggle(viewport === 'tablet');
+    }
+
+    private updateAccountLabel(): void {
+        this.accountLabel = this.profileService
+            ? this.profileService.getDisplayName(this.signedIn ? this.userEmail : undefined)
+            : this.signedIn && this.userEmail
+                ? this.userEmail.split('@')[0]
+                : 'Guest';
     }
 
     // toggleFullScreen(event) {

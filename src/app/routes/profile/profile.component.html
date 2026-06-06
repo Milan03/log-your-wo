@@ -1,0 +1,177 @@
+<div class="profile-page">
+    <header class="profile-hero">
+        <div>
+            <span class="profile-hero__eyebrow">Your training space</span>
+            <h1>Profile & preferences</h1>
+            <p>Personalize workout defaults and keep a little context around what you are training for.</p>
+        </div>
+        <div class="profile-hero__status" [class.profile-hero__status--account]="signedIn">
+            <em [class]="signedIn ? 'icon-cloud-upload' : 'icon-screen-desktop'" aria-hidden="true"></em>
+            <div>
+                <strong>{{ signedIn ? 'Synced account' : 'Guest profile' }}</strong>
+                <span>{{ signedIn ? email : 'Saved only in this browser' }}</span>
+            </div>
+        </div>
+    </header>
+
+    <div *ngIf="!signedIn" class="profile-account-callout">
+        <div>
+            <strong>Take your profile and workouts with you.</strong>
+            <p>Create a free account when you want cloud backup and access from another device.</p>
+        </div>
+        <button class="btn btn-primary" type="button" (click)="openAccount()">Sign in or register</button>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="save()" novalidate>
+        <div class="profile-grid">
+            <section class="profile-card" aria-labelledby="identity-heading">
+                <div class="profile-card__heading">
+                    <em class="icon-user" aria-hidden="true"></em>
+                    <div>
+                        <h2 id="identity-heading">About you</h2>
+                        <p>Used to personalize your account and header.</p>
+                    </div>
+                </div>
+
+                <div class="profile-form-grid">
+                    <div class="form-group">
+                        <label for="profile-first-name">First name</label>
+                        <input id="profile-first-name" class="form-control" formControlName="firstName" autocomplete="given-name">
+                    </div>
+                    <div class="form-group">
+                        <label for="profile-last-name">Last name</label>
+                        <input id="profile-last-name" class="form-control" formControlName="lastName" autocomplete="family-name">
+                    </div>
+                    <div class="form-group">
+                        <label for="profile-username">Username</label>
+                        <input id="profile-username" class="form-control" formControlName="username" autocomplete="username">
+                        <small class="text-muted">Letters, numbers, periods, hyphens, and underscores.</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="profile-birth-date">Date of birth</label>
+                        <input id="profile-birth-date" class="form-control" type="date" formControlName="birthDate">
+                    </div>
+                    <div class="form-group">
+                        <label for="profile-gender">Gender <span class="text-muted">(optional)</span></label>
+                        <select id="profile-gender" class="form-control" formControlName="gender">
+                            <option value="">Prefer not to say</option>
+                            <option value="woman">Woman</option>
+                            <option value="man">Man</option>
+                            <option value="non-binary">Non-binary</option>
+                            <option value="self-described">Self-described</option>
+                        </select>
+                    </div>
+                    <div class="form-group profile-form-grid__wide">
+                        <label for="profile-bio">Training bio</label>
+                        <textarea id="profile-bio" class="form-control" rows="3" formControlName="bio"
+                            placeholder="What keeps you training?"></textarea>
+                    </div>
+                </div>
+            </section>
+
+            <section class="profile-card" aria-labelledby="training-heading">
+                <div class="profile-card__heading">
+                    <em class="icon-energy" aria-hidden="true"></em>
+                    <div>
+                        <h2 id="training-heading">Training profile</h2>
+                        <p>Your goals, experience, and weekly rhythm.</p>
+                    </div>
+                </div>
+
+                <div class="profile-form-grid">
+                    <div class="form-group">
+                        <label for="profile-goal">Primary goal</label>
+                        <select id="profile-goal" class="form-control" formControlName="fitnessGoal">
+                            <option value="">Select a goal</option>
+                            <option value="general-fitness">General fitness</option>
+                            <option value="strength">Build strength</option>
+                            <option value="muscle">Build muscle</option>
+                            <option value="weight-loss">Fat loss</option>
+                            <option value="endurance">Improve endurance</option>
+                            <option value="competition">Prepare for competition</option>
+                            <option value="mobility">Mobility and recovery</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="profile-experience">Experience</label>
+                        <select id="profile-experience" class="form-control" formControlName="experienceLevel">
+                            <option value="">Select experience</option>
+                            <option value="beginner">Beginner</option>
+                            <option value="intermediate">Intermediate</option>
+                            <option value="advanced">Advanced</option>
+                            <option value="competitive">Competitive athlete</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="profile-frequency">Workouts per week</label>
+                        <input id="profile-frequency" class="form-control" type="number" min="1" max="14"
+                            formControlName="workoutsPerWeek">
+                    </div>
+                    <div class="form-group profile-form-grid__wide">
+                        <span class="profile-label">Training interests</span>
+                        <div class="profile-tags" aria-label="Training interests">
+                            <button *ngFor="let option of trainingOptions" type="button"
+                                [class.profile-tag--selected]="isTrainingSelected(option)"
+                                [attr.aria-pressed]="isTrainingSelected(option)"
+                                (click)="toggleTraining(option)">
+                                {{ option }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="profile-card" aria-labelledby="metrics-heading">
+                <div class="profile-card__heading">
+                    <em class="icon-speedometer" aria-hidden="true"></em>
+                    <div>
+                        <h2 id="metrics-heading">Metrics & defaults</h2>
+                        <p>Optional reference values and measurement preferences.</p>
+                    </div>
+                </div>
+
+                <div class="profile-form-grid">
+                    <div class="form-group">
+                        <label for="profile-units">Unit system</label>
+                        <select id="profile-units" class="form-control" formControlName="unitSystem">
+                            <option value="imperial">Imperial (lb, ft/in, mi)</option>
+                            <option value="metric">Metric (kg, cm, km)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="profile-height">Height</label>
+                        <div class="input-group">
+                            <input id="profile-height" class="form-control" type="number" min="1" max="300"
+                                formControlName="height">
+                            <span class="input-group-text">{{ form.get('unitSystem').value === 'metric' ? 'cm' : 'in' }}</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="profile-weight">Body weight</label>
+                        <div class="input-group">
+                            <input id="profile-weight" class="form-control" type="number" min="1" max="1000"
+                                formControlName="bodyWeight">
+                            <span class="input-group-text">{{ form.get('unitSystem').value === 'metric' ? 'kg' : 'lb' }}</span>
+                        </div>
+                    </div>
+                    <div class="form-group profile-form-grid__wide">
+                        <label class="profile-check">
+                            <input type="checkbox" formControlName="emailUpdates">
+                            <span>
+                                <strong>Product updates</strong>
+                                <small>Occasional news about meaningful app improvements.</small>
+                            </span>
+                        </label>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <div class="profile-actions">
+            <span *ngIf="saved" class="profile-saved" role="status">
+                <em class="icon-check" aria-hidden="true"></em> Profile saved
+            </span>
+            <button class="btn btn-primary" type="submit">Save profile</button>
+        </div>
+    </form>
+</div>

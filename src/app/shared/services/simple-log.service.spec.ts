@@ -3,6 +3,7 @@ import { TestBed } from '@angular/core/testing';
 import { Exercise } from '../models/exercise.model';
 import { SimpleLog } from '../models/simple-log.model';
 import { SimpleLogService } from './simple-log.service';
+import { SupabaseDataService } from './supabase-data.service';
 
 describe('SimpleLogService', () => {
     let service: SimpleLogService;
@@ -86,5 +87,28 @@ describe('SimpleLogService', () => {
         service.deleteLog(saved.id);
 
         expect(service.getLogs()).toEqual([]);
+    });
+
+    it('migrates legacy browser logs into the signed-in user account', async () => {
+        const cloud = jasmine.createSpyObj<SupabaseDataService>(
+            'SupabaseDataService',
+            ['getSimpleLogs', 'saveSimpleLogs', 'deleteSimpleLog']
+        );
+        cloud.getSimpleLogs.and.resolveTo([]);
+        cloud.saveSimpleLogs.and.resolveTo();
+        const migratingService = new SimpleLogService(cloud);
+        const log = new SimpleLog();
+        log.exercises = [new Exercise()];
+        migratingService.saveLog(log, '2026-06-06');
+
+        migratingService.setUserContext('user-1');
+        await migratingService.syncWithCloud();
+
+        expect(cloud.saveSimpleLogs).toHaveBeenCalledWith(
+            'user-1',
+            jasmine.arrayContaining([jasmine.objectContaining({ workoutDate: '2026-06-06' })])
+        );
+        expect(localStorage.getItem('logYourWo.simpleLogs')).toBeNull();
+        expect(localStorage.getItem('logYourWo.user-1.simpleLogs')).toBeTruthy();
     });
 });

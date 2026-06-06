@@ -7,6 +7,18 @@
     <app-offsidebar class="offsidebar"></app-offsidebar>
     <!-- Main section-->
     <section class="section-container">
+        <div *ngIf="showGuestNotice" class="guest-notice" role="status">
+            <em class="icon-screen-desktop" aria-hidden="true"></em>
+            <div class="guest-notice__copy">
+                <strong>You are using local mode.</strong>
+                <span>Your workouts stay in this browser. Create a free account for cloud backup and access on other devices.</span>
+            </div>
+            <button class="btn btn-sm btn-primary" type="button" (click)="openAccount()">Sign in or register</button>
+            <button class="guest-notice__close" type="button" aria-label="Dismiss local mode notice"
+                (click)="dismissGuestNotice()">
+                <em class="icon-close" aria-hidden="true"></em>
+            </button>
+        </div>
         <!-- Page content-->
         <div class="content-wrapper">
             <router-outlet></router-outlet>

@@ -1,0 +1,248 @@
+@use 'src/app/shared/styles/app/variables.scss';
+
+.auth-page {
+    display: grid;
+    min-height: 100vh;
+    padding: 32px 18px;
+    place-items: center;
+    background:
+        linear-gradient(rgba(245, 248, 250, 0.94), rgba(235, 242, 247, 0.96)),
+        url('/assets/img/welcome.jpg') center / cover;
+}
+
+.auth-shell {
+    width: min(100%, 460px);
+    overflow: hidden;
+    border: 1px solid #d7e0e7;
+    border-radius: 9px;
+    background: #fff;
+    box-shadow: 0 18px 45px rgba(31, 41, 51, 0.18);
+}
+
+.auth-shell__brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 17px 24px;
+    color: #fff;
+    background: variables.$info;
+    font-weight: 700;
+}
+
+.auth-shell__brand img {
+    width: 34px;
+    height: 34px;
+    padding: 4px;
+    border-radius: 50%;
+    background: #fff;
+}
+
+.auth-shell__heading,
+.auth-tabs,
+.auth-shell__google,
+.auth-divider,
+.auth-shell form,
+.auth-shell__guest {
+    margin-right: 28px;
+    margin-left: 28px;
+}
+
+.auth-shell__heading {
+    margin-top: 28px;
+    text-align: left;
+}
+
+.auth-shell__heading h1 {
+    margin: 4px 0 8px;
+    color: #243442;
+    font-size: 1.65rem;
+}
+
+.auth-shell__heading p {
+    color: #647585;
+}
+
+.auth-shell__eyebrow {
+    color: variables.$info;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.auth-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    margin-top: 22px;
+    margin-bottom: 18px;
+    border-radius: 8px;
+    background: #f3f6f8;
+    box-shadow: inset 0 0 0 1px #d7e0e7;
+    overflow: hidden;
+}
+
+.auth-tabs__button {
+    appearance: none;
+    min-height: 42px;
+    padding: 10px 14px;
+    color: #5a6a78;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    font-weight: 600;
+    outline: 0;
+    box-shadow: none;
+    transition: color 0.18s ease, background 0.18s ease;
+}
+
+.auth-tabs__button:hover {
+    color: #007bff;
+    background: rgba(0, 123, 255, 0.08);
+}
+
+.auth-tabs__button--active {
+    color: #fff;
+    background: #007bff;
+}
+
+.auth-tabs__button--active:hover {
+    color: #fff;
+    background: #007bff;
+}
+
+.auth-tabs__button:focus-visible {
+    position: relative;
+    z-index: 1;
+    outline: 3px solid rgba(0, 123, 255, 0.35);
+    outline-offset: -3px;
+}
+
+.auth-shell__google {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: calc(100% - 56px);
+    gap: 10px;
+    padding: 11px;
+    color: #344452;
+    border: 1px solid #ccd6de;
+    border-radius: 5px;
+    background: #fff;
+    font-weight: 600;
+}
+
+.auth-shell__google span {
+    color: #4285f4;
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.auth-divider {
+    margin-top: 22px;
+    margin-bottom: 15px;
+    border-top: 1px solid #dce3e8;
+    text-align: center;
+}
+
+.auth-divider span {
+    position: relative;
+    top: -0.72rem;
+    padding: 0 10px;
+    color: #7a8894;
+    background: #fff;
+    font-size: 0.78rem;
+}
+
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-group label {
+    color: #344452;
+    font-weight: 600;
+}
+
+.auth-message {
+    margin-bottom: 14px;
+    padding: 11px;
+    border-radius: 4px;
+}
+
+.auth-message--error {
+    color: #a61b1b;
+    background: #fff1f1;
+}
+
+.auth-message--success {
+    color: #176b3a;
+    background: #ecfdf3;
+}
+
+.auth-shell__submit {
+    min-height: 44px;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(63, 81, 181, 0.22);
+}
+
+.auth-shell__guest {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 24px;
+    padding: 18px 0 24px;
+    color: #657585;
+    border-top: 1px solid #e2e8ed;
+    font-size: 0.82rem;
+}
+
+.auth-shell__guest button {
+    padding: 7px 10px;
+    color: variables.$info;
+    border: 1px solid rgba(63, 81, 181, 0.35);
+    border-radius: 5px;
+    background: rgba(63, 81, 181, 0.05);
+    font-weight: 700;
+}
+
+.auth-shell__guest button:hover {
+    color: #fff;
+    border-color: variables.$info;
+    background: variables.$info;
+}
+
+.auth-shell__callback {
+    padding: 54px 28px;
+    text-align: center;
+}
+
+.auth-shell__callback .spinner-border {
+    margin-bottom: 16px;
+}
+
+button:focus-visible,
+input:focus-visible {
+    outline: 3px solid rgba(35, 151, 198, 0.3);
+    outline-offset: 2px;
+}
+
+@media (max-width: 480px) {
+    .auth-shell__heading,
+    .auth-tabs,
+    .auth-shell__google,
+    .auth-divider,
+    .auth-shell form,
+    .auth-shell__guest {
+        margin-right: 20px;
+        margin-left: 20px;
+    }
+
+    .auth-shell__google {
+        width: calc(100% - 40px);
+    }
+
+    .auth-shell__guest {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}

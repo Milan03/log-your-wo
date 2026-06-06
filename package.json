@@ -29,6 +29,8 @@
     "@fortawesome/fontawesome-free": "7.2.0",
     "@ngx-translate/core": "17.0.0",
     "@ngx-translate/http-loader": "17.0.0",
+    "@supabase/ssr": "^0.10.3",
+    "@supabase/supabase-js": "^2.107.0",
     "bootstrap": "5.3.8",
     "codemirror": "6.0.2",
     "guid-typescript": "^1.0.9",

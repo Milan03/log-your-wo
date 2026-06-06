@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, OnDestroy, OnInit, Optional, ViewChild } from '@angular/core';
 import { UntypedFormGroup, UntypedFormBuilder, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -17,6 +17,7 @@ import { GoogleAnalyticsService } from '../../../shared/services/google-analytic
 import { ProgramImportService } from '../../../shared/services/program-import.service';
 import { SimpleLogService } from '../../../shared/services/simple-log.service';
 import { ImportedProgramDay, ImportedProgramWeek, ImportedWorkoutState } from '../../../shared/models/imported-program.model';
+import { ProfileService } from '../../../shared/services/profile.service';
 
 import { LogTypes, FormValues } from '../../../shared/common/common.constants';
 
@@ -106,7 +107,8 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         private _programImportService: ProgramImportService,
         private _simpleLogService: SimpleLogService,
         private _activatedRoute: ActivatedRoute,
-        private _router: Router
+        private _router: Router,
+        @Optional() private _profileService?: ProfileService
     ) {
         this.simpleLogForm = this._formBuilder.group({
             'title': ['', Validators.compose([Validators.maxLength(25)])]
@@ -114,6 +116,11 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     }
 
     ngOnInit(): void {
+        const profile = this._profileService ? this._profileService.profile : undefined;
+        if (profile && profile.updatedAt) {
+            this.weightMeasure = profile.unitSystem === 'metric' ? 'kg' : 'lbs';
+            this.distanceMeasure = profile.unitSystem === 'metric' ? 'km' : 'mi';
+        }
         this.currentLanguage = FormValues.ENCode;
         this.currentLog = new SimpleLog();
         this.workoutDate = this.toDateInputValue(this.currentLog.startDatim);

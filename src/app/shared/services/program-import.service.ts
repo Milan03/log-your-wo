@@ -10,21 +10,86 @@ import {
     ImportedProgramWeek,
     ImportedWorkoutState
 } from '../models/imported-program.model';
+import { SupabaseDataService } from './supabase-data.service';
 
 @Injectable({
     providedIn: 'root'
 })
 export class ProgramImportService {
-    private readonly programStorageKey = 'logYourWo.importedProgram';
-    private readonly programsStorageKey = 'logYourWo.importedPrograms';
-    private readonly workoutStorageKey = 'logYourWo.importedWorkoutStates';
-    private readonly completionColorStorageKey = 'logYourWo.completionColor';
+    private readonly legacyProgramStorageKey = 'logYourWo.importedProgram';
+    private readonly legacyProgramsStorageKey = 'logYourWo.importedPrograms';
+    private readonly legacyWorkoutStorageKey = 'logYourWo.importedWorkoutStates';
+    private readonly legacyCompletionColorStorageKey = 'logYourWo.completionColor';
     private readonly defaultCompletionColor = '#2fb379';
+    private activeUserId: string;
+    private cloudWriteQueue: Promise<void> = Promise.resolve();
     private readonly programSource = new BehaviorSubject<ImportedProgram>(this.getProgram());
     private readonly programsSource = new BehaviorSubject<ImportedProgram[]>(this.getPrograms());
 
     public program$ = this.programSource.asObservable();
     public programs$ = this.programsSource.asObservable();
+
+    constructor(private cloudData?: SupabaseDataService) { }
+
+    public setUserContext(userId: string): void {
+        this.activeUserId = userId;
+        this.programsSource.next(this.getPrograms());
+        this.programSource.next(this.getProgram());
+    }
+
+    public clearUserContext(): void {
+        this.activeUserId = undefined;
+        this.programsSource.next(this.getPrograms());
+        this.programSource.next(this.getProgram());
+    }
+
+    public async syncWithCloud(): Promise<void> {
+        if (!this.activeUserId) {
+            return;
+        }
+
+        const userId = this.activeUserId;
+        const [remotePrograms, remoteStates, preferences] = await Promise.all([
+            this.cloudData.getPrograms(userId),
+            this.cloudData.getWorkoutStates(userId),
+            this.cloudData.getPreferences(userId)
+        ]);
+        const accountPrograms = this.readJson<ImportedProgram[]>(this.programsStorageKey(), []);
+        const guestPrograms = this.readJson<ImportedProgram[]>(this.legacyProgramsStorageKey, []);
+        const guestActiveProgram = this.readJson<ImportedProgram>(this.legacyProgramStorageKey, undefined);
+        const accountStates = this.readJson<ImportedWorkoutState[]>(this.workoutStorageKey(), []);
+        const guestStates = this.readJson<ImportedWorkoutState[]>(this.legacyWorkoutStorageKey, []);
+        const programs = this.mergePrograms(
+            guestActiveProgram ? [guestActiveProgram, ...guestPrograms] : guestPrograms,
+            accountPrograms,
+            remotePrograms
+        );
+        const states = this.mergeWorkoutStates(guestStates, accountStates, remoteStates);
+        const activeProgram = programs.find(program => program.id === preferences.activeProgramId)
+            || guestActiveProgram
+            || programs[0];
+        const completionColor = preferences.completionColor
+            || localStorage.getItem(this.legacyCompletionColorStorageKey)
+            || this.defaultCompletionColor;
+
+        await this.cloudData.savePrograms(userId, programs);
+        await Promise.all([
+            this.cloudData.saveWorkoutStates(userId, states),
+            this.cloudData.savePreferences(userId, {
+                activeProgramId: activeProgram ? activeProgram.id : undefined,
+                completionColor
+            })
+        ]);
+
+        this.writePrograms(programs);
+        this.writeWorkoutStates(states);
+        this.writeActiveProgram(activeProgram);
+        this.writeCompletionColor(completionColor);
+        this.removeLegacyData();
+
+        this.programsSource.next(this.getPrograms());
+        this.programSource.next(this.getProgram());
+    }
 
     public async importWorkbook(file: File): Promise<ImportedProgram> {
         const data = await file.arrayBuffer();
@@ -54,7 +119,7 @@ export class ProgramImportService {
     }
 
     public getProgram(): ImportedProgram {
-        const stored = localStorage.getItem(this.programStorageKey);
+        const stored = localStorage.getItem(this.programStorageKey());
         const program = stored ? JSON.parse(stored) : undefined;
 
         if (program) {
@@ -66,13 +131,13 @@ export class ProgramImportService {
     }
 
     public getPrograms(): ImportedProgram[] {
-        const stored = localStorage.getItem(this.programsStorageKey);
+        const stored = localStorage.getItem(this.programsStorageKey());
 
         if (stored) {
             return JSON.parse(stored);
         }
 
-        const legacyProgram = localStorage.getItem(this.programStorageKey);
+        const legacyProgram = localStorage.getItem(this.programStorageKey());
         return legacyProgram ? [JSON.parse(legacyProgram)] : [];
     }
 
@@ -81,8 +146,10 @@ export class ProgramImportService {
             program,
             ...this.getPrograms().filter(currentProgram => currentProgram.id !== program.id)
         ]);
-        localStorage.setItem(this.programStorageKey, JSON.stringify(program));
+        this.writeActiveProgram(program);
         this.programSource.next(program);
+        this.persistPrograms([program]);
+        this.persistPreferences({ activeProgramId: program.id });
     }
 
     public setActiveProgram(programId: string): ImportedProgram {
@@ -97,8 +164,9 @@ export class ProgramImportService {
             return program;
         }
 
-        localStorage.setItem(this.programStorageKey, JSON.stringify(program));
+        this.writeActiveProgram(program);
         this.programSource.next(program);
+        this.persistPreferences({ activeProgramId: program.id });
         return program;
     }
 
@@ -117,20 +185,26 @@ export class ProgramImportService {
         const nextProgram = activeProgram && activeProgram.id === idToDelete ? remainingPrograms[0] : activeProgram;
 
         if (nextProgram) {
-            localStorage.setItem(this.programStorageKey, JSON.stringify(nextProgram));
+            this.writeActiveProgram(nextProgram);
         } else {
-            localStorage.removeItem(this.programStorageKey);
+            localStorage.removeItem(this.programStorageKey());
         }
 
         this.programSource.next(nextProgram);
+        this.deleteRemoteProgram(idToDelete);
+        this.persistPreferences({ activeProgramId: nextProgram ? nextProgram.id : undefined });
     }
 
     public getCompletionColor(): string {
-        return localStorage.getItem(this.completionColorStorageKey) || this.defaultCompletionColor;
+        return localStorage.getItem(this.completionColorStorageKey()) || this.defaultCompletionColor;
     }
 
     public saveCompletionColor(color: string): void {
-        localStorage.setItem(this.completionColorStorageKey, color);
+        this.writeCompletionColor(color);
+        this.persistPreferences({
+            activeProgramId: this.getProgram() ? this.getProgram().id : undefined,
+            completionColor: color
+        });
     }
 
     public getWeek(weekId: string): ImportedProgramWeek {
@@ -180,9 +254,10 @@ export class ProgramImportService {
             states.push(cleanedState);
         }
 
-        localStorage.setItem(this.workoutStorageKey, JSON.stringify(states));
+        this.writeWorkoutStates(states);
         this.programsSource.next(this.getPrograms());
         this.programSource.next(this.getProgram());
+        this.persistWorkoutStates([cleanedState]);
     }
 
     public createExercisesForDay(day: ImportedProgramDay): Exercise[] {
@@ -350,15 +425,15 @@ export class ProgramImportService {
     }
 
     private getWorkoutStates(): ImportedWorkoutState[] {
-        const stored = localStorage.getItem(this.workoutStorageKey);
+        const stored = localStorage.getItem(this.workoutStorageKey());
         return stored ? JSON.parse(stored) : [];
     }
 
     private saveProgramList(programs: ImportedProgram[]): void {
         if (programs.length) {
-            localStorage.setItem(this.programsStorageKey, JSON.stringify(programs));
+            this.writePrograms(programs);
         } else {
-            localStorage.removeItem(this.programsStorageKey);
+            localStorage.removeItem(this.programsStorageKey());
         }
 
         this.programsSource.next(programs);
@@ -368,10 +443,190 @@ export class ProgramImportService {
         const states = this.getWorkoutStates().filter(state => state.programId !== programId);
 
         if (states.length) {
-            localStorage.setItem(this.workoutStorageKey, JSON.stringify(states));
+            this.writeWorkoutStates(states);
         } else {
-            localStorage.removeItem(this.workoutStorageKey);
+            localStorage.removeItem(this.workoutStorageKey());
         }
+    }
+
+    private mergePrograms(...collections: ImportedProgram[][]): ImportedProgram[] {
+        const byId = new Map<string, ImportedProgram>();
+        collections.forEach(programs => programs.forEach(program => byId.set(program.id, program)));
+        return Array.from(byId.values()).sort((first, second) =>
+            (second.importedAt || '').localeCompare(first.importedAt || '')
+        );
+    }
+
+    private mergeWorkoutStates(...collections: ImportedWorkoutState[][]): ImportedWorkoutState[] {
+        const byId = new Map<string, ImportedWorkoutState>();
+        collections.forEach(states => states.forEach(state => {
+            byId.set(`${state.programId}:${state.weekId}:${state.dayId}`, state);
+        }));
+        return Array.from(byId.values());
+    }
+
+    private async migrateLocalData(userId: string, preferences: { activeProgramId?: string, completionColor?: string }): Promise<void> {
+        const cachedPrograms = this.readJson<ImportedProgram[]>(this.programsStorageKey(), []);
+        const legacyPrograms = this.readJson<ImportedProgram[]>(this.legacyProgramsStorageKey, []);
+        const legacyActiveProgram = this.readJson<ImportedProgram>(this.legacyProgramStorageKey, undefined);
+        const programs = cachedPrograms.length
+            ? cachedPrograms
+            : legacyPrograms.length
+                ? legacyPrograms
+                : legacyActiveProgram
+                    ? [legacyActiveProgram]
+                    : [];
+        const cachedStates = this.readJson<ImportedWorkoutState[]>(this.workoutStorageKey(), []);
+        const legacyStates = this.readJson<ImportedWorkoutState[]>(this.legacyWorkoutStorageKey, []);
+        const states = cachedStates.length ? cachedStates : legacyStates;
+        const completionColor = localStorage.getItem(this.completionColorStorageKey())
+            || localStorage.getItem(this.legacyCompletionColorStorageKey)
+            || preferences.completionColor
+            || this.defaultCompletionColor;
+        const activeProgram = programs.find(program => program.id === preferences.activeProgramId)
+            || legacyActiveProgram
+            || programs[0];
+
+        await this.cloudData.savePrograms(userId, programs);
+        await Promise.all([
+            this.cloudData.saveWorkoutStates(userId, states),
+            this.cloudData.savePreferences(userId, {
+                activeProgramId: activeProgram ? activeProgram.id : undefined,
+                completionColor
+            })
+        ]);
+
+        this.writePrograms(programs);
+        this.writeWorkoutStates(states);
+        this.writeActiveProgram(activeProgram);
+        this.writeCompletionColor(completionColor);
+        this.removeLegacyData();
+    }
+
+    private programStorageKey(): string {
+        return this.scopedKey('importedProgram', this.legacyProgramStorageKey);
+    }
+
+    private programsStorageKey(): string {
+        return this.scopedKey('importedPrograms', this.legacyProgramsStorageKey);
+    }
+
+    private workoutStorageKey(): string {
+        return this.scopedKey('importedWorkoutStates', this.legacyWorkoutStorageKey);
+    }
+
+    private completionColorStorageKey(): string {
+        return this.scopedKey('completionColor', this.legacyCompletionColorStorageKey);
+    }
+
+    private scopedKey(name: string, legacyKey: string): string {
+        return this.activeUserId ? `logYourWo.${this.activeUserId}.${name}` : legacyKey;
+    }
+
+    private writePrograms(programs: ImportedProgram[]): void {
+        if (programs.length) {
+            localStorage.setItem(this.programsStorageKey(), JSON.stringify(programs));
+        } else {
+            localStorage.removeItem(this.programsStorageKey());
+        }
+    }
+
+    private writeActiveProgram(program: ImportedProgram): void {
+        if (program) {
+            localStorage.setItem(this.programStorageKey(), JSON.stringify(program));
+        } else {
+            localStorage.removeItem(this.programStorageKey());
+        }
+    }
+
+    private writeWorkoutStates(states: ImportedWorkoutState[]): void {
+        if (states.length) {
+            localStorage.setItem(this.workoutStorageKey(), JSON.stringify(states));
+        } else {
+            localStorage.removeItem(this.workoutStorageKey());
+        }
+    }
+
+    private writeCompletionColor(color: string): void {
+        localStorage.setItem(this.completionColorStorageKey(), color);
+    }
+
+    private readJson<T>(key: string, fallback: T): T {
+        const value = localStorage.getItem(key);
+
+        try {
+            return value ? JSON.parse(value) as T : fallback;
+        } catch {
+            return fallback;
+        }
+    }
+
+    private removeLegacyData(): void {
+        localStorage.removeItem(this.legacyProgramStorageKey);
+        localStorage.removeItem(this.legacyProgramsStorageKey);
+        localStorage.removeItem(this.legacyWorkoutStorageKey);
+        localStorage.removeItem(this.legacyCompletionColorStorageKey);
+    }
+
+    private persistPrograms(programs: ImportedProgram[]): void {
+        if (!this.activeUserId) {
+            return;
+        }
+
+        const userId = this.activeUserId;
+        this.enqueueCloudWrite(
+            () => this.cloudData.savePrograms(userId, programs),
+            'Unable to save imported program to Supabase.'
+        );
+    }
+
+    private persistWorkoutStates(states: ImportedWorkoutState[]): void {
+        if (!this.activeUserId) {
+            return;
+        }
+
+        const userId = this.activeUserId;
+        this.enqueueCloudWrite(
+            () => this.cloudData.saveWorkoutStates(userId, states),
+            'Unable to save imported workout state to Supabase.'
+        );
+    }
+
+    private persistPreferences(preferences: { activeProgramId?: string, completionColor?: string }): void {
+        if (!this.activeUserId) {
+            return;
+        }
+
+        const mergedPreferences = {
+            activeProgramId: preferences.activeProgramId,
+            completionColor: preferences.completionColor || this.getCompletionColor()
+        };
+        const userId = this.activeUserId;
+        this.enqueueCloudWrite(
+            () => this.cloudData.savePreferences(userId, mergedPreferences),
+            'Unable to save user preferences to Supabase.'
+        );
+    }
+
+    private deleteRemoteProgram(programId: string): void {
+        if (!this.activeUserId) {
+            return;
+        }
+
+        const userId = this.activeUserId;
+        this.enqueueCloudWrite(
+            () => this.cloudData.deleteProgram(userId, programId),
+            'Unable to delete imported program from Supabase.'
+        );
+    }
+
+    private enqueueCloudWrite(action: () => Promise<void>, errorMessage: string): void {
+        this.cloudWriteQueue = this.cloudWriteQueue
+            .catch(() => undefined)
+            .then(action)
+            .catch(error => {
+                console.error(errorMessage, error);
+            });
     }
 
     private parseSheet(rows: any[][]): ImportedProgramWeek[] {

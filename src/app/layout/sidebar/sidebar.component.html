@@ -15,20 +15,20 @@
                 <!-- menu heading -->
                 <span *ngIf="item.heading">{{(item.translate | translate) || item.text}}</span>
                 <!-- external links -->
-                <a href mat-ripple *ngIf="!item.heading && !item.submenu && item.elink" [attr.target]="item.target" [attr.href]="item.elink" title="{{item.text}}">
+                <a href mat-ripple *ngIf="!item.heading && !item.submenu && item.elink" [attr.target]="item.target" [attr.href]="item.elink">
                     <span class="float-right" *ngIf="item.alert" [ngClass]="item.label || 'badge badge-success'">{{item.alert}}</span>
                     <em class="{{item.icon}}" *ngIf="item.icon"></em>
                     <span>{{(item.translate | translate) || item.text}}</span>
                 </a>
                 <!-- single menu item -->
-                <a href mat-ripple *ngIf="!item.heading && !item.submenu && !item.elink" [routerLink]="item.link" [attr.route]="item.link" title="{{item.text}}"
+                <a href mat-ripple *ngIf="!item.heading && !item.submenu && !item.elink" [routerLink]="item.link" [attr.route]="item.link"
                     (click)="toggleSubmenuClick($event)" (mouseenter)="toggleSubmenuHover($event)">
                     <span class="float-right" *ngIf="item.alert" [ngClass]="item.label || 'badge badge-success'">{{item.alert}}</span>
                     <em class="{{item.icon}}" *ngIf="item.icon"></em>
                     <span>{{(item.translate | translate) || item.text}}</span>
                 </a>
                 <!-- has submenu -->
-                <a href mat-ripple *ngIf="!item.heading && item.submenu" title="{{item.text}}"
+                <a href mat-ripple *ngIf="!item.heading && item.submenu"
                     (click)="toggleSubmenuClick($event)" (mouseenter)="toggleSubmenuHover($event)">
                         <span class="float-right" *ngIf="item.alert" [ngClass]="item.label || 'badge badge-success'">{{item.alert}}</span>
                         <em class="{{item.icon}}" *ngIf="item.icon"></em>
@@ -110,6 +110,22 @@
 
         </ul>
         <!-- END sidebar nav-->
+
+        <ul class="sidebar-nav sidebar-account-nav">
+            <li class="nav-heading">ACCOUNT</li>
+            <li *ngIf="!signedIn">
+                <button class="nav-item" type="button" (click)="openSignIn()">
+                    <em class="icon-login" aria-hidden="true"></em>
+                    <span>Sign in or register</span>
+                </button>
+            </li>
+            <li *ngIf="signedIn">
+                <button class="nav-item" type="button" (click)="signOut()">
+                    <em class="icon-logout" aria-hidden="true"></em>
+                    <span>Log out</span>
+                </button>
+            </li>
+        </ul>
 
     </nav>
 </div>

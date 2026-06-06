@@ -17,7 +17,7 @@
         <li class="nav-item">
             <!-- Button used to collapse the left sidebar. Only visible on tablet and desktops-->
             <a class="nav-link d-none d-md-block d-lg-block d-xl-block" trigger-resize=""
-                (click)="toggleCollapsedSideabar()" *ngIf="!isCollapsedText()">
+                (click)="toggleCollapsedSideabar()">
                 <em class="fas fa-bars"></em>
             </a>
             <!-- Button to show/hide the sidebar on mobile. Visible on mobile only.-->
@@ -60,6 +60,34 @@
     <!-- END Left navbar-->
     <!-- START Right Navbar-->
     <ul class="navbar-nav flex-row">
+        <li *ngIf="syncError" class="nav-item d-none d-md-flex align-items-center">
+            <span class="nav-link header-sync-warning" role="status" [attr.title]="syncError">
+                Cloud sync unavailable
+            </span>
+        </li>
+        <li class="nav-item header-account-menu">
+            <button class="nav-link header-account" type="button" [matMenuTriggerFor]="accountMenu"
+                [attr.aria-label]="'Open account menu for ' + accountLabel">
+                <span class="header-account__avatar" aria-hidden="true">{{ accountLabel.charAt(0) | uppercase }}</span>
+                <span class="header-account__name d-none d-sm-inline">{{ accountLabel }}</span>
+                <span *ngIf="!signedIn" class="header-account__local d-none d-lg-inline">Local</span>
+                <em class="fas fa-chevron-down header-account__chevron" aria-hidden="true"></em>
+            </button>
+            <mat-menu #accountMenu="matMenu" xPosition="before">
+                <button mat-menu-item type="button" (click)="openProfile()">
+                    <em class="icon-user header-menu-icon" aria-hidden="true"></em>
+                    <span>Profile</span>
+                </button>
+                <button *ngIf="signedIn" mat-menu-item type="button" (click)="signOut()">
+                    <em class="icon-logout header-menu-icon" aria-hidden="true"></em>
+                    <span>Log out</span>
+                </button>
+                <button *ngIf="!signedIn" mat-menu-item type="button" (click)="openSignIn()">
+                    <em class="icon-login header-menu-icon" aria-hidden="true"></em>
+                    <span>Sign in or register</span>
+                </button>
+            </mat-menu>
+        </li>
         <!-- START Add Exercise Buttons START -->
         <li *ngIf="showLogActions" class="nav-item">
             <div id="add-exercise-label">{{ 'log-entry.AddExercise' | translate }}</div>

@@ -1,9 +1,12 @@
-import { Component, OnInit, Injector, OnDestroy } from '@angular/core';
+import { Component, OnInit, Injector, OnDestroy, Optional } from '@angular/core';
 import { Router } from '@angular/router';
 declare var $: any;
 
 import { MenuService } from '../../core/menu/menu.service';
 import { SettingsService } from '../../core/settings/settings.service';
+import { AuthService } from '../../core/auth/auth.service';
+import { ProfileService } from '../../shared/services/profile.service';
+import { Subscription } from 'rxjs';
 
 @Component({
     selector: 'app-sidebar',
@@ -17,10 +20,31 @@ export class SidebarComponent implements OnInit, OnDestroy {
     router: Router;
     sbclickEvent = 'click.sidebar-toggle';
     $doc: any = null;
+    signedIn = false;
+    accountLabel = 'Guest';
+    private sessionSub: Subscription;
+    private profileSub: Subscription;
+    private userEmail = '';
 
-    constructor(public menu: MenuService, public settings: SettingsService, public injector: Injector) {
+    constructor(
+        public menu: MenuService,
+        public settings: SettingsService,
+        public injector: Injector,
+        @Optional() private auth?: AuthService,
+        @Optional() private profile?: ProfileService
+    ) {
 
         this.menuItems = menu.getMenu();
+        if (this.auth) {
+            this.sessionSub = this.auth.session$.subscribe(session => {
+                this.signedIn = !!session;
+                this.userEmail = session && session.user ? session.user.email || '' : '';
+                this.updateAccountLabel();
+            });
+        }
+        if (this.profile) {
+            this.profileSub = this.profile.profile$.subscribe(() => this.updateAccountLabel());
+        }
 
     }
 
@@ -53,11 +77,20 @@ export class SidebarComponent implements OnInit, OnDestroy {
     ngOnDestroy() {
         if (this.$doc)
             this.$doc.off(this.sbclickEvent);
+        if (this.sessionSub)
+            this.sessionSub.unsubscribe();
+        if (this.profileSub)
+            this.profileSub.unsubscribe();
     }
 
     toggleSubmenuClick(event) {
 
         event.preventDefault();
+
+        if (this.isSidebarCollapsed() || this.isSidebarCollapsedText() || this.isEnabledHover()) {
+            this.toggleSubmenuHover(event);
+            return;
+        }
 
         if (!this.isSidebarCollapsed() && !this.isSidebarCollapsedText() && !this.isEnabledHover()) {
 
@@ -191,5 +224,27 @@ export class SidebarComponent implements OnInit, OnDestroy {
     }
     isEnabledHover() {
         return this.settings.getLayoutSetting('asideHover');
+    }
+
+    public openSignIn(): void {
+        void this.router.navigate(['/auth'], {
+            queryParams: { returnUrl: this.router.url }
+        });
+    }
+
+    public async signOut(): Promise<void> {
+        if (!this.auth) {
+            return;
+        }
+        await this.auth.signOut();
+        await this.router.navigate(['/home']);
+    }
+
+    private updateAccountLabel(): void {
+        this.accountLabel = this.profile
+            ? this.profile.getDisplayName(this.signedIn ? this.userEmail : undefined)
+            : this.signedIn && this.userEmail
+                ? this.userEmail.split('@')[0]
+                : 'Guest';
     }
 }

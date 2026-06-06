@@ -59,4 +59,33 @@ describe('Component: Header', () => {
             }
         )
     ));
+
+    it('should expand on desktop, use compact labels on tablet, and use a full mobile drawer', inject(
+        [MenuService, UserblockService, SettingsService, Injector, Router, SharedService, TranslatorService],
+        (menuService, userblockService, settingsService, injector, router, sharedService, translator) => {
+            const component = new HeaderComponent(
+                menuService,
+                userblockService,
+                settingsService,
+                injector,
+                router,
+                sharedService,
+                translator
+            );
+
+            const widthSpy = spyOnProperty(window, 'innerWidth').and.returnValue(1200);
+            component.syncSidebarForViewport();
+            expect(settingsService.getLayoutSetting('isCollapsed')).toBeFalse();
+
+            widthSpy.and.returnValue(800);
+            component.syncSidebarForViewport();
+            expect(settingsService.getLayoutSetting('isCollapsed')).toBeFalse();
+            expect(settingsService.getLayoutSetting('isCollapsedText')).toBeTrue();
+
+            widthSpy.and.returnValue(500);
+            component.syncSidebarForViewport();
+            expect(settingsService.getLayoutSetting('isCollapsed')).toBeFalse();
+            expect(settingsService.getLayoutSetting('isCollapsedText')).toBeFalse();
+        }
+    ));
 });
