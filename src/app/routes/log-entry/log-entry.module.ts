@@ -10,6 +10,7 @@ import { SharedModule } from '../../shared/shared.module';
 
 const routes: Routes = [
     { path: 'simple-log', component: SimpleLogComponent },
+    { path: 'import-program/workout', component: SimpleLogComponent, data: { importedWorkout: true } },
     { path: 'import-program', component: ProgramImportComponent },
 ];
 

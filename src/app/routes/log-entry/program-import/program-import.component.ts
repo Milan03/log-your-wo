@@ -115,7 +115,7 @@ export class ProgramImportComponent implements OnInit, OnDestroy {
     }
 
     public openWorkout(weekId: string, dayId: string): void {
-        this._router.navigate(['/log-entry/simple-log'], {
+        this._router.navigate(['/log-entry/import-program/workout'], {
             queryParams: {
                 programId: this.program.id,
                 weekId,

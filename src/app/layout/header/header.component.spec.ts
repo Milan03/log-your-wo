@@ -3,7 +3,6 @@
 import { Injector } from '@angular/core';
 import { TranslateService, TranslateModule, TranslateLoader } from '@ngx-translate/core';
 import { HttpClientModule } from '@angular/common/http';
-import { UntypedFormBuilder } from '@angular/forms';
 import { provideRouter, Router } from '@angular/router';
 import { TRANSLATE_HTTP_LOADER_CONFIG, TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { TestBed, inject, waitForAsync } from '@angular/core/testing';
@@ -28,7 +27,6 @@ describe('Component: Header', () => {
                 HttpClientModule
             ],
             providers: [
-                UntypedFormBuilder,
                 MenuService,
                 UserblockService,
                 SettingsService,
@@ -46,10 +44,9 @@ describe('Component: Header', () => {
 
     it('should create an instance', waitForAsync(
         inject(
-            [UntypedFormBuilder, MenuService, UserblockService, SettingsService, Injector, Router, SharedService, TranslatorService],
-            (formBuilder, menuService, userblockService, settingsService, injector, router, sharedService, translator) => {
+            [MenuService, UserblockService, SettingsService, Injector, Router, SharedService, TranslatorService],
+            (menuService, userblockService, settingsService, injector, router, sharedService, translator) => {
                 let component = new HeaderComponent(
-                    formBuilder,
                     menuService,
                     userblockService,
                     settingsService,
