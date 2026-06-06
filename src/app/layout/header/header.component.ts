@@ -9,7 +9,6 @@ import { SharedService } from '../../shared/services/shared.service';
 import { filter, Subscription } from 'rxjs';
 import { FormValues, LogTypes } from 'src/app/shared/common/common.constants';
 import { TranslatorService } from 'src/app/core/translator/translator.service';
-import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 
 @Component({
     selector: 'app-header',
@@ -21,7 +20,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
     @ViewChild('fsbutton', { static: true }) fsbutton;  // the fullscreen button
 
     private currentLanguage: string;
-    public headerForm: UntypedFormGroup;
 
     public navCollapsed = true; // for horizontal layout
     public menuItems = []; // for horizontal layout
@@ -29,11 +27,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
     public currentLogType: string;
     public logStartDatim: Date;
     public isNavSearchVisible: boolean;
-    public isEditingTitle: boolean;
     public showLogActions: boolean = false;
     public showOffsidebarToggle: boolean = false;
-
-    public readonly titleCharLimit: number = 25;
 
     private logTypeSub: Subscription;
     private logStartDatimSub: Subscription;
@@ -41,7 +36,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
     private routerSub: Subscription;
 
     constructor(
-        private _formBuilder: UntypedFormBuilder,
         public menu: MenuService,
         public userblockService: UserblockService,
         public settings: SettingsService,
@@ -52,10 +46,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
     ) {
         this.currentLogType = undefined;
         this.logStartDatim = new Date();
-        this.headerForm = this._formBuilder.group({
-            'title': [LogTypes.SimpleLog, Validators.compose([Validators.maxLength(25)])],
-            'date': [this.formatDateTime(this.logStartDatim)]
-        });
         this.menuItems = menu.getMenu().slice(0, 4); // for horizontal layout
         this.toggleCollapsedSideabar();
         this.subToLogType();
@@ -102,26 +92,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
             this.routerSub.unsubscribe();
     }
 
-    private formatDateTime(date: Date): string {
-        const pad = (n: number) => n < 10 ? '0' + n : n;
-        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
-      }
-
     public sendOpenRequest(type: string): void {
         this.sharedService.emitOpenExerciseDialog(type);
-    }
-
-    public editTitle(): void {
-        this.isEditingTitle = true;
-    }
-
-    public checkForTitleValue(): void {
-        if (this.headerForm.valid) {
-            this.currentLogType = this.headerForm.value.title;
-            this.logStartDatim = this.headerForm.value.date;
-            this.isEditingTitle = false;
-            this.sharedService.emitExerciseTitle(this.currentLogType);
-        }
     }
 
     subToLogType(): void {
@@ -167,7 +139,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     }
 
     private updateLogActionVisibility(url: string): void {
-        this.showLogActions = url.startsWith('/log-entry/simple-log');
+        this.showLogActions = url.startsWith('/log-entry/simple-log') || url.startsWith('/log-entry/import-program/workout');
         this.showOffsidebarToggle = url.startsWith('/log-entry/simple-log') || url.startsWith('/log-entry/import-program');
     }
 

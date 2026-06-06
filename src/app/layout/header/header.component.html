@@ -1,5 +1,5 @@
 <!-- START Top Navbar-->
-<nav class="navbar topnavbar" role="navigation" [formGroup]="headerForm">
+<nav class="navbar topnavbar" role="navigation">
     <!-- START navbar header-->
     <div class="navbar-header">
         <a class="navbar-brand" href="#/">
@@ -53,24 +53,7 @@
     <ul *ngIf="showLogActions && currentLogType" class="navbar-nav mr-auto flex-row">
         <li class="nav-item d-none d-md-block">
             <div id="log-header" class="nav-link">
-                <span *ngIf="!isEditingTitle" (click)="editTitle()">{{ currentLogType }} - {{ logStartDatim | date:
-                    'MM/dd/yyyy h:mm a' }}</span>
-                <span *ngIf="isEditingTitle" class="edit-container">
-                    <form [formGroup]="headerForm" (ngSubmit)="checkForTitleValue()" class="form-inline">
-                        <input class="form-control edit-mode" name="title" formControlName="title" tabindex="0"
-                            aria-invalid="false" />
-                        <input type="datetime-local" class="form-control edit-mode" name="date" formControlName="date"
-                            tabindex="0" aria-invalid="false"
-                            [placeholder]="logStartDatim | date:'MM/dd/yyyy h:mm a'" />
-                        <button type="submit" class="save-button">
-                            <i class="fa fa-check"></i>
-                        </button>
-                        <mat-error class="text-danger"
-                            *ngIf="headerForm.get('title').hasError('maxlength') && (headerForm.get('title').dirty || headerForm.get('title').touched)">
-                            {{ 'global.CharacterLimit' | translate }} {{ titleCharLimit }}
-                        </mat-error>
-                    </form>
-                </span>
+                <span>{{ currentLogType }} - {{ logStartDatim | date:'MM/dd/yyyy h:mm a' }}</span>
             </div>
         </li>
     </ul>

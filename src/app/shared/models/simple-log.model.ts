@@ -17,3 +17,28 @@ export class SimpleLog {
         this.cardioExercises = new Array<Exercise>();
     }
 }
+
+export interface SavedSimpleLog {
+    id: string;
+    title: string;
+    workoutDate: string;
+    workoutDateTime?: string;
+    createdAt: string;
+    updatedAt: string;
+    exercises: Exercise[];
+    cardioExercises: Exercise[];
+    notes?: string;
+    startedAt?: string;
+    completedAt?: string;
+    pausedAt?: string;
+    totalPausedMs?: number;
+    elapsedMs?: number;
+}
+
+export interface SimpleLogTimingState {
+    startedAt?: string;
+    completedAt?: string;
+    pausedAt?: string;
+    totalPausedMs?: number;
+    elapsedMs?: number;
+}

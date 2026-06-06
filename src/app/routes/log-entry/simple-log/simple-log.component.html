@@ -1,4 +1,84 @@
 <div [formGroup]="simpleLogForm">
+    <div class="simple-log-shell" [class.simple-log-shell--imported]="isImportedWorkout">
+        <aside *ngIf="!isImportedWorkout" class="simple-log-library" aria-label="Saved simple logs">
+            <div class="simple-log-library__header">
+                <div>
+                    <span>Workout history</span>
+                    <strong>{{ getSelectedDateLogs().length }} on this day</strong>
+                </div>
+                <div class="simple-log-library__header-actions">
+                    <button class="simple-log-library__toggle" type="button"
+                        [attr.aria-expanded]="isHistoryExpanded"
+                        (click)="toggleHistory()">
+                        History
+                        <em class="fa" [class.fa-chevron-down]="!isHistoryExpanded" [class.fa-chevron-up]="isHistoryExpanded"></em>
+                    </button>
+                    <button class="btn btn-primary btn-sm" type="button" (click)="createNewSimpleLog()">New Log</button>
+                </div>
+            </div>
+
+            <div class="simple-log-library__body" [class.simple-log-library__body--expanded]="isHistoryExpanded">
+                <div class="simple-log-calendar">
+                    <div class="simple-log-calendar__header">
+                        <button type="button" aria-label="Previous month" (click)="changeCalendarMonth(-1)">
+                            <em class="fa fa-chevron-left"></em>
+                        </button>
+                        <strong>{{ getCalendarMonthLabel() }}</strong>
+                        <button type="button" aria-label="Next month" (click)="changeCalendarMonth(1)">
+                            <em class="fa fa-chevron-right"></em>
+                        </button>
+                    </div>
+                    <div class="simple-log-calendar__grid simple-log-calendar__weekdays">
+                        <span *ngFor="let weekday of calendarWeekdays">{{ weekday }}</span>
+                    </div>
+                    <div class="simple-log-calendar__grid">
+                        <button *ngFor="let day of calendarDays"
+                            type="button"
+                            class="simple-log-calendar__day"
+                            [class.simple-log-calendar__day--muted]="!day.inCurrentMonth"
+                            [class.simple-log-calendar__day--today]="day.isToday"
+                            [class.simple-log-calendar__day--worked]="day.hasWorkout"
+                            [class.simple-log-calendar__day--selected]="day.dateValue === workoutDate"
+                            [attr.aria-label]="day.date | date:'longDate'"
+                            (click)="selectCalendarDay(day)">
+                            {{ day.dayNumber }}
+                        </button>
+                    </div>
+                </div>
+
+                <div *ngIf="getSelectedDateLogs().length" class="simple-log-library__list">
+                    <div *ngFor="let log of getSelectedDateLogs()"
+                        class="simple-log-library__item"
+                        [class.simple-log-library__item--active]="currentLog?.logId?.toString() === log.id"
+                        role="button"
+                        tabindex="0"
+                        (click)="selectSimpleLog(log)">
+                        <div class="simple-log-library__item-header">
+                            <strong>{{ log.title || 'Simple Log' }}</strong>
+                            <button class="simple-log-library__delete"
+                                type="button"
+                                aria-label="Delete workout log"
+                                (click)="deleteSavedSimpleLog($event, log)">
+                                <em class="fa fa-trash"></em>
+                            </button>
+                        </div>
+                        <span>{{ getSimpleLogDateLabel(log.workoutDate) }}</span>
+                        <div class="simple-log-library__item-meta">
+                            <span class="simple-log-library__status"
+                                [ngClass]="'simple-log-library__status--' + getSimpleLogStatus(log)">
+                                {{ getSimpleLogStatusLabel(log) }}
+                            </span>
+                            <small>{{ getSimpleLogExerciseCount(log) }} entries</small>
+                        </div>
+                    </div>
+                </div>
+                <div *ngIf="!getSelectedDateLogs().length" class="simple-log-library__empty-day">
+                    No workouts saved for this day.
+                </div>
+            </div>
+        </aside>
+
+        <main class="simple-log-main">
     <!-- START Content Body START -->
     <div class="container-lg" [ngStyle]="completionStyles">
         <div *ngIf="isImportedWorkout" class="imported-log-toolbar">
@@ -34,6 +114,69 @@
                 </small>
             </div>
         </div>
+        <section *ngIf="!isImportedWorkout" class="simple-log-intro">
+            <div>
+                <span class="simple-log-intro__eyebrow">Simple Log</span>
+                <button *ngIf="!isEditingSimpleLogTitle" class="simple-log-title" type="button" (click)="beginSimpleLogTitleEdit()">
+                    <span>{{ currentLog.title || "Today's workout" }}</span>
+                    <em class="fa fa-pen" aria-hidden="true"></em>
+                </button>
+                <div *ngIf="isEditingSimpleLogTitle" class="simple-log-title-edit">
+                    <input type="text"
+                        maxlength="25"
+                        aria-label="Workout title"
+                        [value]="simpleLogTitleDraft"
+                        (input)="simpleLogTitleDraft = $any($event.target).value"
+                        (keydown.enter)="saveSimpleLogTitle()"
+                        (keydown.escape)="cancelSimpleLogTitleEdit()">
+                    <button class="btn btn-primary btn-sm" type="button" (click)="saveSimpleLogTitle()">Save</button>
+                    <button class="btn btn-outline-secondary btn-sm" type="button" (click)="cancelSimpleLogTitleEdit()">Cancel</button>
+                </div>
+                <p>Build a workout as you go. Add strength work, cardio, or both.</p>
+            </div>
+            <label class="simple-log-date">
+                <span>Workout date and time</span>
+                <input type="datetime-local" [value]="workoutDateTime" (change)="onWorkoutDateTimeChange($any($event.target).value)">
+            </label>
+        </section>
+
+        <div *ngIf="!isImportedWorkout && (currentLog.exercises.length || currentLog.cardioExercises.length || workoutStartedAt)"
+            class="simple-log-workout-toolbar">
+            <div class="imported-log-toolbar__timer-main">
+                <button *ngIf="!workoutStartedAt" class="btn btn-primary btn-sm" type="button" (click)="startWorkout()">
+                    Start Workout
+                </button>
+                <button *ngIf="workoutStartedAt && !workoutPausedAt && !workoutCompletedAt" class="btn btn-danger btn-sm" type="button" (click)="pauseWorkout()">
+                    Pause
+                </button>
+                <button *ngIf="workoutPausedAt && !workoutCompletedAt" class="btn btn-success btn-sm" type="button" (click)="resumeWorkout()">
+                    Resume
+                </button>
+                <span *ngIf="workoutPausedAt && !workoutCompletedAt" class="imported-log-toolbar__paused-pill">Paused</span>
+                <span>Elapsed Time</span>
+                <strong>{{ getElapsedTimeLabel() }}</strong>
+            </div>
+            <small *ngIf="workoutCompletedAt" class="imported-log-toolbar__status">
+                Completed {{ workoutCompletedAt | date:'MM/dd/yyyy h:mm a' }}
+            </small>
+        </div>
+
+        <section *ngIf="!isImportedWorkout && !currentLog.exercises.length && !currentLog.cardioExercises.length"
+            class="simple-log-empty">
+            <span class="simple-log-empty__icon"><em class="icon-notebook"></em></span>
+            <h2>What are you training?</h2>
+            <p>Start with an exercise. Your log will save automatically once it has an entry.</p>
+            <div class="simple-log-empty__actions">
+                <button class="btn btn-primary" type="button" (click)="openExerciseDialog('strength')">
+                    <em class="fa fa-plus"></em>
+                    Add Strength Exercise
+                </button>
+                <button class="btn btn-outline-primary" type="button" (click)="openExerciseDialog('cardio')">
+                    <em class="fa fa-plus"></em>
+                    Add Cardio
+                </button>
+            </div>
+        </section>
         <!-- START Exercise Grid START -->
         <div *ngIf="currentLog.exercises.length > 0" class="log-mobile-list log-mobile-list--strength">
             <div *ngFor="let group of getStrengthExerciseGroups()" class="log-mobile-card log-mobile-card--group">
@@ -137,8 +280,8 @@
             </div>
         </div>
         <!-- END Cardio Exercise Grid END -->
-        <div *ngIf="isImportedWorkout" class="imported-log-actions">
-            <button *ngIf="!workoutCompletedAt" class="btn btn-primary" type="button" (click)="markWorkoutComplete()">
+        <div *ngIf="currentLog.exercises.length || currentLog.cardioExercises.length || workoutStartedAt" class="imported-log-actions">
+            <button *ngIf="!workoutCompletedAt && (currentLog.exercises.length || currentLog.cardioExercises.length)" class="btn btn-primary" type="button" (click)="markWorkoutComplete()">
                 Mark as Complete
             </button>
             <button *ngIf="workoutCompletedAt" class="btn btn-danger" type="button" (click)="markWorkoutIncomplete()">
@@ -152,6 +295,9 @@
             </button>
             <button *ngIf="workoutPausedAt" class="btn btn-success" type="button" (click)="resumeWorkout()">
                 Resume Workout
+            </button>
+            <button *ngIf="!isImportedWorkout && hasActiveSimpleLog()" class="btn btn-outline-danger" type="button" (click)="deleteSimpleLog()">
+                Delete Log
             </button>
         </div>
         <div *ngIf="isImportedWorkout" class="imported-log-back imported-log-back--bottom">
@@ -171,6 +317,8 @@
         </div>
         <!-- END Submit Buttons END -->
     </div> <!-- END Content Body END -->
+        </main>
+    </div>
 </div> <!-- END Form Group END -->
 <!-- START Exercise PDF Table START -->
 <div id="exerciseTable" #exerciseTable>

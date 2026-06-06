@@ -7,7 +7,7 @@ import { Subscription } from 'rxjs';
 import { ExerciseDialogComponent } from '../exercise-dialog/exercise-dialog.component';
 import { EmailDialogComponent } from '../email-dialog/email-dialog.component';
 import { Exercise } from '../../../shared/models/exercise.model';
-import { SimpleLog } from '../../../shared/models/simple-log.model';
+import { SavedSimpleLog, SimpleLog, SimpleLogTimingState } from '../../../shared/models/simple-log.model';
 import { EmailRequest } from '../../../shared/models/email-request.model';
 import { ExerciseDialogData } from '../../../shared/interfaces/exercise-dialog-data';
 import { SharedService } from '../../../shared/services/shared.service';
@@ -15,6 +15,7 @@ import { TranslatorService } from '../../../core/translator/translator.service';
 import { EmailService } from '../../../shared/services/email.service';
 import { GoogleAnalyticsService } from '../../../shared/services/google-analytics.service';
 import { ProgramImportService } from '../../../shared/services/program-import.service';
+import { SimpleLogService } from '../../../shared/services/simple-log.service';
 import { ImportedProgramDay, ImportedProgramWeek, ImportedWorkoutState } from '../../../shared/models/imported-program.model';
 
 import { LogTypes, FormValues } from '../../../shared/common/common.constants';
@@ -27,6 +28,15 @@ const swal = require('sweetalert');
 interface ExerciseGroup {
     exerciseName: string;
     exercises: Exercise[];
+}
+
+interface CalendarDay {
+    date: Date;
+    dateValue: string;
+    dayNumber: number;
+    inCurrentMonth: boolean;
+    isToday: boolean;
+    hasWorkout: boolean;
 }
 
 @Component({
@@ -59,11 +69,13 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     private openDialogSub: Subscription;
     private exerciseTitleSub: Subscription;
     private routeSub: Subscription;
+    private simpleLogsSub: Subscription;
     private elapsedTimerId: any;
     private strengthGroupSource: Exercise[];
     private strengthGroups: ExerciseGroup[] = [];
     private cardioGroupSource: Exercise[];
     private cardioGroups: ExerciseGroup[] = [];
+    private activeSimpleLogId: string;
 
     public importedWeek: ImportedProgramWeek;
     public importedDay: ImportedProgramDay;
@@ -74,6 +86,15 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     public totalPausedMs = 0;
     public elapsedMs = 0;
     public completionStyles: { [key: string]: string } = {};
+    public savedLogs: SavedSimpleLog[] = [];
+    public workoutDate = '';
+    public workoutDateTime = '';
+    public calendarMonth = new Date();
+    public calendarDays: CalendarDay[] = [];
+    public isHistoryExpanded = false;
+    public isEditingSimpleLogTitle = false;
+    public simpleLogTitleDraft = '';
+    public readonly calendarWeekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
     constructor(
         private _formBuilder: UntypedFormBuilder,
@@ -83,6 +104,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         private _emailService: EmailService,
         private _googleAnalyticsService: GoogleAnalyticsService,
         private _programImportService: ProgramImportService,
+        private _simpleLogService: SimpleLogService,
         private _activatedRoute: ActivatedRoute,
         private _router: Router
     ) {
@@ -94,6 +116,9 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     ngOnInit(): void {
         this.currentLanguage = FormValues.ENCode;
         this.currentLog = new SimpleLog();
+        this.workoutDate = this.toDateInputValue(this.currentLog.startDatim);
+        this.workoutDateTime = this.toDateTimeInputValue(this.currentLog.startDatim);
+        this.calendarMonth = new Date(this.currentLog.startDatim.getFullYear(), this.currentLog.startDatim.getMonth(), 1);
         this.refreshCompletionStyles();
         this._sharedService.emitLogType(LogTypes.SimpleLog);
         this._sharedService.emitLogStartDatim(this.currentLog.startDatim);
@@ -102,6 +127,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         this.subToMeasureToggleChange();
         this.subToOpenDialogStream();
         this.subToExerciseTitleStream();
+        this.subToSimpleLogs();
         this.subToRouteParams();
     }
 
@@ -119,6 +145,8 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             this.exerciseTitleSub.unsubscribe();
         if (this.routeSub)
             this.routeSub.unsubscribe();
+        if (this.simpleLogsSub)
+            this.simpleLogsSub.unsubscribe();
         this.stopElapsedTimer();
     }
 
@@ -271,6 +299,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     }
 
     public openExerciseDialog(type: string, name?: string, insertAfter?: Exercise): void {
+        const exerciseCountBeforeAdd = this.getCurrentExerciseCount();
         let data: ExerciseDialogData = { exerciseType: type, measure: undefined };
         if (name) {
             data = { ...data, exerciseName: name };
@@ -285,7 +314,10 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         dialogRef.afterClosed().subscribe(result => {
             if (result) {
                 this.addExerciseToLog(type, result, insertAfter);
-                this.saveImportedWorkoutState();
+                if (!this.isImportedWorkout && exerciseCountBeforeAdd === 0) {
+                    this.ensureWorkoutStarted();
+                }
+                this.saveCurrentWorkoutState();
             }
         });
     }
@@ -300,7 +332,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         } else {
             this.currentLog.cardioExercises = this.currentLog.cardioExercises.filter(currentExercise => currentExercise.exerciseId !== exercise.exerciseId);
         }
-        this.saveImportedWorkoutState();
+        this.saveCurrentWorkoutState();
     }
 
     public onExerciseRowClick(exercise: Exercise): void {
@@ -324,31 +356,27 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         dialogRef.afterClosed().subscribe(result => {
             if (result) {
                 this.replaceExercise(exercise, result);
-                this.saveImportedWorkoutState();
+                this.saveCurrentWorkoutState();
             }
         });
     }
 
     public toggleExerciseComplete(exercise: Exercise): void {
-        if (this.isImportedWorkout) {
-            this.ensureWorkoutStarted();
-        }
+        this.ensureWorkoutStarted();
         exercise.completed = !exercise.completed;
         if (exercise.exerciseType === 'strength') {
             this.currentLog.exercises = [...this.currentLog.exercises];
         } else {
             this.currentLog.cardioExercises = [...this.currentLog.cardioExercises];
         }
-        if (this.isImportedWorkout) {
-            this.syncWorkoutCompletion();
-            this.saveImportedWorkoutState();
-        }
+        this.syncWorkoutCompletion();
+        this.saveCurrentWorkoutState();
     }
 
     public startWorkout(): void {
         this.ensureWorkoutStarted();
         this.refreshElapsedMs();
-        this.saveImportedWorkoutState();
+        this.saveCurrentWorkoutState();
     }
 
     public navigateBackToWeek(): void {
@@ -376,7 +404,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             completed: true
         }));
         this.completeWorkout();
-        this.saveImportedWorkoutState();
+        this.saveCurrentWorkoutState();
     }
 
     public markWorkoutIncomplete(): void {
@@ -397,7 +425,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         this.workoutCompletedAt = undefined;
         this.workoutPausedAt = undefined;
         this.syncElapsedTimer();
-        this.saveImportedWorkoutState();
+        this.saveCurrentWorkoutState();
     }
 
     public unselectAllExercises(): void {
@@ -411,11 +439,11 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         }));
         this.workoutCompletedAt = undefined;
         this.syncElapsedTimer();
-        this.saveImportedWorkoutState();
+        this.saveCurrentWorkoutState();
     }
 
     public pauseWorkout(): void {
-        if (!this.isImportedWorkout || this.workoutPausedAt || this.workoutCompletedAt) {
+        if (this.workoutPausedAt || this.workoutCompletedAt) {
             return;
         }
 
@@ -423,7 +451,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         this.workoutPausedAt = new Date().toISOString();
         this.refreshElapsedMs();
         this.syncElapsedTimer();
-        this.saveImportedWorkoutState();
+        this.saveCurrentWorkoutState();
     }
 
     public resumeWorkout(): void {
@@ -435,11 +463,181 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         this.workoutPausedAt = undefined;
         this.refreshElapsedMs();
         this.syncElapsedTimer();
-        this.saveImportedWorkoutState();
+        this.saveCurrentWorkoutState();
     }
 
     public getElapsedTimeLabel(): string {
         return this._programImportService.formatElapsedMs(this.elapsedMs);
+    }
+
+    public createNewSimpleLog(
+        dateValue: string = this.toDateInputValue(new Date()),
+        collapseHistory: boolean = true
+    ): void {
+        const now = new Date();
+        this.currentLog = new SimpleLog();
+        this.activeSimpleLogId = undefined;
+        this.currentLog.title = LogTypes.SimpleLog;
+        this.workoutDate = dateValue;
+        this.currentLog.startDatim = dateValue === this.toDateInputValue(now)
+            ? now
+            : this.dateFromInputValue(dateValue);
+        this.workoutDateTime = this.toDateTimeInputValue(this.currentLog.startDatim);
+        this.clearWorkoutTiming();
+        this.isEditingSimpleLogTitle = false;
+        if (collapseHistory) {
+            this.isHistoryExpanded = false;
+        }
+        this.calendarMonth = new Date(this.currentLog.startDatim.getFullYear(), this.currentLog.startDatim.getMonth(), 1);
+        this.refreshCalendar();
+        this._sharedService.emitLogType(this.currentLog.title);
+        this._sharedService.emitLogStartDatim(this.currentLog.startDatim);
+        this._router.navigate(['/log-entry/simple-log']);
+    }
+
+    public selectSimpleLog(log: SavedSimpleLog): void {
+        this._router.navigate(['/log-entry/simple-log'], {
+            queryParams: { logId: log.id }
+        });
+    }
+
+    public selectCalendarDay(day: CalendarDay): void {
+        this.workoutDate = day.dateValue;
+        if (!day.inCurrentMonth) {
+            this.calendarMonth = new Date(day.date.getFullYear(), day.date.getMonth(), 1);
+        }
+
+        const log = this.savedLogs.find(savedLog => savedLog.workoutDate === day.dateValue);
+        if (log) {
+            this.selectSimpleLog(log);
+        } else {
+            this.createNewSimpleLog(day.dateValue, false);
+        }
+    }
+
+    public changeCalendarMonth(offset: number): void {
+        this.calendarMonth = new Date(this.calendarMonth.getFullYear(), this.calendarMonth.getMonth() + offset, 1);
+        this.refreshCalendar();
+    }
+
+    public toggleHistory(): void {
+        this.isHistoryExpanded = !this.isHistoryExpanded;
+    }
+
+    public beginSimpleLogTitleEdit(): void {
+        this.simpleLogTitleDraft = this.currentLog.title || '';
+        this.isEditingSimpleLogTitle = true;
+    }
+
+    public saveSimpleLogTitle(): void {
+        const title = this.simpleLogTitleDraft.trim();
+        this.currentLog.title = title || LogTypes.SimpleLog;
+        this.isEditingSimpleLogTitle = false;
+        this._sharedService.emitLogType(this.currentLog.title);
+        this.saveSimpleLogIfNeeded();
+    }
+
+    public cancelSimpleLogTitleEdit(): void {
+        this.isEditingSimpleLogTitle = false;
+    }
+
+    public onWorkoutDateTimeChange(dateTimeValue: string): void {
+        if (!dateTimeValue) {
+            return;
+        }
+
+        this.workoutDateTime = dateTimeValue;
+        this.currentLog.startDatim = this.dateTimeFromInputValue(dateTimeValue);
+        this.workoutDate = this.toDateInputValue(this.currentLog.startDatim);
+        this.calendarMonth = new Date(this.currentLog.startDatim.getFullYear(), this.currentLog.startDatim.getMonth(), 1);
+        this._sharedService.emitLogStartDatim(this.currentLog.startDatim);
+        this.saveSimpleLogIfNeeded();
+        this.refreshCalendar();
+    }
+
+    public async deleteSimpleLog(): Promise<void> {
+        if (!this.activeSimpleLogId) {
+            return;
+        }
+
+        const confirmed = await swal({
+            title: 'Delete workout log?',
+            text: `"${this.currentLog.title || LogTypes.SimpleLog}" will be permanently removed.`,
+            icon: 'warning',
+            buttons: ['Cancel', 'Delete'],
+            dangerMode: true
+        });
+
+        if (!confirmed) {
+            return;
+        }
+
+        this._simpleLogService.deleteLog(this.activeSimpleLogId);
+        this.createNewSimpleLog();
+    }
+
+    public async deleteSavedSimpleLog(event: Event, log: SavedSimpleLog): Promise<void> {
+        event.stopPropagation();
+
+        const confirmed = await swal({
+            title: 'Delete workout log?',
+            text: `"${log.title || LogTypes.SimpleLog}" will be permanently removed.`,
+            icon: 'warning',
+            buttons: ['Cancel', 'Delete'],
+            dangerMode: true
+        });
+
+        if (!confirmed) {
+            return;
+        }
+
+        this._simpleLogService.deleteLog(log.id);
+        if (this.activeSimpleLogId === log.id) {
+            this.createNewSimpleLog(log.workoutDate);
+        }
+    }
+
+    public getCalendarMonthLabel(): string {
+        return this.calendarMonth.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+    }
+
+    public getSimpleLogExerciseCount(log: SavedSimpleLog): number {
+        return (log.exercises || []).length + (log.cardioExercises || []).length;
+    }
+
+    public getSelectedDateLogs(): SavedSimpleLog[] {
+        return this.savedLogs.filter(log => log.workoutDate === this.workoutDate);
+    }
+
+    public getSimpleLogStatus(log: SavedSimpleLog): 'completed' | 'in-progress' | 'not-started' {
+        if (log.completedAt) {
+            return 'completed';
+        }
+
+        return log.startedAt ? 'in-progress' : 'not-started';
+    }
+
+    public getSimpleLogStatusLabel(log: SavedSimpleLog): string {
+        const status = this.getSimpleLogStatus(log);
+
+        if (status === 'completed') {
+            return 'Completed';
+        }
+
+        return status === 'in-progress' ? 'In progress' : 'Not started';
+    }
+
+    public hasActiveSimpleLog(): boolean {
+        return Boolean(this.activeSimpleLogId);
+    }
+
+    public getSimpleLogDateLabel(dateValue: string): string {
+        return this.dateFromInputValue(dateValue).toLocaleDateString(undefined, {
+            weekday: 'long',
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric'
+        });
     }
 
     public getWeightDisplay(exercise: Exercise): string {
@@ -666,9 +864,16 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         this.exerciseTitleSub = this._sharedService.exerciseTitleEmitted$.subscribe(
           data => {
             this.currentLog.title = data;
-            this.saveImportedWorkoutState();
+            this.saveCurrentWorkoutState();
           }  
         );
+    }
+
+    private subToSimpleLogs(): void {
+        this.simpleLogsSub = this._simpleLogService.logs$.subscribe(logs => {
+            this.savedLogs = logs;
+            this.refreshCalendar();
+        });
     }
 
     private subToRouteParams(): void {
@@ -676,23 +881,56 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             const weekId = params.get('weekId');
             const dayId = params.get('dayId');
             const programId = params.get('programId');
+            const simpleLogId = params.get('logId');
 
             if (weekId && dayId) {
                 if (programId) {
                     this._programImportService.setActiveProgram(programId);
                 }
-                if (this.isImportedWorkout && (this.importedWeek?.id !== weekId || this.importedDay?.id !== dayId)) {
+                if (!this.isImportedWorkout || this.importedWeek?.id !== weekId || this.importedDay?.id !== dayId) {
                     this.pauseActiveWorkoutForNavigation();
                 }
                 this.loadImportedWorkout(weekId, dayId);
             } else {
-                this.pauseActiveWorkoutForNavigation();
+                const isChangingSimpleLog = Boolean(
+                    this.activeSimpleLogId &&
+                    simpleLogId !== this.activeSimpleLogId
+                );
+                if (this.isImportedWorkout || isChangingSimpleLog) {
+                    this.pauseActiveWorkoutForNavigation();
+                }
                 this.isImportedWorkout = false;
                 this.importedWeek = undefined;
                 this.importedDay = undefined;
                 this.clearWorkoutTiming();
+                if (simpleLogId) {
+                    this.loadSimpleLog(simpleLogId);
+                } else if (!this.currentLog || this.hasLogContent(this.currentLog)) {
+                    this.createNewSimpleLog();
+                } else {
+                    this.activeSimpleLogId = undefined;
+                }
             }
         });
+    }
+
+    private loadSimpleLog(logId: string): void {
+        const savedLog = this._simpleLogService.getLog(logId);
+
+        if (!savedLog) {
+            this.createNewSimpleLog();
+            return;
+        }
+
+        this.currentLog = this._simpleLogService.hydrateLog(savedLog);
+        this.activeSimpleLogId = savedLog.id;
+        this.workoutDate = savedLog.workoutDate;
+        this.workoutDateTime = this.toDateTimeInputValue(this.currentLog.startDatim);
+        this.calendarMonth = new Date(this.currentLog.startDatim.getFullYear(), this.currentLog.startDatim.getMonth(), 1);
+        this.refreshCalendar();
+        this.loadWorkoutTiming(savedLog);
+        this._sharedService.emitLogType(this.currentLog.title);
+        this._sharedService.emitLogStartDatim(this.currentLog.startDatim);
     }
 
     private loadImportedWorkout(weekId: string, dayId: string): void {
@@ -738,13 +976,13 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     }
 
     private pauseActiveWorkoutForNavigation(): void {
-        if (!this.isImportedWorkout || !this.workoutStartedAt || this.workoutPausedAt || this.workoutCompletedAt) {
+        if (!this.workoutStartedAt || this.workoutPausedAt || this.workoutCompletedAt) {
             return;
         }
 
         this.workoutPausedAt = new Date().toISOString();
         this.refreshElapsedMs();
-        this.saveImportedWorkoutState();
+        this.saveCurrentWorkoutState();
     }
 
     private saveImportedWorkoutState(): void {
@@ -771,8 +1009,93 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         });
     }
 
+    private saveCurrentWorkoutState(): void {
+        if (this.isImportedWorkout) {
+            this.saveImportedWorkoutState();
+        } else {
+            this.saveSimpleLogIfNeeded();
+        }
+    }
+
+    private saveSimpleLogIfNeeded(): void {
+        if (!this.currentLog || (!this.activeSimpleLogId && !this.hasLogContent(this.currentLog))) {
+            return;
+        }
+
+        const savedLog = this._simpleLogService.saveLog(this.currentLog, this.workoutDate, {
+            startedAt: this.workoutStartedAt,
+            completedAt: this.workoutCompletedAt,
+            pausedAt: this.workoutPausedAt,
+            totalPausedMs: this.totalPausedMs,
+            elapsedMs: this.elapsedMs
+        });
+        if (!this.activeSimpleLogId) {
+            this.activeSimpleLogId = savedLog.id;
+            this._router.navigate(['/log-entry/simple-log'], {
+                queryParams: { logId: savedLog.id },
+                replaceUrl: true
+            });
+        }
+    }
+
+    private hasLogContent(log: SimpleLog): boolean {
+        return Boolean(
+            (log.exercises && log.exercises.length) ||
+            (log.cardioExercises && log.cardioExercises.length) ||
+            (log.title && log.title !== LogTypes.SimpleLog) ||
+            this.workoutStartedAt
+        );
+    }
+
+    private getCurrentExerciseCount(): number {
+        return (this.currentLog.exercises || []).length + (this.currentLog.cardioExercises || []).length;
+    }
+
+    private refreshCalendar(): void {
+        const year = this.calendarMonth.getFullYear();
+        const month = this.calendarMonth.getMonth();
+        const firstVisibleDate = new Date(year, month, 1 - new Date(year, month, 1).getDay());
+        const todayValue = this.toDateInputValue(new Date());
+
+        this.calendarDays = Array.from({ length: 42 }, (_, index) => {
+            const date = new Date(firstVisibleDate.getFullYear(), firstVisibleDate.getMonth(), firstVisibleDate.getDate() + index);
+            const dateValue = this.toDateInputValue(date);
+
+            return {
+                date,
+                dateValue,
+                dayNumber: date.getDate(),
+                inCurrentMonth: date.getMonth() === month,
+                isToday: dateValue === todayValue,
+                hasWorkout: this.savedLogs.some(log => log.workoutDate === dateValue)
+            };
+        });
+    }
+
+    private toDateInputValue(date: Date): string {
+        const pad = (value: number) => String(value).padStart(2, '0');
+        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+    }
+
+    private dateFromInputValue(value: string): Date {
+        const [year, month, day] = value.split('-').map(part => Number(part));
+        return new Date(year, month - 1, day, 12);
+    }
+
+    private toDateTimeInputValue(date: Date): string {
+        const pad = (value: number) => String(value).padStart(2, '0');
+        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+    }
+
+    private dateTimeFromInputValue(value: string): Date {
+        const [datePart, timePart] = value.split('T');
+        const [year, month, day] = datePart.split('-').map(part => Number(part));
+        const [hours, minutes] = timePart.split(':').map(part => Number(part));
+        return new Date(year, month - 1, day, hours, minutes);
+    }
+
     private ensureWorkoutStarted(): void {
-        if (!this.isImportedWorkout || this.workoutStartedAt) {
+        if (this.workoutStartedAt) {
             return;
         }
 
@@ -806,7 +1129,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         this.syncElapsedTimer();
     }
 
-    private loadWorkoutTiming(state: ImportedWorkoutState): void {
+    private loadWorkoutTiming(state: ImportedWorkoutState | SimpleLogTimingState): void {
         this.workoutStartedAt = state ? state.startedAt : undefined;
         this.workoutCompletedAt = state ? state.completedAt : undefined;
         this.workoutPausedAt = state ? state.pausedAt : undefined;
