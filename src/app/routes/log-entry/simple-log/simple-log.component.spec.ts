@@ -16,6 +16,7 @@ import { SimpleLogService } from '../../../shared/services/simple-log.service';
 import { ProfileService } from '../../../shared/services/profile.service';
 import { WorkoutPdfService } from '../../../shared/services/workout-pdf.service';
 import { Exercise } from '../../../shared/models/exercise.model';
+import { EmailRequest } from '../../../shared/models/email-request.model';
 import { ImportedProgram } from '../../../shared/models/imported-program.model';
 import { SimpleLog } from '../../../shared/models/simple-log.model';
 
@@ -354,6 +355,24 @@ describe('SimpleLogComponent', () => {
 
     expect(pdfError).toHaveBeenCalled();
     expect(sendMail).not.toHaveBeenCalled();
+  });
+
+  it('sends the generated PDF with a sanitized attachment filename', async () => {
+    component.currentLog.title = 'Sunday Training';
+    component.currentLog.startDatim = new Date(2026, 5, 7);
+    spyOn(workoutPdfService, 'create').and.returnValue(Promise.resolve({
+      output: () => 'data:application/pdf;base64,JVBERi0xLjQ='
+    } as any));
+    const sendMail = spyOn((component as any)._emailService, 'sendMail').and.returnValue(of('sent'));
+    spyOn<any>(component, 'swalEmailSent');
+    spyOn((component as any)._googleAnalyticsService, 'eventEmitter');
+
+    await component.emailAsPDF('athlete@example.com');
+
+    const request = sendMail.calls.mostRecent().args[0] as EmailRequest;
+    expect(request.toEmailAddress).toBe('athlete@example.com');
+    expect(request.attachments).toEqual(['JVBERi0xLjQ=']);
+    expect(request.attachmentFilename).toBe('sunday-training-2026-06-07.pdf');
   });
 
   it('converts imported workout weights to the profile unit without converting them twice', () => {

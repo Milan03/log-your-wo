@@ -307,7 +307,8 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
                     `${this.currentLog.title} - ${this.currentLog.startDatim.toLocaleDateString(FormValues.ENCode, options)}`,
                     [this.currentPDF],
                     FormValues.EmailBody,
-                    this.currentLog.startDatim.toDateString()
+                    this.currentLog.startDatim.toDateString(),
+                    this._workoutPdfService.getFileName(this.currentLog)
                 );
             } else {
                 return new EmailRequest(
@@ -316,7 +317,8 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
                     `${FormValues.LogYourWorkout} - ${this.currentLog.startDatim.toLocaleDateString(FormValues.ENCode, options)}`,
                     [this.currentPDF],
                     FormValues.EmailBody,
-                    this.currentLog.startDatim.toDateString()
+                    this.currentLog.startDatim.toDateString(),
+                    this._workoutPdfService.getFileName(this.currentLog)
                 );
             }
         } else {
@@ -327,7 +329,8 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
                     `${this.currentLog.title} - ${this.currentLog.startDatim.toLocaleDateString(FormValues.FRCode, options)}`,
                     [this.currentPDF],
                     FormValues.EmailBodyFR,
-                    this.currentLog.startDatim.toDateString()
+                    this.currentLog.startDatim.toDateString(),
+                    this._workoutPdfService.getFileName(this.currentLog)
                 );
             } else {
                 return new EmailRequest(
@@ -336,7 +339,8 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
                     `${FormValues.LogYourWorkout} - ${this.currentLog.startDatim.toLocaleDateString(FormValues.FRCode, options)}`,
                     [this.currentPDF],
                     FormValues.EmailBodyFR,
-                    this.currentLog.startDatim.toDateString()
+                    this.currentLog.startDatim.toDateString(),
+                    this._workoutPdfService.getFileName(this.currentLog)
                 );
             }
         }
