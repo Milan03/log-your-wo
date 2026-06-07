@@ -1,4 +1,9 @@
 import { NgModule } from '@angular/core';
+import { MatRippleModule } from '@angular/material/core';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatSelectModule } from '@angular/material/select';
+import { TabsModule } from 'ngx-bootstrap/tabs';
 
 import { LayoutComponent } from './layout.component';
 import { SidebarComponent } from './sidebar/sidebar.component';
@@ -13,7 +18,12 @@ import { SharedModule } from '../shared/shared.module';
 
 @NgModule({
     imports: [
-        SharedModule
+        SharedModule,
+        MatFormFieldModule,
+        MatMenuModule,
+        MatRippleModule,
+        MatSelectModule,
+        TabsModule
     ],
     providers: [
         UserblockService
