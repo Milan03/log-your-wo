@@ -11,7 +11,6 @@
     "start": "ng serve",
     "build": "ng build --configuration production",
     "test": "ng test",
-    "lint": "ng lint",
     "modernizr": "modernizr -c modernizr-config.json -d src/modernizr.js",
     "test:ci": "ng test --watch=false --browsers=ChromeHeadless"
   },
@@ -29,6 +28,7 @@
     "@fortawesome/fontawesome-free": "7.2.0",
     "@ngx-translate/core": "17.0.0",
     "@ngx-translate/http-loader": "17.0.0",
+    "@supabase/supabase-js": "^2.107.0",
     "bootstrap": "5.3.8",
     "codemirror": "6.0.2",
     "guid-typescript": "^1.0.9",
@@ -56,7 +56,6 @@
     "@types/jasmine": "^5.1.15",
     "@types/node": "^20.19.41",
     "ajv": "^8.20.0",
-    "eslint": "^10.4.1",
     "jasmine-core": "^5.13.0",
     "karma": "^6.4.4",
     "karma-chrome-launcher": "^3.2.0",

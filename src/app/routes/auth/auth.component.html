@@ -1,0 +1,83 @@
+<main class="auth-page">
+    <section class="auth-shell" aria-labelledby="auth-title">
+        <div class="auth-shell__brand">
+            <img src="assets/img/log-your-wo-logo-single-black.svg" alt="">
+            <span>Log Your Workout</span>
+        </div>
+
+        <ng-container *ngIf="callbackPending; else authForm">
+            <div class="auth-shell__callback" role="status" aria-live="polite">
+                <div class="spinner-border text-primary" aria-hidden="true"></div>
+                <h1 id="auth-title">Finishing sign in</h1>
+                <p>Please wait while we securely restore your account.</p>
+            </div>
+        </ng-container>
+
+        <ng-template #authForm>
+            <div class="auth-shell__heading">
+                <span class="auth-shell__eyebrow">Optional cloud account</span>
+                <h1 id="auth-title">{{ mode === 'login' ? 'Welcome back' : 'Train here, continue anywhere' }}</h1>
+                <p>
+                {{ mode === 'login'
+                    ? 'Sign in to sync your workout history and profile.'
+                    : 'Create an account for private cloud backup and access across devices.' }}
+                </p>
+            </div>
+
+            <div class="auth-tabs" aria-label="Account action">
+                <button type="button" [attr.aria-pressed]="mode === 'login'"
+                    [class.auth-tabs__button--active]="mode === 'login'" (click)="setMode('login')">
+                    Sign in
+                </button>
+                <button type="button" [attr.aria-pressed]="mode === 'register'"
+                    [class.auth-tabs__button--active]="mode === 'register'" (click)="setMode('register')">
+                    Register
+                </button>
+            </div>
+
+            <button class="auth-shell__google" type="button" [disabled]="busy" (click)="continueWithGoogle()">
+                <span aria-hidden="true">G</span>
+                Continue with Google
+            </button>
+
+            <div class="auth-divider"><span>or use email</span></div>
+
+            <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+                <div class="form-group">
+                    <label for="auth-email">Email address</label>
+                    <input id="auth-email" class="form-control" type="email" formControlName="email"
+                        autocomplete="email" inputmode="email" aria-describedby="auth-email-error"
+                        [attr.aria-invalid]="form.get('email').invalid && form.get('email').touched">
+                    <small id="auth-email-error" *ngIf="form.get('email').invalid && form.get('email').touched" class="text-danger">
+                        Enter a valid email address.
+                    </small>
+                </div>
+
+                <div class="form-group">
+                    <label for="auth-password">Password</label>
+                    <input id="auth-password" class="form-control" type="password" formControlName="password"
+                        [autocomplete]="mode === 'login' ? 'current-password' : 'new-password'"
+                        aria-describedby="auth-password-help auth-password-error"
+                        [attr.aria-invalid]="form.get('password').invalid && form.get('password').touched">
+                    <small id="auth-password-help" *ngIf="mode === 'register'" class="form-text text-muted">Use at least 8 characters.</small>
+                    <small id="auth-password-error" *ngIf="form.get('password').invalid && form.get('password').touched" class="text-danger">
+                        {{ mode === 'register' ? 'Password must be at least 8 characters.' : 'Enter your password.' }}
+                    </small>
+                </div>
+
+                <div class="auth-message auth-message--error" *ngIf="errorMessage" role="alert">{{ errorMessage }}</div>
+                <div class="auth-message auth-message--success" *ngIf="successMessage" role="status">{{ successMessage }}</div>
+
+                <button class="btn btn-primary btn-block auth-shell__submit" type="submit" [disabled]="busy">
+                    <span *ngIf="busy" class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+                    {{ mode === 'login' ? 'Sign in' : 'Create account' }}
+                </button>
+            </form>
+
+            <div class="auth-shell__guest">
+                <span>No account needed to start logging.</span>
+                <button type="button" (click)="continueAsGuest()">Continue with local storage</button>
+            </div>
+        </ng-template>
+    </section>
+</main>

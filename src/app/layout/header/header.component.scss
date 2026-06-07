@@ -13,11 +13,79 @@
     color: white;
 }
 
-.nav-item a.nav-link {
+.nav-item a.nav-link,
+.nav-item button.nav-link {
     transition: transform 0.3s ease; /* Smooth transition */
 }
 
-.nav-item a.nav-link:hover {
+.nav-item a.nav-link:hover,
+.nav-item button.nav-link:hover {
     color: #FFFFFF;
     transform: translateY(-3px); /* Raise the icon slightly */
+}
+
+.header-nav-button {
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+}
+
+.header-account {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: transparent;
+    border: 0;
+    color: #fff;
+    cursor: pointer;
+}
+
+.header-account:hover,
+.header-account:focus-visible {
+    color: #fff;
+    transform: translateY(-3px);
+}
+
+.header-account__avatar {
+    display: grid;
+    width: 28px;
+    height: 28px;
+    place-items: center;
+    color: variables.$info;
+    border-radius: 50%;
+    background: #fff;
+    font-size: 0.76rem;
+    font-weight: 700;
+}
+
+.header-account__name {
+    max-width: 10rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.header-account__local {
+    padding: 2px 6px;
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    border-radius: 9px;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+}
+
+.header-account__chevron {
+    margin-left: 1px;
+    font-size: 0.62rem;
+    opacity: 0.8;
+}
+
+.header-menu-icon {
+    display: inline-block;
+    width: 24px;
+    color: variables.$info;
+}
+
+.header-sync-warning {
+    color: #fff3cd;
+    font-size: 0.8rem;
 }

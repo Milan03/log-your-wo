@@ -139,7 +139,10 @@ export class ProgramImportComponent implements OnInit, AfterViewInit, OnDestroy 
         try {
             await this._programImportService.importWorkbook(file);
         } catch (error) {
-            this.importError = 'That workbook could not be imported. Try another .xlsx file.';
+            const message = error instanceof Error ? error.message : '';
+            this.importError = /10 MB|No recognizable workout weeks/.test(message)
+                ? message
+                : 'That workbook could not be imported. Try another .xlsx file.';
         } finally {
             this.isImporting = false;
             input.value = '';
@@ -211,15 +214,6 @@ export class ProgramImportComponent implements OnInit, AfterViewInit, OnDestroy 
         }
     }
 
-    public onDayCardKeydown(event: KeyboardEvent, weekId: string, dayId: string): void {
-        if (event.target !== event.currentTarget || (event.key !== 'Enter' && event.key !== ' ')) {
-            return;
-        }
-
-        event.preventDefault();
-        this.openWorkout(weekId, dayId);
-    }
-
     public trackDayById(index: number, day: ImportedProgramDay): string {
         return day.id;
     }
@@ -265,11 +259,21 @@ export class ProgramImportComponent implements OnInit, AfterViewInit, OnDestroy 
             return;
         }
 
+        const hasRequestedWeek = !!this.selectedWeekId;
         const requestedWeek = this.program.weeks.find(week => week.id === this.selectedWeekId);
-        this.selectedWeek = requestedWeek || this.program.weeks[0];
+        const currentWorkout = !hasRequestedWeek
+            ? this._programImportService.getCurrentWorkout(this.program)
+            : undefined;
+        this.selectedWeek = requestedWeek || currentWorkout?.week || this.program.weeks[0];
         this.selectedWeekId = this.selectedWeek.id;
 
-        if (this.pendingFocusWeekId && !requestedWeek) {
+        if (!requestedWeek && currentWorkout) {
+            this.pendingFocusWeekId = currentWorkout.week.id;
+            this.pendingFocusDayId = currentWorkout.day.id;
+            this.queueRequestedFocus();
+        }
+
+        if (this.pendingFocusWeekId && hasRequestedWeek && !requestedWeek) {
             this.pendingFocusWeekId = undefined;
         }
         if (this.pendingFocusDayId && !this.selectedWeek.days.some(day => day.id === this.pendingFocusDayId)) {
@@ -280,8 +284,13 @@ export class ProgramImportComponent implements OnInit, AfterViewInit, OnDestroy 
     }
 
     private refreshProgramCards(): void {
+        const progressByProgram = this._programImportService.getProgramProgresses(this.programs);
         this.programCards = this.programs.map(program => {
-            const progress = this._programImportService.getProgramProgress(program);
+            const progress = progressByProgram.get(program.id) || {
+                completed: 0,
+                total: 0,
+                started: 0
+            };
             const status = this.getStatusFromProgress(progress);
 
             return {

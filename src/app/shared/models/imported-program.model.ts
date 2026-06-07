@@ -1,4 +1,4 @@
-import { Exercise } from './exercise.model';
+import { DistanceMeasure, PersistedExercise, WeightMeasure } from './simple-log.model';
 
 export interface ImportedProgram {
     id: string;
@@ -33,8 +33,11 @@ export interface ImportedWorkoutState {
     programId: string;
     weekId: string;
     dayId: string;
-    exercises: Exercise[];
-    cardioExercises?: Exercise[];
+    updatedAt?: string;
+    weightMeasure?: WeightMeasure;
+    distanceMeasure?: DistanceMeasure;
+    exercises: PersistedExercise[];
+    cardioExercises?: PersistedExercise[];
     startedAt?: string;
     completedAt?: string;
     pausedAt?: string;

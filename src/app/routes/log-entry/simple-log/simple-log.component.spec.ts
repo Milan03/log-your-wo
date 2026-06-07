@@ -13,6 +13,7 @@ import { TranslatorService } from '../../../core/translator/translator.service';
 import { ProgramImportService } from '../../../shared/services/program-import.service';
 import { SharedService } from '../../../shared/services/shared.service';
 import { SimpleLogService } from '../../../shared/services/simple-log.service';
+import { ProfileService } from '../../../shared/services/profile.service';
 import { Exercise } from '../../../shared/models/exercise.model';
 import { ImportedProgram } from '../../../shared/models/imported-program.model';
 import { SimpleLog } from '../../../shared/models/simple-log.model';
@@ -272,7 +273,7 @@ describe('SimpleLogComponent', () => {
     expect(groups[1].exercises).toEqual([bike]);
   });
 
-  it('converts numeric weights without changing ranges or placeholders', () => {
+  it('converts numeric weights and ranges without changing placeholders', () => {
     const numeric = createExercise('Clean', false);
     numeric.weight = 220.5;
     const range = createExercise('Clean', false);
@@ -284,8 +285,18 @@ describe('SimpleLogComponent', () => {
     sharedService.emitMeasureToggle('kg');
 
     expect(component.currentLog.exercises[0].weight).toBe(100);
-    expect(component.currentLog.exercises[1].weight).toBe('4-5');
+    expect(component.currentLog.exercises[1].weight).toBe('1.8-2.3');
     expect(component.currentLog.exercises[2].weight).toBe('x');
+  });
+
+  it('does not append a weight unit to percentages or textual prescriptions', () => {
+    const percentage = createExercise('Clean', false);
+    percentage.weight = '75%';
+    const bodyweight = createExercise('Pull-up', false);
+    bodyweight.weight = 'bodyweight';
+
+    expect(component.getWeightDisplay(percentage)).toBe('75%');
+    expect(component.getWeightDisplay(bodyweight)).toBe('bodyweight');
   });
 
   it('loads imported workouts from route params', () => {
@@ -299,6 +310,67 @@ describe('SimpleLogComponent', () => {
     expect(component.isImportedWorkout).toBeTrue();
     expect(component.currentLog.title).toBe('Week 1 - Day 01');
     expect(component.currentLog.exercises?.length).toBe(2);
+  });
+
+  it('converts imported workout weights to the profile unit without converting them twice', () => {
+    const profileService = TestBed.inject(ProfileService);
+    void profileService.saveProfile({
+      ...profileService.profile,
+      unitSystem: 'metric'
+    });
+    fixture.destroy();
+    fixture = TestBed.createComponent(SimpleLogComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+    programImportService.saveProgram(createProgram());
+
+    routeParams.next(convertToParamMap({
+      weekId: 'week-1',
+      dayId: 'week-1-day-1'
+    }));
+
+    expect(component.weightMeasure).toBe('kg');
+    expect(component.currentLog.exercises[0].weight).toBe(52.2);
+    expect(programImportService.getWorkoutState('week-1', 'week-1-day-1')).toBeUndefined();
+
+    routeParams.next(convertToParamMap({}));
+    routeParams.next(convertToParamMap({
+      weekId: 'week-1',
+      dayId: 'week-1-day-1'
+    }));
+
+    expect(component.currentLog.exercises[0].weight).toBe(52.2);
+  });
+
+  it('converts saved simple-log measurements to the profile units and persists the result', () => {
+    const log = new SimpleLog();
+    const strength = createExercise('Clean', false);
+    strength.weight = 220.5;
+    const cardio = createExercise('Run', false);
+    cardio.exerciseType = 'cardio';
+    cardio.distance = 1;
+    log.exercises = [strength];
+    log.cardioExercises = [cardio];
+    const saved = simpleLogService.saveLog(log, '2026-06-07', {
+      weightMeasure: 'lbs',
+      distanceMeasure: 'mi'
+    });
+    const profileService = TestBed.inject(ProfileService);
+    void profileService.saveProfile({
+      ...profileService.profile,
+      unitSystem: 'metric'
+    });
+    fixture.destroy();
+    fixture = TestBed.createComponent(SimpleLogComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    routeParams.next(convertToParamMap({ logId: saved.id }));
+
+    expect(component.currentLog.exercises[0].weight).toBe(100);
+    expect(component.currentLog.cardioExercises[0].distance).toBe(1.6);
+    expect(simpleLogService.getLog(saved.id).weightMeasure).toBe('kg');
+    expect(simpleLogService.getLog(saved.id).distanceMeasure).toBe('km');
   });
 
   it('reuses grouped exercise arrays until the source rows change', () => {
@@ -330,6 +402,18 @@ describe('SimpleLogComponent', () => {
     expect(component.currentLog.exercises?.[0].completed).toBeTrue();
     expect(component.currentLog.exercises?.[1].completed).toBeFalse();
     expect(component.workoutCompletedAt).toBeUndefined();
+  });
+
+  it('does not save an imported workout merely because it was opened', () => {
+    programImportService.saveProgram(createProgram());
+    const saveState = spyOn(programImportService, 'saveWorkoutState').and.callThrough();
+
+    routeParams.next(convertToParamMap({
+      weekId: 'week-1',
+      dayId: 'week-1-day-1'
+    }));
+
+    expect(saveState).not.toHaveBeenCalled();
   });
 
   it('navigates back to the imported week', () => {

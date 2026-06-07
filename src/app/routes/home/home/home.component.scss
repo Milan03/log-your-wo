@@ -9,7 +9,6 @@
 
 .home-container {
     margin: 0 auto;
-    margin-top: 65px;
     max-width: map.get(variables.$container-max-widths, "lg");
 
     button:hover, button:active, button:focus {

@@ -1,9 +1,11 @@
-import { Component, OnInit, Injector, OnDestroy } from '@angular/core';
+import { Component, OnInit, Injector, OnDestroy, Optional } from '@angular/core';
 import { Router } from '@angular/router';
 declare var $: any;
 
 import { MenuService } from '../../core/menu/menu.service';
 import { SettingsService } from '../../core/settings/settings.service';
+import { AuthService } from '../../core/auth/auth.service';
+import { Subscription } from 'rxjs';
 
 @Component({
     selector: 'app-sidebar',
@@ -17,10 +19,23 @@ export class SidebarComponent implements OnInit, OnDestroy {
     router: Router;
     sbclickEvent = 'click.sidebar-toggle';
     $doc: any = null;
+    signedIn = false;
+    private sessionSub: Subscription;
+    private routerSub: Subscription;
 
-    constructor(public menu: MenuService, public settings: SettingsService, public injector: Injector) {
+    constructor(
+        public menu: MenuService,
+        public settings: SettingsService,
+        public injector: Injector,
+        @Optional() private auth?: AuthService
+    ) {
 
         this.menuItems = menu.getMenu();
+        if (this.auth) {
+            this.sessionSub = this.auth.session$.subscribe(session => {
+                this.signedIn = !!session;
+            });
+        }
 
     }
 
@@ -28,7 +43,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
         this.router = this.injector.get(Router);
 
-        this.router.events.subscribe((val) => {
+        this.routerSub = this.router.events.subscribe(() => {
             // close any submenu opened when route changes
             this.removeFloatingNav();
             // scroll view to top
@@ -53,11 +68,26 @@ export class SidebarComponent implements OnInit, OnDestroy {
     ngOnDestroy() {
         if (this.$doc)
             this.$doc.off(this.sbclickEvent);
+        if (this.sessionSub)
+            this.sessionSub.unsubscribe();
+        if (this.routerSub)
+            this.routerSub.unsubscribe();
+        $(document).off('click.sidebar-floating');
+        this.removeFloatingNav();
     }
 
     toggleSubmenuClick(event) {
+        const submenu = event.currentTarget.nextElementSibling;
+        if (!submenu) {
+            return;
+        }
 
         event.preventDefault();
+
+        if (this.isSidebarCollapsed() || this.isSidebarCollapsedText() || this.isEnabledHover()) {
+            this.toggleSubmenuHover(event);
+            return;
+        }
 
         if (!this.isSidebarCollapsed() && !this.isSidebarCollapsedText() && !this.isEnabledHover()) {
 
@@ -171,16 +201,17 @@ export class SidebarComponent implements OnInit, OnDestroy {
     }
 
     listenForExternalClicks() {
-        let $doc = $(document).on('click.sidebar', (e) => {
+        $(document).off('click.sidebar-floating');
+        $(document).on('click.sidebar-floating', (e) => {
             if (!$(e.target).parents('.aside-container').length) {
                 this.removeFloatingNav();
-                $doc.off('click.sidebar');
             }
         });
     }
 
     removeFloatingNav() {
         $('.nav-floating').remove();
+        $(document).off('click.sidebar-floating');
     }
 
     isSidebarCollapsed() {
@@ -192,4 +223,19 @@ export class SidebarComponent implements OnInit, OnDestroy {
     isEnabledHover() {
         return this.settings.getLayoutSetting('asideHover');
     }
+
+    public openSignIn(): void {
+        void this.router.navigate(['/auth'], {
+            queryParams: { returnUrl: this.router.url }
+        });
+    }
+
+    public async signOut(): Promise<void> {
+        if (!this.auth) {
+            return;
+        }
+        await this.auth.signOut();
+        await this.router.navigate(['/home']);
+    }
+
 }

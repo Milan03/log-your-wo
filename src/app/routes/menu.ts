@@ -20,6 +20,13 @@ const ImportProgram = {
     translate: ''
 };
 
+const Profile = {
+    text: 'Profile',
+    link: '/profile',
+    icon: 'icon-user',
+    translate: ''
+};
+
 const headingMain = {
     text: '',
     heading: true,
@@ -30,5 +37,6 @@ export const menu = [
     headingMain,
     //Home,
     SimpleLog,
-    ImportProgram
+    ImportProgram,
+    Profile
 ];

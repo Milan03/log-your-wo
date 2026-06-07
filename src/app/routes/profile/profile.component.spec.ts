@@ -1,0 +1,38 @@
+import { FormBuilder } from '@angular/forms';
+
+import { ProfileComponent } from './profile.component';
+
+describe('ProfileComponent', () => {
+    function createComponent(): ProfileComponent {
+        return new ProfileComponent(
+            new FormBuilder(),
+            jasmine.createSpyObj('AuthService', [], { session$: { subscribe: () => undefined } }),
+            jasmine.createSpyObj('ProfileService', ['saveProfile'], {
+                profile$: { subscribe: () => undefined }
+            }),
+            jasmine.createSpyObj('SharedService', ['emitLogType']),
+            jasmine.createSpyObj('Router', ['navigate'])
+        );
+    }
+
+    it('converts existing measurements when the unit system changes', () => {
+        const component = createComponent();
+        component.form.patchValue({
+            height: 70.9,
+            bodyWeight: 200,
+            unitSystem: 'metric'
+        });
+
+        component.changeUnitSystem('metric');
+
+        expect(component.form.get('height').value).toBe(180.1);
+        expect(component.form.get('bodyWeight').value).toBe(90.7);
+    });
+
+    it('rejects a future birth date', () => {
+        const component = createComponent();
+        component.form.get('birthDate').setValue('2999-01-01');
+
+        expect(component.form.get('birthDate').hasError('futureDate')).toBeTrue();
+    });
+});

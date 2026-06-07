@@ -8,39 +8,39 @@
             <div class="program-import__library-actions">
                 <label class="btn btn-primary mb-0 program-import__file-control program-import__file-control--library">
                     <span>
-                        <em class="fa fa-upload"></em>
+                        <em class="fa fa-upload" aria-hidden="true"></em>
                         Import
                     </span>
                     <input class="program-import__file-input" type="file" accept=".xlsx,.xls" (change)="onFileSelected($event)">
                 </label>
                 <button *ngIf="program" class="btn btn-outline-danger program-import__library-clear" type="button" (click)="clearProgram()">
-                    <em class="fa fa-trash"></em>
+                    <em class="fa fa-trash" aria-hidden="true"></em>
+                    <span class="sr-only">Delete current imported program</span>
                 </button>
             </div>
         </div>
         <div *ngIf="programCards.length" class="program-import__library-list">
             <div *ngFor="let card of programCards"
                 class="program-import__library-item"
-                [class.program-import__library-item--active]="program && program.id === card.program.id"
-                role="button"
-                tabindex="0"
-                (click)="selectProgram(card.program)"
-                (keydown.enter)="selectProgram(card.program)"
-                (keydown.space)="$event.preventDefault(); selectProgram(card.program)">
-                <span class="program-import__library-title">{{ card.program.name }}</span>
-                <span class="program-import__library-meta">
-                    <span class="program-import__library-status" [ngClass]="card.statusClass">
-                        {{ card.statusLabel }}
+                [class.program-import__library-item--active]="program && program.id === card.program.id">
+                <button class="program-import__library-select" type="button" (click)="selectProgram(card.program)">
+                    <span class="program-import__library-title">{{ card.program.name }}</span>
+                    <span class="program-import__library-meta">
+                        <span class="program-import__library-status" [ngClass]="card.statusClass">
+                            {{ card.statusLabel }}
+                        </span>
+                        <span>{{ card.progressLabel }}</span>
                     </span>
-                    <span>{{ card.progressLabel }}</span>
-                </span>
-                <mat-progress-bar mode="determinate" [value]="card.progressPercent"></mat-progress-bar>
-                <span class="program-import__library-row">
-                    <span>{{ card.program.weeks.length }} weeks</span>
-                    <button class="program-import__library-delete" type="button" (click)="deleteProgram($event, card.program)">
-                        <em class="fa fa-trash"></em>
-                    </button>
-                </span>
+                    <mat-progress-bar mode="determinate" [value]="card.progressPercent"></mat-progress-bar>
+                    <span class="program-import__library-row">
+                        <span>{{ card.program.weeks.length }} weeks</span>
+                    </span>
+                </button>
+                <button class="program-import__library-delete" type="button"
+                    [attr.aria-label]="'Delete ' + card.program.name"
+                    (click)="deleteProgram($event, card.program)">
+                    <em class="fa fa-trash" aria-hidden="true"></em>
+                </button>
             </div>
         </div>
     </aside>
@@ -54,13 +54,14 @@
             <div class="program-import__actions">
                 <label class="btn btn-primary mb-0 program-import__file-control">
                     <span>
-                        <em class="fa fa-upload"></em>
+                        <em class="fa fa-upload" aria-hidden="true"></em>
                         Import Excel
                     </span>
                     <input class="program-import__file-input" type="file" accept=".xlsx,.xls" (change)="onFileSelected($event)">
                 </label>
                 <button *ngIf="program" class="btn btn-outline-danger" type="button" (click)="clearProgram()">
-                    <em class="fa fa-trash"></em>
+                    <em class="fa fa-trash" aria-hidden="true"></em>
+                    <span class="sr-only">Delete current imported program</span>
                 </button>
             </div>
         </div>
@@ -118,19 +119,18 @@
                     class="program-import__day"
                     [attr.data-day-id]="day.id"
                     [class.program-import__day--complete]="day.complete"
-                    [ngStyle]="day.complete ? completionStyles : null"
-                    role="button"
-                    tabindex="0"
-                    (click)="openWorkout(selectedWeek.id, day.id)"
-                    (keydown)="onDayCardKeydown($event, selectedWeek.id, day.id)">
-                    <div class="program-import__day-title">
-                        <span>{{ day.name }}</span>
-                        <span>{{ day.completionLabel }}</span>
-                    </div>
-                    <mat-progress-bar mode="determinate" [value]="day.completionPercent"></mat-progress-bar>
-                    <div class="program-import__preview">
-                        <span *ngFor="let exerciseName of day.exercisePreview">{{ exerciseName }}</span>
-                    </div>
+                    [ngStyle]="day.complete ? completionStyles : null">
+                    <button class="program-import__day-open" type="button"
+                        (click)="openWorkout(selectedWeek.id, day.id)">
+                        <span class="program-import__day-title">
+                            <span>{{ day.name }}</span>
+                            <span>{{ day.completionLabel }}</span>
+                        </span>
+                        <mat-progress-bar mode="determinate" [value]="day.completionPercent"></mat-progress-bar>
+                        <span class="program-import__preview">
+                            <span *ngFor="let exerciseName of day.exercisePreview">{{ exerciseName }}</span>
+                        </span>
+                    </button>
                     <div class="program-import__day-actions">
                         <span *ngIf="day.elapsedLabel" class="program-import__elapsed">
                             {{ day.elapsedLabel }}
