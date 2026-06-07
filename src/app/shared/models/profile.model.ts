@@ -8,8 +8,8 @@ export interface UserProfile {
     bio: string;
     birthDate: string;
     gender: string;
-    height: number;
-    bodyWeight: number;
+    height: number | undefined;
+    bodyWeight: number | undefined;
     unitSystem: UnitSystem;
     fitnessGoal: string;
     experienceLevel: ExperienceLevel;

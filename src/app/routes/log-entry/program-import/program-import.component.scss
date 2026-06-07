@@ -72,20 +72,18 @@
 }
 
 .program-import__library-item {
+    position: relative;
     display: grid;
-    gap: 8px;
     width: 100%;
-    padding: 12px;
     text-align: left;
     border: 1px solid #dce1e6;
     border-radius: 6px;
     background: #fff;
-    color: #1f2933;
-    cursor: pointer;
+    overflow: hidden;
 }
 
 .program-import__library-item:hover,
-.program-import__library-item:focus,
+.program-import__library-item:focus-within,
 .program-import__library-item--active {
     border-color: variables.$primary;
 }
@@ -99,6 +97,18 @@
     font-weight: 700;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+.program-import__library-select {
+    display: grid;
+    gap: 8px;
+    width: 100%;
+    padding: 12px 46px 12px 12px;
+    text-align: left;
+    color: #1f2933;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
 }
 
 .program-import__library-meta,
@@ -120,6 +130,9 @@
 }
 
 .program-import__library-delete {
+    position: absolute;
+    right: 10px;
+    bottom: 8px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -189,6 +202,11 @@
     height: 100%;
     opacity: 0;
     cursor: pointer;
+}
+
+.program-import__file-control:focus-within {
+    outline: 3px solid rgba(35, 151, 198, 0.3);
+    outline-offset: 2px;
 }
 
 .program-import__actions em {
@@ -324,11 +342,10 @@
     border: 1px solid #dce1e6;
     border-radius: 8px;
     background: #fff;
-    cursor: pointer;
 }
 
 .program-import__day:hover,
-.program-import__day:focus {
+.program-import__day:focus-within {
     border-color: variables.$primary;
 }
 
@@ -339,8 +356,20 @@
 }
 
 .program-import__day--complete:hover,
-.program-import__day--complete:focus {
+.program-import__day--complete:focus-within {
     border-color: var(--completion-color);
+}
+
+.program-import__day-open {
+    display: grid;
+    gap: 12px;
+    width: 100%;
+    padding: 0;
+    text-align: left;
+    color: inherit;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
 }
 
 .program-import__day-title {
@@ -394,7 +423,7 @@
 
     .program-import__library {
         position: sticky;
-        top: 0;
+        top: 65px;
         z-index: 5;
         display: grid;
         max-height: none;
@@ -469,7 +498,7 @@
     }
 }
 
-@media only screen and (max-width: 768px) {
+@media only screen and (max-width: 767px) {
     .program-import-shell {
         width: auto;
         margin-top: 0;

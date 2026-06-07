@@ -30,7 +30,7 @@ export class AuthComponent implements OnInit, OnDestroy {
     ) {
         this.form = formBuilder.group({
             email: ['', [Validators.required, Validators.email]],
-            password: ['', [Validators.required, Validators.minLength(8)]]
+            password: ['', Validators.required]
         });
     }
 
@@ -59,6 +59,11 @@ export class AuthComponent implements OnInit, OnDestroy {
         this.mode = mode;
         this.errorMessage = '';
         this.successMessage = '';
+        const password = this.form.get('password');
+        password.setValidators(mode === 'register'
+            ? [Validators.required, Validators.minLength(8)]
+            : Validators.required);
+        password.updateValueAndValidity();
     }
 
     public async submit(): Promise<void> {
@@ -135,11 +140,17 @@ export class AuthComponent implements OnInit, OnDestroy {
     }
 
     private safeReturnUrl(value: string): string {
-        return value && value.startsWith('/') && !value.startsWith('/auth') ? value : '/home';
+        return value && value.startsWith('/') && !value.startsWith('//') && !value.startsWith('/auth')
+            ? value
+            : '/home';
     }
 
-    private authErrorMessage(error: any): string {
-        const message = error && error.message ? String(error.message) : '';
+    private authErrorMessage(error: unknown): string {
+        const message = error instanceof Error
+            ? error.message
+            : typeof error === 'object' && error && 'message' in error
+                ? String((error as { message?: unknown }).message || '')
+                : '';
 
         if (/invalid login credentials/i.test(message)) {
             return 'The email or password is incorrect.';

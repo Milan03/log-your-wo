@@ -102,11 +102,14 @@ export class SupabaseDataService {
     public async getWorkoutStates(userId: string): Promise<ImportedWorkoutState[]> {
         const { data, error } = await this.supabase.client
             .from('imported_workout_states')
-            .select('data')
+            .select('data,updated_at')
             .eq('user_id', userId);
 
         this.throwIfError(error);
-        return (data || []).map(row => row.data as ImportedWorkoutState);
+        return (data || []).map(row => ({
+            ...(row.data as ImportedWorkoutState),
+            updatedAt: (row.data as ImportedWorkoutState).updatedAt || row.updated_at
+        }));
     }
 
     public async saveWorkoutStates(userId: string, states: ImportedWorkoutState[]): Promise<void> {
@@ -114,7 +117,6 @@ export class SupabaseDataService {
             return;
         }
 
-        const now = new Date().toISOString();
         const { error } = await this.supabase.client
             .from('imported_workout_states')
             .upsert(states.map(state => ({
@@ -122,7 +124,7 @@ export class SupabaseDataService {
                 program_id: state.programId,
                 week_id: state.weekId,
                 day_id: state.dayId,
-                updated_at: now,
+                updated_at: state.updatedAt || new Date().toISOString(),
                 data: state
             })), {
                 onConflict: 'user_id,program_id,week_id,day_id'

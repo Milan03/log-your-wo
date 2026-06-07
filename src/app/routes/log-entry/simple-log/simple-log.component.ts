@@ -7,7 +7,14 @@ import { Subscription } from 'rxjs';
 import { ExerciseDialogComponent } from '../exercise-dialog/exercise-dialog.component';
 import { EmailDialogComponent } from '../email-dialog/email-dialog.component';
 import { Exercise } from '../../../shared/models/exercise.model';
-import { SavedSimpleLog, SimpleLog, SimpleLogTimingState } from '../../../shared/models/simple-log.model';
+import {
+    DistanceMeasure,
+    PersistedExercise,
+    SavedSimpleLog,
+    SimpleLog,
+    SimpleLogTimingState,
+    WeightMeasure
+} from '../../../shared/models/simple-log.model';
 import { EmailRequest } from '../../../shared/models/email-request.model';
 import { ExerciseDialogData } from '../../../shared/interfaces/exercise-dialog-data';
 import { SharedService } from '../../../shared/services/shared.service';
@@ -61,8 +68,8 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     public readonly exerciseType: string = FormValues.ExerciseNameFormControl;
     public readonly cardioExerciseType: string = FormValues.CardioExerciseNameFormControl;
     public intensities = FormValues.ExerciseIntensities;
-    public weightMeasure: string = 'lbs';
-    public distanceMeasure: string = 'km';
+    public weightMeasure: WeightMeasure = 'lbs';
+    public distanceMeasure: DistanceMeasure = 'km';
 
     private langSub: Subscription;
     private sbToggleSub: Subscription;
@@ -71,7 +78,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     private exerciseTitleSub: Subscription;
     private routeSub: Subscription;
     private simpleLogsSub: Subscription;
-    private elapsedTimerId: any;
+    private elapsedTimerId: ReturnType<typeof setInterval>;
     private strengthGroupSource: Exercise[];
     private strengthGroups: ExerciseGroup[] = [];
     private cardioGroupSource: Exercise[];
@@ -655,7 +662,9 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             return '';
         }
 
-        return `${weight} ${this.weightMeasure}`;
+        return this.isConvertibleMeasurement(weight)
+            ? `${weight} ${this.weightMeasure}`
+            : weight;
     }
 
     public getStrengthExerciseGroups(): ExerciseGroup[] {
@@ -678,7 +687,9 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
 
     public getDistanceDisplay(exercise: Exercise): string {
         const distance = exercise.distance === undefined || exercise.distance === null ? '' : String(exercise.distance).trim();
-        return distance ? `${distance} ${this.distanceMeasure}` : '';
+        return distance && this.isConvertibleMeasurement(distance)
+            ? `${distance} ${this.distanceMeasure}`
+            : distance;
     }
 
     public getDurationDisplay(exercise: Exercise): string {
@@ -780,36 +791,81 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         }
     }
 
-    private transformWeightMeasure(data: string) {
-        const factor = data === 'kg' ? 1 / 2.205 : 2.205;
-        this.currentLog.exercises = this.currentLog.exercises.map(exercise => ({
+    private transformWeightMeasure(data: WeightMeasure): void {
+        const sourceMeasure = data === 'kg' ? 'lbs' : 'kg';
+        this.currentLog.exercises = this.convertExerciseWeights(this.currentLog.exercises, sourceMeasure, data);
+    }
+
+    private convertExerciseWeights(
+        exercises: Exercise[],
+        sourceMeasure: WeightMeasure,
+        targetMeasure: WeightMeasure
+    ): Exercise[] {
+        if (sourceMeasure === targetMeasure) {
+            return exercises;
+        }
+
+        const factor = targetMeasure === 'kg' ? 1 / 2.205 : 2.205;
+        return exercises.map(exercise => ({
             ...exercise,
             weight: this.convertMeasurementValue(exercise.weight, factor)
         }));
     }
 
-    private tranformDistanceMeasure(data: string) {
-        const factor = data === 'mi' ? 1 / 1.609 : 1.609;
-        this.currentLog.cardioExercises = this.currentLog.cardioExercises.map(exercise => ({
+    private transformDistanceMeasure(data: DistanceMeasure): void {
+        const sourceMeasure = data === 'mi' ? 'km' : 'mi';
+        this.currentLog.cardioExercises = this.convertExerciseDistances(
+            this.currentLog.cardioExercises,
+            sourceMeasure,
+            data
+        );
+    }
+
+    private convertExerciseDistances(
+        exercises: Exercise[],
+        sourceMeasure: DistanceMeasure,
+        targetMeasure: DistanceMeasure
+    ): Exercise[] {
+        if (sourceMeasure === targetMeasure) {
+            return exercises;
+        }
+
+        const factor = targetMeasure === 'mi' ? 1 / 1.609 : 1.609;
+        return exercises.map(exercise => ({
             ...exercise,
             distance: this.convertMeasurementValue(exercise.distance, factor)
         }));
     }
 
-    private convertMeasurementValue(value: any, factor: number): any {
+    private convertMeasurementValue(
+        value: number | string | undefined,
+        factor: number
+    ): number | string | undefined {
         if (value === undefined || value === null || String(value).trim() === '') {
             return value;
         }
 
         const normalized = String(value).trim();
-        if (!/^-?\d+(?:\.\d+)?$/.test(normalized)) {
+        const numericMatch = normalized.match(/^-?\d+(?:\.\d+)?$/);
+        if (numericMatch) {
+            return this.roundMeasurement(Number(normalized) * factor);
+        }
+
+        const rangeMatch = normalized.match(/^(-?\d+(?:\.\d+)?)\s*[-–]\s*(-?\d+(?:\.\d+)?)$/);
+        if (!rangeMatch) {
             return value;
         }
 
-        const numericValue = Number(normalized);
-        return Number.isFinite(numericValue)
-            ? Math.round(numericValue * factor * 10) / 10
-            : value;
+        return `${this.roundMeasurement(Number(rangeMatch[1]) * factor)}-${this.roundMeasurement(Number(rangeMatch[2]) * factor)}`;
+    }
+
+    private roundMeasurement(value: number): number {
+        return Math.round(value * 10) / 10;
+    }
+
+    private isConvertibleMeasurement(value: string): boolean {
+        return /^-?\d+(?:\.\d+)?$/.test(value)
+            || /^-?\d+(?:\.\d+)?\s*[-–]\s*-?\d+(?:\.\d+)?$/.test(value);
     }
 
     /**
@@ -843,11 +899,13 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
                     if (data !== this.weightMeasure) {
                         this.weightMeasure = data;
                         this.transformWeightMeasure(this.weightMeasure);
+                        this.saveCurrentWorkoutState();
                     }
-                } else {
+                } else if (data === 'km' || data === 'mi') {
                     if (data !== this.distanceMeasure) {
                         this.distanceMeasure = data;
-                        this.tranformDistanceMeasure(this.distanceMeasure);
+                        this.transformDistanceMeasure(this.distanceMeasure);
+                        this.saveCurrentWorkoutState();
                     }
                 }
             }
@@ -931,12 +989,27 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         }
 
         this.currentLog = this._simpleLogService.hydrateLog(savedLog);
+        const sourceWeightMeasure = savedLog.weightMeasure || 'lbs';
+        const sourceDistanceMeasure = savedLog.distanceMeasure || 'km';
+        this.currentLog.exercises = this.convertExerciseWeights(
+            this.currentLog.exercises,
+            sourceWeightMeasure,
+            this.weightMeasure
+        );
+        this.currentLog.cardioExercises = this.convertExerciseDistances(
+            this.currentLog.cardioExercises,
+            sourceDistanceMeasure,
+            this.distanceMeasure
+        );
         this.activeSimpleLogId = savedLog.id;
         this.workoutDate = savedLog.workoutDate;
         this.workoutDateTime = this.toDateTimeInputValue(this.currentLog.startDatim);
         this.calendarMonth = new Date(this.currentLog.startDatim.getFullYear(), this.currentLog.startDatim.getMonth(), 1);
         this.refreshCalendar();
         this.loadWorkoutTiming(savedLog);
+        if (sourceWeightMeasure !== this.weightMeasure || sourceDistanceMeasure !== this.distanceMeasure) {
+            this.saveSimpleLogIfNeeded();
+        }
         this._sharedService.emitLogType(this.currentLog.title);
         this._sharedService.emitLogStartDatim(this.currentLog.startDatim);
     }
@@ -952,23 +1025,50 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         const state = this._programImportService.getWorkoutState(weekId, dayId);
         this.currentLog = new SimpleLog();
         this.currentLog.title = `${this.importedWeek.name} - ${this.importedDay.name}`;
-        this.currentLog.exercises = state ? this.hydrateExercises(state.exercises) : this._programImportService.createExercisesForDay(this.importedDay);
+        const sourceWeightMeasure = state?.weightMeasure || 'lbs';
+        const exercises = state
+            ? this.hydrateExercises(state.exercises)
+            : this._programImportService.createExercisesForDay(this.importedDay);
+        this.currentLog.exercises = this.convertExerciseWeights(exercises, sourceWeightMeasure, this.weightMeasure);
         this.currentLog.cardioExercises = state && state.cardioExercises
-            ? this.hydrateExercises(state.cardioExercises)
+            ? this.convertExerciseDistances(
+                this.hydrateExercises(state.cardioExercises),
+                state.distanceMeasure || 'km',
+                this.distanceMeasure
+            )
             : [];
         this.isImportedWorkout = true;
         this.loadWorkoutTiming(state);
         this._sharedService.emitLogType(this.currentLog.title);
         this._sharedService.emitLogStartDatim(this.currentLog.startDatim);
-        this.saveImportedWorkoutState();
+        if (state && (
+            sourceWeightMeasure !== this.weightMeasure ||
+            (state.distanceMeasure || 'km') !== this.distanceMeasure
+        )) {
+            this.saveImportedWorkoutState();
+        }
     }
 
-    private hydrateExercises(exercises: Exercise[]): Exercise[] {
+    private hydrateExercises(exercises: PersistedExercise[]): Exercise[] {
         return exercises.map(exercise => {
             const hydratedExercise = Object.assign(new Exercise(), exercise);
-            hydratedExercise.duration = moment.duration((exercise as any).duration || 0);
+            hydratedExercise.duration = moment.duration(this.durationMilliseconds(exercise.duration));
             return hydratedExercise;
         });
+    }
+
+    private durationMilliseconds(duration: unknown): number {
+        if (duration && typeof (duration as moment.Duration).asMilliseconds === 'function') {
+            return (duration as moment.Duration).asMilliseconds();
+        }
+
+        if (typeof duration === 'string') {
+            const milliseconds = moment.duration(duration).asMilliseconds();
+            return Number.isFinite(milliseconds) ? milliseconds : 0;
+        }
+
+        const milliseconds = Number(duration);
+        return Number.isFinite(milliseconds) ? milliseconds : 0;
     }
 
     private findLastCompletedExercise(): Exercise | undefined {
@@ -1007,6 +1107,8 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             programId: program.id,
             weekId: this.importedWeek.id,
             dayId: this.importedDay.id,
+            weightMeasure: this.weightMeasure,
+            distanceMeasure: this.distanceMeasure,
             exercises: this.currentLog.exercises,
             cardioExercises: this.currentLog.cardioExercises,
             startedAt: this.workoutStartedAt,
@@ -1031,6 +1133,8 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         }
 
         const savedLog = this._simpleLogService.saveLog(this.currentLog, this.workoutDate, {
+            weightMeasure: this.weightMeasure,
+            distanceMeasure: this.distanceMeasure,
             startedAt: this.workoutStartedAt,
             completedAt: this.workoutCompletedAt,
             pausedAt: this.workoutPausedAt,

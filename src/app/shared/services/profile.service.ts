@@ -1,8 +1,9 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Optional } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 
 import { createDefaultProfile, UserProfile } from '../models/profile.model';
 import { SupabaseDataService } from './supabase-data.service';
+import { CloudSyncStatusService } from './cloud-sync-status.service';
 
 @Injectable({
     providedIn: 'root'
@@ -15,7 +16,10 @@ export class ProfileService {
 
     public readonly profile$ = this.profileSource.asObservable();
 
-    constructor(private cloudData?: SupabaseDataService) { }
+    constructor(
+        private cloudData?: SupabaseDataService,
+        @Optional() private syncStatus?: CloudSyncStatusService
+    ) { }
 
     public get profile(): UserProfile {
         return this.profileSource.value;
@@ -37,22 +41,38 @@ export class ProfileService {
         }
 
         const userId = this.activeUserId;
+        const accountStorageKey = this.storageKey(userId);
         const remoteProfile = await this.cloudData.getProfile(userId);
-        const accountCache = this.readProfile(this.storageKey());
-        const guestProfile = this.readProfile(this.guestStorageKey);
-        const profile = this.mergeProfiles(guestProfile, accountCache, remoteProfile);
+        const accountCache = this.readStoredProfile(accountStorageKey);
+        const guestProfile = this.readStoredProfile(this.guestStorageKey);
+        const initialProfile = this.selectNewestProfile(remoteProfile, guestProfile, accountCache);
 
-        this.writeProfile(profile);
-        await this.cloudData.saveProfile(userId, profile);
+        if (this.activeUserId !== userId) {
+            return;
+        }
 
-        if (this.hasProfileData(guestProfile)) {
+        const latestAccountProfile = this.readStoredProfile(accountStorageKey);
+        const profile = this.selectNewestProfile(initialProfile, latestAccountProfile);
+        this.writeProfile(profile, accountStorageKey);
+        await this.enqueueCloudWrite(
+            () => this.cloudData.saveProfile(userId, this.selectNewestProfile(
+                profile,
+                this.readStoredProfile(accountStorageKey)
+            )),
+            'Unable to synchronize profile with Supabase.'
+        );
+
+        if (guestProfile) {
             localStorage.removeItem(this.guestStorageKey);
         }
 
-        this.profileSource.next(profile);
+        this.profileSource.next(this.selectNewestProfile(
+            profile,
+            this.readStoredProfile(accountStorageKey)
+        ));
     }
 
-    public saveProfile(profile: UserProfile): void {
+    public saveProfile(profile: UserProfile): Promise<void> {
         const savedProfile: UserProfile = {
             ...createDefaultProfile(),
             ...profile,
@@ -65,11 +85,13 @@ export class ProfileService {
 
         if (this.activeUserId) {
             const userId = this.activeUserId;
-            this.cloudWriteQueue = this.cloudWriteQueue
-                .catch(() => undefined)
-                .then(() => this.cloudData.saveProfile(userId, savedProfile))
-                .catch(error => console.error('Unable to save profile to Supabase.', error));
+            return this.enqueueCloudWrite(
+                () => this.cloudData.saveProfile(userId, savedProfile),
+                'Unable to save profile to Supabase.'
+            );
         }
+
+        return Promise.resolve();
     }
 
     public getDisplayName(email?: string): string {
@@ -88,52 +110,46 @@ export class ProfileService {
         return 'Guest';
     }
 
-    private storageKey(): string {
-        return this.activeUserId ? `logYourWo.${this.activeUserId}.profile` : this.guestStorageKey;
+    private storageKey(userId = this.activeUserId): string {
+        return userId ? `logYourWo.${userId}.profile` : this.guestStorageKey;
     }
 
     private readProfile(key: string): UserProfile {
+        return this.readStoredProfile(key) || createDefaultProfile();
+    }
+
+    private readStoredProfile(key: string): UserProfile | undefined {
         const stored = localStorage.getItem(key);
 
         try {
             return stored
                 ? { ...createDefaultProfile(), ...JSON.parse(stored) }
-                : createDefaultProfile();
+                : undefined;
         } catch {
-            return createDefaultProfile();
+            return undefined;
         }
     }
 
-    private writeProfile(profile: UserProfile): void {
-        localStorage.setItem(this.storageKey(), JSON.stringify(profile));
+    private writeProfile(profile: UserProfile, key = this.storageKey()): void {
+        localStorage.setItem(key, JSON.stringify(profile));
     }
 
-    private mergeProfiles(...profiles: UserProfile[]): UserProfile {
-        return profiles.filter(Boolean).reduce((merged, profile) => {
-            const values = Object.entries(profile).reduce((result, [key, value]) => {
-                if (value !== '' && value !== undefined && value !== null) {
-                    result[key] = value;
-                }
-                return result;
-            }, {} as any);
-            return { ...merged, ...values };
+    private selectNewestProfile(...profiles: Array<UserProfile | undefined>): UserProfile {
+        return profiles.filter(Boolean).reduce((newest, profile) => {
+            return (profile.updatedAt || '').localeCompare(newest.updatedAt || '') >= 0
+                ? profile
+                : newest;
         }, createDefaultProfile());
     }
 
-    private hasProfileData(profile: UserProfile): boolean {
-        return !!(
-            profile.firstName ||
-            profile.lastName ||
-            profile.username ||
-            profile.bio ||
-            profile.birthDate ||
-            profile.gender ||
-            profile.height ||
-            profile.bodyWeight ||
-            profile.fitnessGoal ||
-            profile.experienceLevel ||
-            profile.preferredTraining.length ||
-            profile.updatedAt
-        );
+    private enqueueCloudWrite(action: () => Promise<void>, errorMessage: string): Promise<void> {
+        const operation = this.cloudWriteQueue
+            .catch(() => undefined)
+            .then(action);
+        this.cloudWriteQueue = operation.catch(error => {
+            console.error(errorMessage, error);
+            this.syncStatus?.report();
+        });
+        return operation;
     }
 }

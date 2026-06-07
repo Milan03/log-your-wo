@@ -44,12 +44,21 @@
                     </div>
                     <div class="form-group">
                         <label for="profile-username">Username</label>
-                        <input id="profile-username" class="form-control" formControlName="username" autocomplete="username">
-                        <small class="text-muted">Letters, numbers, periods, hyphens, and underscores.</small>
+                        <input id="profile-username" class="form-control" formControlName="username" autocomplete="username"
+                            aria-describedby="profile-username-help profile-username-error"
+                            [attr.aria-invalid]="form.get('username').invalid && form.get('username').touched">
+                        <small id="profile-username-help" class="text-muted">Letters, numbers, periods, hyphens, and underscores.</small>
+                        <small id="profile-username-error" *ngIf="form.get('username').invalid && form.get('username').touched"
+                            class="text-danger">Use no more than 30 supported characters.</small>
                     </div>
                     <div class="form-group">
                         <label for="profile-birth-date">Date of birth</label>
-                        <input id="profile-birth-date" class="form-control" type="date" formControlName="birthDate">
+                        <input id="profile-birth-date" class="form-control" type="date" formControlName="birthDate"
+                            [max]="today" aria-describedby="profile-birth-date-error"
+                            [attr.aria-invalid]="form.get('birthDate').invalid && form.get('birthDate').touched">
+                        <small id="profile-birth-date-error"
+                            *ngIf="form.get('birthDate').invalid && form.get('birthDate').touched"
+                            class="text-danger">Date of birth cannot be in the future.</small>
                     </div>
                     <div class="form-group">
                         <label for="profile-gender">Gender <span class="text-muted">(optional)</span></label>
@@ -105,7 +114,11 @@
                     <div class="form-group">
                         <label for="profile-frequency">Workouts per week</label>
                         <input id="profile-frequency" class="form-control" type="number" min="1" max="14"
-                            formControlName="workoutsPerWeek">
+                            formControlName="workoutsPerWeek" aria-describedby="profile-frequency-error"
+                            [attr.aria-invalid]="form.get('workoutsPerWeek').invalid && form.get('workoutsPerWeek').touched">
+                        <small id="profile-frequency-error"
+                            *ngIf="form.get('workoutsPerWeek').invalid && form.get('workoutsPerWeek').touched"
+                            class="text-danger">Enter between 1 and 14 workouts.</small>
                     </div>
                     <div class="form-group profile-form-grid__wide">
                         <span class="profile-label">Training interests</span>
@@ -133,7 +146,8 @@
                 <div class="profile-form-grid">
                     <div class="form-group">
                         <label for="profile-units">Unit system</label>
-                        <select id="profile-units" class="form-control" formControlName="unitSystem">
+                        <select id="profile-units" class="form-control" formControlName="unitSystem"
+                            (change)="changeUnitSystemFromEvent($event)">
                             <option value="imperial">Imperial (lb, ft/in, mi)</option>
                             <option value="metric">Metric (kg, cm, km)</option>
                         </select>
@@ -142,17 +156,23 @@
                         <label for="profile-height">Height</label>
                         <div class="input-group">
                             <input id="profile-height" class="form-control" type="number" min="1" max="300"
-                                formControlName="height">
+                                formControlName="height" aria-describedby="profile-height-error"
+                                [attr.aria-invalid]="form.get('height').invalid && form.get('height').touched">
                             <span class="input-group-text">{{ form.get('unitSystem').value === 'metric' ? 'cm' : 'in' }}</span>
                         </div>
+                        <small id="profile-height-error" *ngIf="form.get('height').invalid && form.get('height').touched"
+                            class="text-danger">Enter a valid height.</small>
                     </div>
                     <div class="form-group">
                         <label for="profile-weight">Body weight</label>
                         <div class="input-group">
                             <input id="profile-weight" class="form-control" type="number" min="1" max="1000"
-                                formControlName="bodyWeight">
+                                formControlName="bodyWeight" aria-describedby="profile-weight-error"
+                                [attr.aria-invalid]="form.get('bodyWeight').invalid && form.get('bodyWeight').touched">
                             <span class="input-group-text">{{ form.get('unitSystem').value === 'metric' ? 'kg' : 'lb' }}</span>
                         </div>
+                        <small id="profile-weight-error" *ngIf="form.get('bodyWeight').invalid && form.get('bodyWeight').touched"
+                            class="text-danger">Enter a valid body weight.</small>
                     </div>
                     <div class="form-group profile-form-grid__wide">
                         <label class="profile-check">
@@ -171,7 +191,10 @@
             <span *ngIf="saved" class="profile-saved" role="status">
                 <em class="icon-check" aria-hidden="true"></em> Profile saved
             </span>
-            <button class="btn btn-primary" type="submit">Save profile</button>
+            <span *ngIf="saveError" class="text-danger" role="alert">{{ saveError }}</span>
+            <button class="btn btn-primary" type="submit" [disabled]="saving">
+                {{ saving ? 'Saving...' : 'Save profile' }}
+            </button>
         </div>
     </form>
 </div>

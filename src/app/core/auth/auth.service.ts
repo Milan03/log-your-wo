@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, OnDestroy } from '@angular/core';
 import { AuthError, Session, User } from '@supabase/supabase-js';
 import { BehaviorSubject } from 'rxjs';
 
@@ -11,17 +11,23 @@ export interface RegistrationResult {
 @Injectable({
     providedIn: 'root'
 })
-export class AuthService {
+export class AuthService implements OnDestroy {
     private readonly sessionSource = new BehaviorSubject<Session>(undefined);
     private readonly initialized: Promise<void>;
+    private readonly authStateSubscription: { unsubscribe(): void };
 
     public readonly session$ = this.sessionSource.asObservable();
 
     constructor(private supabase: SupabaseClientService) {
         this.initialized = this.initialize();
-        this.supabase.client.auth.onAuthStateChange((_event, session) => {
+        const { data } = this.supabase.client.auth.onAuthStateChange((_event, session) => {
             this.sessionSource.next(session || undefined);
         });
+        this.authStateSubscription = data.subscription;
+    }
+
+    public ngOnDestroy(): void {
+        this.authStateSubscription.unsubscribe();
     }
 
     public get currentUser(): User {

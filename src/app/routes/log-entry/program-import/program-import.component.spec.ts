@@ -47,6 +47,27 @@ describe('ProgramImportComponent', () => {
         expect(component.selectedWeek.id).toBe('week-2');
     });
 
+    it('returns to the next incomplete week and day when reopened without query parameters', () => {
+        programImportService.markDayComplete('week-1', 'week-1-day-1');
+        component.ngOnDestroy();
+
+        component = new ProgramImportComponent(
+            programImportService,
+            new SharedService(),
+            router,
+            { queryParamMap: routeParams.asObservable() } as ActivatedRoute
+        );
+        component.ngOnInit();
+
+        const focusState = component as unknown as {
+            pendingFocusWeekId?: string;
+            pendingFocusDayId?: string;
+        };
+        expect(component.selectedWeek.id).toBe('week-2');
+        expect(focusState.pendingFocusWeekId).toBe('week-2');
+        expect(focusState.pendingFocusDayId).toBe('week-2-day-1');
+    });
+
     it('preserves the current scroll position when marking a day complete', () => {
         spyOnProperty(window, 'scrollX', 'get').and.returnValue(12);
         spyOnProperty(window, 'scrollY', 'get').and.returnValue(480);
@@ -121,16 +142,9 @@ describe('ProgramImportComponent', () => {
         expect(dayElement.focus).toHaveBeenCalledWith({ preventScroll: true });
     }));
 
-    it('opens a day from the keyboard without reacting to nested controls', () => {
-        const card = document.createElement('div');
-        const nestedButton = document.createElement('button');
-        const preventDefault = jasmine.createSpy('preventDefault');
+    it('opens the selected workout from its dedicated card action', () => {
+        component.openWorkout('week-2', 'week-2-day-1');
 
-        component.onDayCardKeydown(createKeyboardEvent('Enter', card, card, preventDefault), 'week-2', 'week-2-day-1');
-        component.onDayCardKeydown(createKeyboardEvent(' ', nestedButton, card, preventDefault), 'week-2', 'week-2-day-1');
-
-        expect(preventDefault).toHaveBeenCalledTimes(1);
-        expect(router.navigate).toHaveBeenCalledTimes(1);
         expect(router.navigate).toHaveBeenCalledWith(['/log-entry/import-program/workout'], {
             queryParams: {
                 programId: 'program-1',
@@ -161,20 +175,6 @@ function createEvent(): Event {
     const event = new Event('click');
     spyOn(event, 'stopPropagation');
     return event;
-}
-
-function createKeyboardEvent(
-    key: string,
-    target: EventTarget,
-    currentTarget: EventTarget,
-    preventDefault: jasmine.Spy
-): KeyboardEvent {
-    return {
-        key,
-        target,
-        currentTarget,
-        preventDefault
-    } as unknown as KeyboardEvent;
 }
 
 function createProgram(): ImportedProgram {

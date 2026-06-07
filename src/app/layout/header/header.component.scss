@@ -13,13 +13,21 @@
     color: white;
 }
 
-.nav-item a.nav-link {
+.nav-item a.nav-link,
+.nav-item button.nav-link {
     transition: transform 0.3s ease; /* Smooth transition */
 }
 
-.nav-item a.nav-link:hover {
+.nav-item a.nav-link:hover,
+.nav-item button.nav-link:hover {
     color: #FFFFFF;
     transform: translateY(-3px); /* Raise the icon slightly */
+}
+
+.header-nav-button {
+    border: 0;
+    background: transparent;
+    cursor: pointer;
 }
 
 .header-account {

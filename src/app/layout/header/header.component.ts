@@ -31,7 +31,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
     public logStartDatim: Date;
     public isNavSearchVisible: boolean;
     public showLogActions: boolean = false;
-    public showOffsidebarToggle: boolean = true;
     public signedIn = false;
     public accountLabel = 'Guest';
     public syncError = '';
@@ -172,7 +171,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
     private updateLogActionVisibility(url: string): void {
         this.showLogActions = url.startsWith('/log-entry/simple-log') || url.startsWith('/log-entry/import-program/workout');
-        this.showOffsidebarToggle = true;
     }
 
     // toggleUserBlock(event) {
@@ -221,8 +219,12 @@ export class HeaderComponent implements OnInit, OnDestroy {
             return;
         }
 
-        await this.authService.signOut();
-        await this._router.navigate(['/home']);
+        try {
+            await this.authService.signOut();
+            await this._router.navigate(['/home']);
+        } catch {
+            this.syncError = 'Unable to log out. Check your connection and try again.';
+        }
     }
 
     public openProfile(): void {

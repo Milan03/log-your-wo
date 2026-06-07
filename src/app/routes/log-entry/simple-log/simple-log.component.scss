@@ -173,19 +173,29 @@
 }
 
 .simple-log-library__item {
+    position: relative;
     display: grid;
-    gap: 3px;
     width: 100%;
-    padding: 11px 12px;
     text-align: left;
     color: #1f2933;
     border: 1px solid #dce1e6;
     border-radius: 6px;
     background: #fff;
+    overflow: hidden;
+}
+
+.simple-log-library__select {
+    display: grid;
+    gap: 3px;
+    width: 100%;
+    padding: 11px 44px 11px 12px;
+    text-align: left;
+    color: inherit;
+    border: 0;
+    background: transparent;
     cursor: pointer;
 }
 
-.simple-log-library__item-header,
 .simple-log-library__item-meta {
     display: flex;
     align-items: center;
@@ -193,7 +203,7 @@
     gap: 8px;
 }
 
-.simple-log-library__item-header strong {
+.simple-log-library__select strong {
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -201,6 +211,9 @@
 }
 
 .simple-log-library__delete {
+    position: absolute;
+    top: 8px;
+    right: 8px;
     flex: 0 0 auto;
     display: inline-flex;
     align-items: center;
@@ -249,7 +262,7 @@
 }
 
 .simple-log-library__item:hover,
-.simple-log-library__item:focus,
+.simple-log-library__item:focus-within,
 .simple-log-library__item--active {
     border-color: variables.$primary;
 }
@@ -902,7 +915,7 @@ tr.mat-row {
 }
 
 /* phones */
-@media only screen and (max-width: 768px) {
+@media only screen and (max-width: 767px) {
     .simple-log-shell {
         width: auto;
         margin-top: 0;

@@ -49,27 +49,24 @@
                 <div *ngIf="getSelectedDateLogs().length" class="simple-log-library__list">
                     <div *ngFor="let log of getSelectedDateLogs()"
                         class="simple-log-library__item"
-                        [class.simple-log-library__item--active]="currentLog?.logId?.toString() === log.id"
-                        role="button"
-                        tabindex="0"
-                        (click)="selectSimpleLog(log)">
-                        <div class="simple-log-library__item-header">
+                        [class.simple-log-library__item--active]="currentLog?.logId?.toString() === log.id">
+                        <button class="simple-log-library__select" type="button" (click)="selectSimpleLog(log)">
                             <strong>{{ log.title || 'Simple Log' }}</strong>
-                            <button class="simple-log-library__delete"
-                                type="button"
-                                aria-label="Delete workout log"
-                                (click)="deleteSavedSimpleLog($event, log)">
-                                <em class="fa fa-trash"></em>
-                            </button>
-                        </div>
-                        <span>{{ getSimpleLogDateLabel(log.workoutDate) }}</span>
-                        <div class="simple-log-library__item-meta">
-                            <span class="simple-log-library__status"
-                                [ngClass]="'simple-log-library__status--' + getSimpleLogStatus(log)">
-                                {{ getSimpleLogStatusLabel(log) }}
+                            <span>{{ getSimpleLogDateLabel(log.workoutDate) }}</span>
+                            <span class="simple-log-library__item-meta">
+                                <span class="simple-log-library__status"
+                                    [ngClass]="'simple-log-library__status--' + getSimpleLogStatus(log)">
+                                    {{ getSimpleLogStatusLabel(log) }}
+                                </span>
+                                <small>{{ getSimpleLogExerciseCount(log) }} entries</small>
                             </span>
-                            <small>{{ getSimpleLogExerciseCount(log) }} entries</small>
-                        </div>
+                        </button>
+                        <button class="simple-log-library__delete"
+                            type="button"
+                            aria-label="Delete workout log"
+                            (click)="deleteSavedSimpleLog($event, log)">
+                            <em class="fa fa-trash" aria-hidden="true"></em>
+                        </button>
                     </div>
                 </div>
                 <div *ngIf="!getSelectedDateLogs().length" class="simple-log-library__empty-day">

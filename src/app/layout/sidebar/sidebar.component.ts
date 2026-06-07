@@ -5,7 +5,6 @@ declare var $: any;
 import { MenuService } from '../../core/menu/menu.service';
 import { SettingsService } from '../../core/settings/settings.service';
 import { AuthService } from '../../core/auth/auth.service';
-import { ProfileService } from '../../shared/services/profile.service';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -21,29 +20,21 @@ export class SidebarComponent implements OnInit, OnDestroy {
     sbclickEvent = 'click.sidebar-toggle';
     $doc: any = null;
     signedIn = false;
-    accountLabel = 'Guest';
     private sessionSub: Subscription;
-    private profileSub: Subscription;
-    private userEmail = '';
+    private routerSub: Subscription;
 
     constructor(
         public menu: MenuService,
         public settings: SettingsService,
         public injector: Injector,
-        @Optional() private auth?: AuthService,
-        @Optional() private profile?: ProfileService
+        @Optional() private auth?: AuthService
     ) {
 
         this.menuItems = menu.getMenu();
         if (this.auth) {
             this.sessionSub = this.auth.session$.subscribe(session => {
                 this.signedIn = !!session;
-                this.userEmail = session && session.user ? session.user.email || '' : '';
-                this.updateAccountLabel();
             });
-        }
-        if (this.profile) {
-            this.profileSub = this.profile.profile$.subscribe(() => this.updateAccountLabel());
         }
 
     }
@@ -52,7 +43,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
         this.router = this.injector.get(Router);
 
-        this.router.events.subscribe((val) => {
+        this.routerSub = this.router.events.subscribe(() => {
             // close any submenu opened when route changes
             this.removeFloatingNav();
             // scroll view to top
@@ -79,11 +70,17 @@ export class SidebarComponent implements OnInit, OnDestroy {
             this.$doc.off(this.sbclickEvent);
         if (this.sessionSub)
             this.sessionSub.unsubscribe();
-        if (this.profileSub)
-            this.profileSub.unsubscribe();
+        if (this.routerSub)
+            this.routerSub.unsubscribe();
+        $(document).off('click.sidebar-floating');
+        this.removeFloatingNav();
     }
 
     toggleSubmenuClick(event) {
+        const submenu = event.currentTarget.nextElementSibling;
+        if (!submenu) {
+            return;
+        }
 
         event.preventDefault();
 
@@ -204,16 +201,17 @@ export class SidebarComponent implements OnInit, OnDestroy {
     }
 
     listenForExternalClicks() {
-        let $doc = $(document).on('click.sidebar', (e) => {
+        $(document).off('click.sidebar-floating');
+        $(document).on('click.sidebar-floating', (e) => {
             if (!$(e.target).parents('.aside-container').length) {
                 this.removeFloatingNav();
-                $doc.off('click.sidebar');
             }
         });
     }
 
     removeFloatingNav() {
         $('.nav-floating').remove();
+        $(document).off('click.sidebar-floating');
     }
 
     isSidebarCollapsed() {
@@ -240,11 +238,4 @@ export class SidebarComponent implements OnInit, OnDestroy {
         await this.router.navigate(['/home']);
     }
 
-    private updateAccountLabel(): void {
-        this.accountLabel = this.profile
-            ? this.profile.getDisplayName(this.signedIn ? this.userEmail : undefined)
-            : this.signedIn && this.userEmail
-                ? this.userEmail.split('@')[0]
-                : 'Guest';
-    }
 }
