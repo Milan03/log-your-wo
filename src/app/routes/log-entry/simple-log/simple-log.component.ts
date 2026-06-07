@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnDestroy, OnInit, Optional, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, Optional } from '@angular/core';
 import { UntypedFormGroup, UntypedFormBuilder, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -25,11 +25,15 @@ import { ProgramImportService } from '../../../shared/services/program-import.se
 import { SimpleLogService } from '../../../shared/services/simple-log.service';
 import { ImportedProgramDay, ImportedProgramWeek, ImportedWorkoutState } from '../../../shared/models/imported-program.model';
 import { ProfileService } from '../../../shared/services/profile.service';
+import {
+    WorkoutPdfData,
+    WorkoutPdfLabels,
+    WorkoutPdfService
+} from '../../../shared/services/workout-pdf.service';
 
 import { LogTypes, FormValues } from '../../../shared/common/common.constants';
 
 import * as moment from 'moment';
-import { jsPDF, jsPDFOptions } from 'jspdf';
 
 const swal = require('sweetalert');
 
@@ -54,12 +58,10 @@ interface CalendarDay {
     styleUrls: ['./simple-log.component.scss']
 })
 export class SimpleLogComponent implements OnInit, OnDestroy {
-    @ViewChild('exerciseTable', { static: false }) exerciseTable: ElementRef;
-
     public simpleLogForm: UntypedFormGroup;
     private currentLanguage: string;
     public currentLog: SimpleLog;
-    private currentPDF: any
+    private currentPDF: string;
     public sbIsCollapsed: boolean;
 
     public readonly exerciseNameCharLimit: number = 50;
@@ -113,6 +115,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         private _googleAnalyticsService: GoogleAnalyticsService,
         private _programImportService: ProgramImportService,
         private _simpleLogService: SimpleLogService,
+        private _workoutPdfService: WorkoutPdfService,
         private _activatedRoute: ActivatedRoute,
         private _router: Router,
         @Optional() private _profileService?: ProfileService
@@ -180,8 +183,13 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             this.simpleLogForm.controls[c].markAsTouched();
         }
         if (this.simpleLogForm.valid) {
-            let createdPDF = await this.createPDF('save');
-            createdPDF.save('tableToPdf.pdf');
+            try {
+                const createdPDF = await this._workoutPdfService.create(this.getWorkoutPdfData());
+                createdPDF.save(this._workoutPdfService.getFileName(this.currentLog));
+            } catch {
+                this.swalPDFError();
+                return;
+            }
             this._googleAnalyticsService.eventEmitter(`pdf_saved_success`, 'general', 'engagement');
         }
     }
@@ -201,8 +209,13 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
      * @param recipientEmailAddress 
      */
     public async emailAsPDF(recipientEmailAddress: string): Promise<void> {
-        let createdPDF = await this.createPDF('email');
-        this.currentPDF = btoa(createdPDF);
+        try {
+            const createdPDF = await this._workoutPdfService.create(this.getWorkoutPdfData());
+            this.currentPDF = createdPDF.output('datauristring').split(',')[1];
+        } catch {
+            this.swalPDFError();
+            return;
+        }
         let request = this.createEmailRequest(recipientEmailAddress);
         this._emailService.sendMail(request).subscribe({
             next: () => {
@@ -215,35 +228,68 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         });
     }
 
-    /**
-     * Create the PDF using jsPDF and the exercise HTML table.
-     */
-    private createPDF(type: string): Promise<any> {
-        let orientation: jsPDFOptions = {
-            orientation: 'p',
-            unit: 'mm',
-            format: 'a3',
-            compress: true
-        };
-        const doc = new jsPDF(orientation);
-        doc.setProperties({
-            title: 'Log Your Workout'
-        });
-        const exerciseTable = this.exerciseTable.nativeElement;
-        return new Promise(resolve => {
-            doc.html(exerciseTable, {
-                x: 40,
-                y: 20,
-                width: 522,
-                windowWidth: exerciseTable.scrollWidth,
-                callback: createdDoc => {
-                    if (type == 'save')
-                        resolve(createdDoc);
-                    else
-                        resolve(createdDoc.output());
+    private getWorkoutPdfData(): WorkoutPdfData {
+        const locale = this._translatorService.translate.currentLang
+            || this._translatorService.translate.getDefaultLang()
+            || this.currentLanguage;
+        return {
+            log: this.currentLog,
+            weightMeasure: this.weightMeasure,
+            distanceMeasure: this.distanceMeasure,
+            elapsedTimeLabel: this.getElapsedTimeLabel(),
+            locale,
+            labels: this.getWorkoutPdfLabels(),
+            startedAt: this.workoutStartedAt,
+            completedAt: this.workoutCompletedAt,
+            pausedAt: this.workoutPausedAt,
+            importedWorkout: this.isImportedWorkout
+                ? {
+                    weekName: this.importedWeek?.name || '',
+                    dayName: this.importedDay?.name || ''
                 }
-            });
-        });
+                : undefined
+        };
+    }
+
+    private getWorkoutPdfLabels(): WorkoutPdfLabels {
+        const translate = (key: string) => this._translatorService.translate.instant(key);
+        return {
+            workoutLog: translate('pdf.WorkoutLog'),
+            simpleWorkoutLog: translate('pdf.SimpleWorkoutLog'),
+            importedWorkout: translate('pdf.ImportedWorkout'),
+            strength: translate('pdf.Strength'),
+            cardio: translate('pdf.Cardio'),
+            exercise: translate('pdf.Exercise'),
+            prescription: translate('pdf.Prescription'),
+            weight: translate('pdf.Weight'),
+            reps: translate('pdf.Reps'),
+            sets: translate('pdf.Sets'),
+            distance: translate('pdf.Distance'),
+            duration: translate('pdf.Duration'),
+            intensity: translate('pdf.Intensity'),
+            status: translate('pdf.Status'),
+            workoutDate: translate('pdf.WorkoutDate'),
+            elapsedTime: translate('pdf.ElapsedTime'),
+            units: translate('pdf.Units'),
+            programWeek: translate('pdf.ProgramWeek'),
+            programDay: translate('pdf.ProgramDay'),
+            complete: translate('pdf.Complete'),
+            incomplete: translate('pdf.Incomplete'),
+            completed: translate('pdf.Completed'),
+            paused: translate('pdf.Paused'),
+            inProgress: translate('pdf.InProgress'),
+            notStarted: translate('pdf.NotStarted'),
+            notAvailable: translate('pdf.NotAvailable'),
+            generatedBy: translate('pdf.GeneratedBy'),
+            page: translate('pdf.Page'),
+            of: translate('pdf.Of'),
+            intensityNames: {
+                1: translate('pdf.Easy'),
+                2: translate('pdf.Moderate'),
+                3: translate('pdf.Hard'),
+                4: translate('pdf.Maximal')
+            }
+        };
     }
 
     /**
@@ -1025,6 +1071,12 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         const state = this._programImportService.getWorkoutState(weekId, dayId);
         this.currentLog = new SimpleLog();
         this.currentLog.title = `${this.importedWeek.name} - ${this.importedDay.name}`;
+        if (state?.startedAt) {
+            const startedAt = new Date(state.startedAt);
+            if (Number.isFinite(startedAt.getTime())) {
+                this.currentLog.startDatim = startedAt;
+            }
+        }
         const sourceWeightMeasure = state?.weightMeasure || 'lbs';
         const exercises = state
             ? this.hydrateExercises(state.exercises)
@@ -1351,6 +1403,24 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             swal({
                 title: 'Probl\u00E9me d\'envoi d\'e-mail',
                 text: `Un probl\u00E8me est survenu lors de l'envoi à l'adresse e-mail fournie. Veuillez r\u00E9essayer.`,
+                icon: 'error',
+                showConfirmButton: true
+            });
+        }
+    }
+
+    private swalPDFError(): void {
+        if (this.currentLanguage == FormValues.ENCode) {
+            swal({
+                title: 'Problem Creating PDF',
+                text: 'There was a problem creating your workout PDF. Please try again.',
+                icon: 'error',
+                showConfirmButton: true
+            });
+        } else {
+            swal({
+                title: 'Problème de création du PDF',
+                text: 'Un problème est survenu lors de la création de votre PDF. Veuillez réessayer.',
                 icon: 'error',
                 showConfirmButton: true
             });
