@@ -1,5 +1,7 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { HttpClientModule } from '@angular/common/http';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatDialogModule } from '@angular/material/dialog';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
 import { TRANSLATE_HTTP_LOADER_CONFIG, TranslateHttpLoader } from '@ngx-translate/http-loader';
@@ -37,6 +39,8 @@ describe('SimpleLogComponent', () => {
     TestBed.configureTestingModule({
       imports: [
         HttpClientModule,
+        MatCheckboxModule,
+        MatDialogModule,
         NoopAnimationsModule,
         SharedModule,
         TranslateModule.forRoot({

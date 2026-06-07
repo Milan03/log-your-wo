@@ -1,6 +1,11 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpClientModule } from '@angular/common/http';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
 import { TRANSLATE_HTTP_LOADER_CONFIG, TranslateHttpLoader } from '@ngx-translate/http-loader';
@@ -17,6 +22,11 @@ describe('ExerciseDialogComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         HttpClientModule,
+        MatAutocompleteModule,
+        MatButtonToggleModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatSelectModule,
         NoopAnimationsModule,
         SharedModule,
         TranslateModule.forRoot({
