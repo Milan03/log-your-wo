@@ -33,6 +33,7 @@
                 "core-js/modules/es.string.trim.js",
                 "core-js/modules/web.dom-collections.iterator.js",
                 "guid-typescript",
+                "html2canvas",
                 "jspdf",
                 "moment",
                 "raf",
