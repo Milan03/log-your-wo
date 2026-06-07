@@ -19,6 +19,20 @@
                 <em class="icon-close" aria-hidden="true"></em>
             </button>
         </div>
+        <div *ngIf="showInstallNotice && !showGuestNotice" class="install-notice" role="status">
+            <em class="icon-screen-smartphone" aria-hidden="true"></em>
+            <div class="install-notice__copy">
+                <strong>Keep Log Your Workout handy</strong>
+                <span *ngIf="installDevice === 'android'">Add it to your home screen for quick access.</span>
+                <span *ngIf="installDevice === 'ios'">Tap Share, then <b>Add to Home Screen</b>.</span>
+            </div>
+            <button *ngIf="installDevice === 'android'" class="btn btn-sm btn-outline-primary" type="button"
+                (click)="installApp()">Install</button>
+            <button class="install-notice__close" type="button" aria-label="Dismiss install suggestion"
+                (click)="dismissInstallNotice()">
+                <em class="icon-close" aria-hidden="true"></em>
+            </button>
+        </div>
         <!-- Page content-->
         <div class="content-wrapper">
             <router-outlet></router-outlet>
