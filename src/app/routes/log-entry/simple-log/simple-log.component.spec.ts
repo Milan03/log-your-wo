@@ -14,7 +14,9 @@ import { ProgramImportService } from '../../../shared/services/program-import.se
 import { SharedService } from '../../../shared/services/shared.service';
 import { SimpleLogService } from '../../../shared/services/simple-log.service';
 import { ProfileService } from '../../../shared/services/profile.service';
+import { WorkoutPdfService } from '../../../shared/services/workout-pdf.service';
 import { Exercise } from '../../../shared/models/exercise.model';
+import { EmailRequest } from '../../../shared/models/email-request.model';
 import { ImportedProgram } from '../../../shared/models/imported-program.model';
 import { SimpleLog } from '../../../shared/models/simple-log.model';
 
@@ -26,6 +28,7 @@ describe('SimpleLogComponent', () => {
   let sharedService: SharedService;
   let routerSpy: jasmine.SpyObj<Router>;
   let simpleLogService: SimpleLogService;
+  let workoutPdfService: WorkoutPdfService;
 
   beforeEach(waitForAsync(() => {
     routeParams = new BehaviorSubject(convertToParamMap({}));
@@ -72,6 +75,7 @@ describe('SimpleLogComponent', () => {
     programImportService = TestBed.inject(ProgramImportService);
     sharedService = TestBed.inject(SharedService);
     simpleLogService = TestBed.inject(SimpleLogService);
+    workoutPdfService = TestBed.inject(WorkoutPdfService);
     fixture = TestBed.createComponent(SimpleLogComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
@@ -310,6 +314,65 @@ describe('SimpleLogComponent', () => {
     expect(component.isImportedWorkout).toBeTrue();
     expect(component.currentLog.title).toBe('Week 1 - Day 01');
     expect(component.currentLog.exercises?.length).toBe(2);
+  });
+
+  it('restores an imported workout date from its persisted start time', () => {
+    programImportService.saveProgram(createProgram());
+    programImportService.saveWorkoutState({
+      programId: 'program-1',
+      weekId: 'week-1',
+      dayId: 'week-1-day-1',
+      exercises: programImportService.createExercisesForDay(createProgram().weeks[0].days[0]),
+      startedAt: '2026-05-12T14:30:00.000Z'
+    });
+
+    routeParams.next(convertToParamMap({
+      weekId: 'week-1',
+      dayId: 'week-1-day-1'
+    }));
+
+    expect(component.currentLog.startDatim.toISOString()).toBe('2026-05-12T14:30:00.000Z');
+  });
+
+  it('shows a PDF error and skips success analytics when generation fails', async () => {
+    component.currentLog.exercises = [createExercise('Clean', false)];
+    spyOn(workoutPdfService, 'create').and.returnValue(Promise.reject(new Error('font failed')));
+    const pdfError = spyOn<any>(component, 'swalPDFError');
+    const analytics = spyOn((component as any)._googleAnalyticsService, 'eventEmitter');
+
+    await (component as any).savePDFSubmit();
+
+    expect(pdfError).toHaveBeenCalled();
+    expect(analytics).not.toHaveBeenCalledWith('pdf_saved_success', 'general', 'engagement');
+  });
+
+  it('closes the email sending state with an error when PDF generation fails', async () => {
+    spyOn(workoutPdfService, 'create').and.returnValue(Promise.reject(new Error('font failed')));
+    const pdfError = spyOn<any>(component, 'swalPDFError');
+    const sendMail = spyOn((component as any)._emailService, 'sendMail');
+
+    await component.emailAsPDF('test@example.com');
+
+    expect(pdfError).toHaveBeenCalled();
+    expect(sendMail).not.toHaveBeenCalled();
+  });
+
+  it('sends the generated PDF with a sanitized attachment filename', async () => {
+    component.currentLog.title = 'Sunday Training';
+    component.currentLog.startDatim = new Date(2026, 5, 7);
+    spyOn(workoutPdfService, 'create').and.returnValue(Promise.resolve({
+      output: () => 'data:application/pdf;base64,JVBERi0xLjQ='
+    } as any));
+    const sendMail = spyOn((component as any)._emailService, 'sendMail').and.returnValue(of('sent'));
+    spyOn<any>(component, 'swalEmailSent');
+    spyOn((component as any)._googleAnalyticsService, 'eventEmitter');
+
+    await component.emailAsPDF('athlete@example.com');
+
+    const request = sendMail.calls.mostRecent().args[0] as EmailRequest;
+    expect(request.toEmailAddress).toBe('athlete@example.com');
+    expect(request.attachments).toEqual(['JVBERi0xLjQ=']);
+    expect(request.attachmentFilename).toBe('sunday-training-2026-06-07.pdf');
   });
 
   it('converts imported workout weights to the profile unit without converting them twice', () => {

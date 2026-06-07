@@ -5,6 +5,7 @@ export class EmailRequest {
         public subject?: string,
         public attachments?: Array<string>,
         public body?: string,
-        public date?: string
+        public date?: string,
+        public attachmentFilename?: string
     ) { }
 }
