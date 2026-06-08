@@ -81,6 +81,13 @@
                     <em class="icon-user header-menu-icon" aria-hidden="true"></em>
                     <span>Profile</span>
                 </button>
+                <button mat-menu-item type="button" role="menuitemcheckbox" [attr.aria-checked]="darkMode"
+                    (click)="toggleDarkMode()">
+                    <em [class]="(darkMode ? 'fas fa-moon' : 'fas fa-sun') + ' header-menu-icon'"
+                        aria-hidden="true"></em>
+                    <span>{{ 'appearance.DarkMode' | translate }}</span>
+                    <em *ngIf="darkMode" class="fas fa-check header-menu-check" aria-hidden="true"></em>
+                </button>
                 <button *ngIf="signedIn" mat-menu-item type="button" (click)="signOut()">
                     <em class="icon-logout header-menu-icon" aria-hidden="true"></em>
                     <span>Log out</span>

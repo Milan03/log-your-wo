@@ -118,6 +118,22 @@ describe('SimpleLogComponent', () => {
     });
   });
 
+  it('opens the email form with dialog-specific styling', () => {
+    const dialog = (component as any)._dialog;
+    spyOn(dialog, 'open').and.returnValue({
+      afterClosed: () => of(undefined)
+    });
+
+    component.openEmailDialog();
+
+    expect(dialog.open).toHaveBeenCalledWith(
+      jasmine.any(Function),
+      jasmine.objectContaining({
+        panelClass: 'email-dialog-panel'
+      })
+    );
+  });
+
   it('starts the timer when the first exercise is added', () => {
     const exercise = createExercise('Clean', false);
     const dialog = (component as any)._dialog;

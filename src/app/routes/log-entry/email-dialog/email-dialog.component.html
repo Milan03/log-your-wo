@@ -1,22 +1,32 @@
-<h1 mat-dialog-title>{{ 'log-entry.EmailAsPDF' | translate }}</h1>
-<form [formGroup]="emailForm" (submit)="submitForm($event, emailForm.value)" class="form-validate" novalidate>
-    <div class="mda-form-group float-label">
-        <input class="mda-form-control" name="emailAddress" formControlName="emailAddress" tabindex="0"
-            aria-invalid="false" />
-        <label>{{ 'log-entry.EmailAddressLabel' | translate }}</label>
-        <mat-error class="text-danger"
-            *ngIf="emailForm.get('emailAddress').hasError('required') && (emailForm.get('emailAddress').dirty || emailForm.get('emailAddress').touched)">
-            {{ 'global.Required' | translate }}
-        </mat-error>
-        <mat-error class="text-danger"
-            *ngIf="emailForm.get('emailAddress').hasError('email') && (emailForm.get('emailAddress').dirty || emailForm.get('emailAddress').touched)">
-            {{ 'global.InvalidEmailFormat' | translate }}
-        </mat-error>
+<div class="email-dialog">
+    <div class="email-dialog__header">
+        <span class="email-dialog__eyebrow">{{ 'email-dialog.Eyebrow' | translate }}</span>
+        <h1 mat-dialog-title>{{ 'log-entry.EmailAsPDF' | translate }}</h1>
     </div>
-    <br>
-    <div class="button-container">
-        <button mat-button type="submit" class="btn-primary">{{ 'global.SendLabel' | translate }}</button>
-        <button mat-button type="button" class="btn-secondary" (click)="_dialogRef.close()">{{ 'global.CancelLabel' |
-            translate }}</button>
-    </div>
-</form>
+
+    <form [formGroup]="emailForm" (submit)="submitForm($event, emailForm.value)" class="form-validate" novalidate>
+        <p class="email-dialog__help">{{ 'email-dialog.Help' | translate }}</p>
+        <div class="mda-form-group float-label">
+            <input id="email-address" class="mda-form-control" name="emailAddress" type="email"
+                autocomplete="email" formControlName="emailAddress" aria-describedby="email-address-errors"
+                [attr.aria-invalid]="emailForm.get('emailAddress').invalid && emailForm.get('emailAddress').touched" />
+            <label for="email-address">{{ 'log-entry.EmailAddressLabel' | translate }}</label>
+            <span id="email-address-errors">
+                <mat-error class="text-danger"
+                    *ngIf="emailForm.get('emailAddress').hasError('required') && (emailForm.get('emailAddress').dirty || emailForm.get('emailAddress').touched)">
+                    {{ 'global.Required' | translate }}
+                </mat-error>
+                <mat-error class="text-danger"
+                    *ngIf="emailForm.get('emailAddress').hasError('email') && (emailForm.get('emailAddress').dirty || emailForm.get('emailAddress').touched)">
+                    {{ 'global.InvalidEmailFormat' | translate }}
+                </mat-error>
+            </span>
+        </div>
+        <div class="button-container">
+            <button mat-button type="button" class="btn-secondary" (click)="_dialogRef.close()">
+                {{ 'global.CancelLabel' | translate }}
+            </button>
+            <button mat-button type="submit" class="btn-primary">{{ 'global.SendLabel' | translate }}</button>
+        </div>
+    </form>
+</div>

@@ -353,7 +353,10 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     }
 
     public openEmailDialog(): void {
-        let dialogRef = this._dialog.open(EmailDialogComponent);
+        const dialogRef = this._dialog.open(EmailDialogComponent, {
+            panelClass: 'email-dialog-panel',
+            maxWidth: 'calc(100vw - 24px)'
+        });
         dialogRef.afterClosed().subscribe(result => {
             if (result) {
                 this.swalEmailSending();

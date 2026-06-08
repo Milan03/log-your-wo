@@ -3,7 +3,7 @@ import { FormBuilder } from '@angular/forms';
 import { ProfileComponent } from './profile.component';
 
 describe('ProfileComponent', () => {
-    function createComponent(): ProfileComponent {
+    function createComponent(themes = jasmine.createSpyObj('ThemesService', ['isDarkMode', 'setDarkMode'])): ProfileComponent {
         return new ProfileComponent(
             new FormBuilder(),
             jasmine.createSpyObj('AuthService', [], { session$: { subscribe: () => undefined } }),
@@ -11,7 +11,8 @@ describe('ProfileComponent', () => {
                 profile$: { subscribe: () => undefined }
             }),
             jasmine.createSpyObj('SharedService', ['emitLogType']),
-            jasmine.createSpyObj('Router', ['navigate'])
+            jasmine.createSpyObj('Router', ['navigate']),
+            themes
         );
     }
 
@@ -34,5 +35,16 @@ describe('ProfileComponent', () => {
         component.form.get('birthDate').setValue('2999-01-01');
 
         expect(component.form.get('birthDate').hasError('futureDate')).toBeTrue();
+    });
+
+    it('updates the shared dark mode preference', () => {
+        const themes = jasmine.createSpyObj('ThemesService', ['isDarkMode', 'setDarkMode']);
+        themes.isDarkMode.and.returnValue(true);
+        const component = createComponent(themes);
+
+        expect(component.darkMode).toBeTrue();
+        component.setDarkMode(false);
+
+        expect(themes.setDarkMode).toHaveBeenCalledOnceWith(false);
     });
 });

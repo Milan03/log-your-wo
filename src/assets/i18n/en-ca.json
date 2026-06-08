@@ -25,6 +25,20 @@
             "SETTINGS": "Settings"
         }
     },
+    "appearance": {
+        "Title": "Appearance",
+        "DarkMode": "Dark mode",
+        "Description": "Use darker colors throughout the app.",
+        "DeviceDescription": "Choose how Log Your Workout looks on this device.",
+        "SavedDescription": "Use a darker palette throughout the app. This preference is saved in this browser."
+    },
+    "home": {
+        "Eyebrow": "One log. Every workout."
+    },
+    "email-dialog": {
+        "Eyebrow": "Share workout",
+        "Help": "Enter the address that should receive this workout PDF."
+    },
     "sidebar": {
         "WELCOME": "Welcome",
         "heading": {

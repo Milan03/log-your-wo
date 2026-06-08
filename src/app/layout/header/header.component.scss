@@ -41,9 +41,19 @@
 }
 
 .header-account:hover,
-.header-account:focus-visible {
+.header-account:focus,
+.header-account:focus-visible,
+.header-account:active,
+.header-account[aria-expanded="true"] {
     color: #fff;
     transform: translateY(-3px);
+}
+
+.topnavbar .navbar-nav > .nav-item > .header-account:hover,
+.topnavbar .navbar-nav > .nav-item > .header-account:focus,
+.topnavbar .navbar-nav > .nav-item > .header-account:active,
+.topnavbar .navbar-nav > .nav-item > .header-account[aria-expanded="true"] {
+    color: #fff !important;
 }
 
 .header-account__avatar {
@@ -82,6 +92,11 @@
 .header-menu-icon {
     display: inline-block;
     width: 24px;
+    color: variables.$info;
+}
+
+.header-menu-check {
+    margin-left: auto;
     color: variables.$info;
 }
 

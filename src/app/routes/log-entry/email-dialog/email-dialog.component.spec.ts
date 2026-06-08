@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { TranslateModule } from '@ngx-translate/core';
 
 import { EmailDialogComponent } from './email-dialog.component';
@@ -15,6 +16,7 @@ describe('EmailDialogComponent', () => {
       imports: [
         MatButtonModule,
         MatDialogModule,
+        MatFormFieldModule,
         SharedModule,
         TranslateModule.forRoot()
       ],
@@ -39,5 +41,17 @@ describe('EmailDialogComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('associates the email label and reports invalid state after validation', () => {
+    component.emailForm.get('emailAddress').markAsTouched();
+    fixture.detectChanges();
+
+    const input = fixture.nativeElement.querySelector('#email-address') as HTMLInputElement;
+    const label = fixture.nativeElement.querySelector('label[for="email-address"]');
+
+    expect(label).not.toBeNull();
+    expect(input.getAttribute('aria-invalid')).toBe('true');
+    expect(input.getAttribute('aria-describedby')).toBe('email-address-errors');
   });
 });

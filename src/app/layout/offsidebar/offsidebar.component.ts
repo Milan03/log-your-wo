@@ -12,8 +12,11 @@ import { TranslatorService } from '../../core/translator/translator.service';
 })
 export class OffsidebarComponent implements OnInit, OnDestroy {
 
-    //currentTheme: any;
     selectedLanguage: string;
+
+    public get darkMode(): boolean {
+        return this.themes.isDarkMode();
+    }
 
     constructor(
         public _settings: SettingsService,
@@ -21,7 +24,6 @@ export class OffsidebarComponent implements OnInit, OnDestroy {
         public translator: TranslatorService,
         public elem: ElementRef
     ) {
-        //this.currentTheme = themes.getDefaultTheme();
         this.selectedLanguage = this.getLangs()[0].code;
     }
 
@@ -29,16 +31,16 @@ export class OffsidebarComponent implements OnInit, OnDestroy {
         this.anyClickClose();
     }
 
-    /*setTheme() {
-        this.themes.setTheme(this.currentTheme);
-    }*/
-
     getLangs() {
         return this.translator.getAvailableLanguages();
     }
 
     setLang(value) {
         this.translator.useLanguage(value);
+    }
+
+    public setDarkMode(enabled: boolean): void {
+        this.themes.setDarkMode(enabled);
     }
 
     anyClickClose() {

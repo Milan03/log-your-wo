@@ -7,6 +7,7 @@ import { AuthService } from '../../core/auth/auth.service';
 import { createDefaultProfile, UnitSystem, UserProfile } from '../../shared/models/profile.model';
 import { ProfileService } from '../../shared/services/profile.service';
 import { SharedService } from '../../shared/services/shared.service';
+import { ThemesService } from '../../core/themes/themes.service';
 
 @Component({
     selector: 'app-profile',
@@ -44,7 +45,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
         private auth: AuthService,
         private profileService: ProfileService,
         private sharedService: SharedService,
-        private router: Router
+        private router: Router,
+        private themes: ThemesService
     ) {
         this.form = formBuilder.group({
             firstName: ['', Validators.maxLength(50)],
@@ -146,6 +148,14 @@ export class ProfileComponent implements OnInit, OnDestroy {
         void this.router.navigate(['/auth'], {
             queryParams: { returnUrl: '/profile' }
         });
+    }
+
+    public get darkMode(): boolean {
+        return this.themes.isDarkMode();
+    }
+
+    public setDarkMode(enabled: boolean): void {
+        this.themes.setDarkMode(enabled);
     }
 
     private loadProfile(profile: UserProfile): void {

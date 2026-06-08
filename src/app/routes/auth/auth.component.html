@@ -25,11 +25,11 @@
             </div>
 
             <div class="auth-tabs" aria-label="Account action">
-                <button type="button" [attr.aria-pressed]="mode === 'login'"
+                <button class="auth-tabs__button" type="button" [attr.aria-pressed]="mode === 'login'"
                     [class.auth-tabs__button--active]="mode === 'login'" (click)="setMode('login')">
                     Sign in
                 </button>
-                <button type="button" [attr.aria-pressed]="mode === 'register'"
+                <button class="auth-tabs__button" type="button" [attr.aria-pressed]="mode === 'register'"
                     [class.auth-tabs__button--active]="mode === 'register'" (click)="setMode('register')">
                     Register
                 </button>

@@ -1,28 +1,65 @@
-::ng-deep .mat-mdc-dialog-container {
-    height: 16em;
-    width: 30em;
+::ng-deep .email-dialog-panel .mat-mdc-dialog-container {
+    width: min(30em, calc(100vw - 24px));
+}
+
+.email-dialog {
+    width: 100%;
+    min-width: min(26em, calc(100vw - 72px));
+}
+
+.email-dialog__header {
+    padding: 20px 24px 14px;
+    border-bottom: 1px solid #e1e7ec;
+    background: #f7f9fb;
+}
+
+.email-dialog__header h1 {
+    margin: 3px 0 0;
+    color: #1f2933;
+    font-size: 1.3rem;
+}
+
+.email-dialog__eyebrow {
+    color: #2397c6;
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.email-dialog form {
+    padding: 18px 24px 20px;
+}
+
+.email-dialog__help {
+    margin: 0 0 10px;
+    color: #64717d;
 }
 
 .mda-form-group {
-    width: 29em;
-    padding-left: 24px;
+    width: 100%;
 }
 
 label {
-    padding-left: 24px;
+    color: #4f5b67;
 }
 
 .button-container {
-    position: absolute;
-    bottom: 16px;
-    right: 16px;
     display: flex;
+    justify-content: flex-end;
     gap: 10px;
+    margin-top: 18px;
 }
 
 /* phones */
-@media only screen and (max-width: 768px) {
-    .mda-form-group {
-        width: 22em;
+@media only screen and (max-width: 520px) {
+    .email-dialog {
+        min-width: 0;
+    }
+
+    .email-dialog__header,
+    .email-dialog form {
+        padding-right: 18px;
+        padding-left: 18px;
     }
 }
