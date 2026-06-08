@@ -12,6 +12,7 @@ import { TranslatorService } from 'src/app/core/translator/translator.service';
 import { AuthService } from '../../core/auth/auth.service';
 import { UserDataSyncService } from '../../shared/services/user-data-sync.service';
 import { ProfileService } from '../../shared/services/profile.service';
+import { ThemesService } from '../../core/themes/themes.service';
 
 @Component({
     selector: 'app-header',
@@ -52,6 +53,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
         private _router: Router,
         private sharedService: SharedService,
         private translatorService: TranslatorService,
+        private themesService: ThemesService,
         @Optional() private authService?: AuthService,
         @Optional() private userDataSync?: UserDataSyncService,
         @Optional() private profileService?: ProfileService
@@ -235,6 +237,14 @@ export class HeaderComponent implements OnInit, OnDestroy {
         void this._router.navigate(['/auth'], {
             queryParams: { returnUrl: this._router.url }
         });
+    }
+
+    public get darkMode(): boolean {
+        return this.themesService.isDarkMode();
+    }
+
+    public toggleDarkMode(): void {
+        this.themesService.toggleDarkMode();
     }
 
     @HostListener('window:resize')

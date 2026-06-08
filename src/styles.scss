@@ -14,3 +14,6 @@
 @include meta.load-css("./app/shared/styles/app.scss");
 
 @import '@angular/material/prebuilt-themes/deeppurple-amber.css';
+
+// Theme overrides must load after Angular Material's light prebuilt theme.
+@include meta.load-css("./app/shared/styles/app/dark-mode.scss");

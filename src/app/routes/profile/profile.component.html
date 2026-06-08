@@ -185,6 +185,25 @@
                     </div>
                 </div>
             </section>
+
+            <section class="profile-card" aria-labelledby="appearance-heading">
+                <div class="profile-card__heading">
+                    <em [class]="darkMode ? 'fas fa-moon' : 'fas fa-sun'" aria-hidden="true"></em>
+                    <div>
+                        <h2 id="appearance-heading">{{ 'appearance.Title' | translate }}</h2>
+                        <p>{{ 'appearance.DeviceDescription' | translate }}</p>
+                    </div>
+                </div>
+
+                <label class="profile-check profile-theme-setting" for="profile-dark-mode">
+                    <input id="profile-dark-mode" type="checkbox" [checked]="darkMode"
+                        (change)="setDarkMode($any($event.target).checked)">
+                    <span>
+                        <strong>{{ 'appearance.DarkMode' | translate }}</strong>
+                        <small>{{ 'appearance.SavedDescription' | translate }}</small>
+                    </span>
+                </label>
+            </section>
         </div>
 
         <div class="profile-actions">

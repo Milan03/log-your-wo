@@ -1,0 +1,43 @@
+.offsidebar-appearance {
+    padding-top: 20px !important;
+}
+
+.appearance-setting {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0;
+    padding: 14px;
+    border: 1px solid #dce1e6;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.appearance-setting__icon {
+    display: grid;
+    width: 36px;
+    height: 36px;
+    flex: 0 0 36px;
+    place-items: center;
+    color: #2397c6;
+    border-radius: 50%;
+    background: rgba(35, 151, 198, 0.1);
+}
+
+.appearance-setting__copy {
+    min-width: 0;
+    flex: 1;
+}
+
+.appearance-setting__copy strong,
+.appearance-setting__copy small {
+    display: block;
+}
+
+.appearance-setting__copy small {
+    color: #6c757d;
+}
+
+.appearance-setting .switch {
+    margin: 0;
+}

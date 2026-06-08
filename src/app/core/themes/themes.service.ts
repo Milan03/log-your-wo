@@ -1,69 +1,60 @@
 import { Injectable } from '@angular/core';
 
-/*const themeA = require('../../shared/styles/themes/theme-a.scss');
-const themeB = require('../../shared/styles/themes/theme-b.scss');
-const themeC = require('../../shared/styles/themes/theme-c.scss');
-const themeD = require('../../shared/styles/themes/theme-d.scss');
-const themeE = require('../../shared/styles/themes/theme-e.scss');
-const themeF = require('../../shared/styles/themes/theme-f.scss');
-const themeG = require('../../shared/styles/themes/theme-g.scss');
-const themeH = require('../../shared/styles/themes/theme-h.scss');*/
-
 @Injectable()
 export class ThemesService {
 
-    styleTag: any;
-    defaultTheme: string = 'A';
+    private readonly darkModeStorageKey = 'logYourWo.darkMode';
+    private readonly darkModeClass = 'app-dark-mode';
+    private darkModeEnabled: boolean;
 
     constructor() {
-        this.createStyle();
-        //this.setTheme(this.defaultTheme);
+        this.darkModeEnabled = this.readDarkMode();
+        this.applyDarkMode(this.darkModeEnabled);
     }
 
-    private createStyle() {
-        const head = document.head || document.getElementsByTagName('head')[0];
-        this.styleTag = document.createElement('style');
-        this.styleTag.type = 'text/css';
-        this.styleTag.id = 'appthemes';
-        head.appendChild(this.styleTag);
+    public isDarkMode(): boolean {
+        return this.darkModeEnabled;
     }
 
-    /*setTheme(name) {
-        switch (name) {
-            case 'A':
-                this.injectStylesheet(themeA);
-                break;
-            case 'B':
-                this.injectStylesheet(themeB);
-                break;
-            case 'C':
-                this.injectStylesheet(themeC);
-                break;
-            case 'D':
-                this.injectStylesheet(themeD);
-                break;
-            case 'E':
-                this.injectStylesheet(themeE);
-                break;
-            case 'F':
-                this.injectStylesheet(themeF);
-                break;
-            case 'G':
-                this.injectStylesheet(themeG);
-                break;
-            case 'H':
-                this.injectStylesheet(themeH);
-                break;
+    public setDarkMode(enabled: boolean): void {
+        if (this.darkModeEnabled === enabled) {
+            return;
         }
-    }*/
 
-    // since v9, content is available in 'default'
-    injectStylesheet(css) {
-        this.styleTag.innerHTML = css.default;
+        this.darkModeEnabled = enabled;
+        this.applyDarkMode(enabled);
+
+        try {
+            localStorage.setItem(this.darkModeStorageKey, String(enabled));
+        } catch {
+            // The selected mode still applies when storage is unavailable.
+        }
     }
 
-    getDefaultTheme() {
-        return this.defaultTheme;
+    public toggleDarkMode(): void {
+        this.setDarkMode(!this.isDarkMode());
+    }
+
+    private readDarkMode(): boolean {
+        try {
+            return localStorage.getItem(this.darkModeStorageKey) === 'true';
+        } catch {
+            return false;
+        }
+    }
+
+    private applyDarkMode(enabled: boolean): void {
+        if (typeof document === 'undefined') {
+            return;
+        }
+
+        document.documentElement.classList.toggle(this.darkModeClass, enabled);
+        document.documentElement.style.colorScheme = enabled ? 'dark' : 'light';
+
+        const themeColor = document.querySelector('meta[name="theme-color"]');
+        if (themeColor) {
+            themeColor.setAttribute('content', enabled ? '#111827' : '#3F51B5');
+        }
     }
 
 }

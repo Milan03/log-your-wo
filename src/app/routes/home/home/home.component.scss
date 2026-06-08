@@ -15,17 +15,81 @@
         background-color: rgba(236, 236, 236, 0.5);
     }
 
-    .home-logo {
-        width: 240px;
+    .home-hero {
+        display: flex;
+        align-items: center;
+        gap: 32px;
+        overflow: hidden;
+        padding: 34px 40px;
+        color: #fff;
+        border: 1px solid #337a9d;
+        border-radius: 12px;
+        background:
+            radial-gradient(circle at 82% 18%, rgba(91, 198, 232, 0.2), transparent 36%),
+            linear-gradient(135deg, #132f45, #1c5b7c);
+        box-shadow: 0 14px 34px rgba(7, 25, 38, 0.22);
+    }
+
+    .home-hero__mark {
+        display: grid;
+        width: 112px;
+        height: 112px;
+        flex: 0 0 112px;
+        place-items: center;
+        border-radius: 22px;
+        background: rgba(255, 255, 255, 0.1);
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.22);
+    }
+
+    .home-hero__mark em {
+        color: #a9e8ff;
+        font-size: 3.8rem;
+        line-height: 1;
     }
 
     .home-text {
-        text-align: center;
-        @include breakpoints.media-breakpoint-up(lg) {
-            text-align: left;
-        }
+        min-width: 0;
+        text-align: left;
     }
+
     .home-text-big {
-        font-size: 3.9375rem;
+        margin: 3px 0 8px;
+        color: #fff;
+        font-size: clamp(2.4rem, 6vw, 3.7rem);
+        line-height: 1.05;
+    }
+
+    .home-hero__eyebrow {
+        color: #a9e8ff;
+        font-size: 0.78rem;
+        font-weight: 800;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+    }
+
+    .lead {
+        margin: 0;
+        color: #d2e7f2;
+        font-size: 1rem;
+    }
+
+    @media (max-width: 767px) {
+        .home-hero {
+            align-items: flex-start;
+            flex-direction: column;
+            gap: 20px;
+            padding: 26px;
+        }
+
+        .home-hero__mark {
+            width: 82px;
+            height: 82px;
+            flex-basis: 82px;
+            border-radius: 20px;
+        }
+
+        .home-hero__mark em {
+            font-size: 2.8rem;
+        }
     }
 }

@@ -154,6 +154,14 @@ describe('ProgramImportComponent', () => {
         });
     });
 
+    it('persists the selected completion color', () => {
+        component.onCompletionColorChange('#2f80ed');
+
+        expect(component.completionColor).toBe('#2f80ed');
+        expect(programImportService.getCompletionColor()).toBe('#2f80ed');
+        expect(component.completionStyles['--completion-color']).toBe('#2f80ed');
+    });
+
     it('falls back safely when returned week and day IDs are invalid', () => {
         routeParams.next(convertToParamMap({
             programId: 'program-1',

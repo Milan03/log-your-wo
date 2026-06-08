@@ -25,6 +25,20 @@
             "SETTINGS": "Réglages"
         }
     },
+    "appearance": {
+        "Title": "Apparence",
+        "DarkMode": "Mode sombre",
+        "Description": "Utiliser des couleurs plus sombres dans toute l'application.",
+        "DeviceDescription": "Choisissez l'apparence de Log Your Workout sur cet appareil.",
+        "SavedDescription": "Utiliser une palette plus sombre dans toute l'application. Cette préférence est enregistrée dans ce navigateur."
+    },
+    "home": {
+        "Eyebrow": "Un journal. Chaque entraînement."
+    },
+    "email-dialog": {
+        "Eyebrow": "Partager l'entraînement",
+        "Help": "Saisissez l'adresse qui doit recevoir ce PDF d'entraînement."
+    },
     "sidebar": {
         "WELCOME": "Bienvenu",
         "heading": {

@@ -37,6 +37,12 @@
     color: #007bff !important;
 }
 
+:host ::ng-deep .exercise-dialog input.mat-mdc-input-element:focus {
+    border-color: transparent !important;
+    outline: 0;
+    box-shadow: none !important;
+}
+
 :host ::ng-deep .exercise-dialog .mat-button-toggle-checked {
     color: #fff !important;
     background-color: #007bff !important;

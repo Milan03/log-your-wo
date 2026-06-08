@@ -2,6 +2,7 @@ import { Component, HostBinding, OnInit } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 
 import { SettingsService } from './core/settings/settings.service';
+import { ThemesService } from './core/themes/themes.service';
 
 declare let gtag: Function;
 
@@ -26,8 +27,11 @@ export class AppComponent implements OnInit {
 
     constructor(
         public _settings: SettingsService,
-        public _router: Router
+        public _router: Router,
+        themes: ThemesService
     ) {
+        // Construction applies the saved theme before routed content initializes.
+        void themes;
         this._router.events.subscribe(event => {
             if (event instanceof NavigationEnd) {
                 gtag('config', 'UA-100428382-2',

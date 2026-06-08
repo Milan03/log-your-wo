@@ -13,6 +13,7 @@ import { MenuService } from '../../core/menu/menu.service';
 import { TranslatorService } from '../../core/translator/translator.service';
 import { SharedService } from '../../shared/services/shared.service';
 import { UserblockService } from '../sidebar/userblock/userblock.service';
+import { ThemesService } from '../../core/themes/themes.service';
 
 describe('Component: Header', () => {
     beforeEach(() => {
@@ -32,6 +33,7 @@ describe('Component: Header', () => {
                 SettingsService,
                 SharedService,
                 TranslatorService,
+                ThemesService,
                 Injector,
                 provideRouter([]),
                 {
@@ -44,8 +46,8 @@ describe('Component: Header', () => {
 
     it('should create an instance', waitForAsync(
         inject(
-            [MenuService, UserblockService, SettingsService, Injector, Router, SharedService, TranslatorService],
-            (menuService, userblockService, settingsService, injector, router, sharedService, translator) => {
+            [MenuService, UserblockService, SettingsService, Injector, Router, SharedService, TranslatorService, ThemesService],
+            (menuService, userblockService, settingsService, injector, router, sharedService, translator, themes) => {
                 let component = new HeaderComponent(
                     menuService,
                     userblockService,
@@ -53,7 +55,8 @@ describe('Component: Header', () => {
                     injector,
                     router,
                     sharedService,
-                    translator
+                    translator,
+                    themes
                 );
                 expect(component).toBeTruthy();
             }
@@ -61,8 +64,8 @@ describe('Component: Header', () => {
     ));
 
     it('should expand on desktop, use compact labels on tablet, and use a full mobile drawer', inject(
-        [MenuService, UserblockService, SettingsService, Injector, Router, SharedService, TranslatorService],
-        (menuService, userblockService, settingsService, injector, router, sharedService, translator) => {
+        [MenuService, UserblockService, SettingsService, Injector, Router, SharedService, TranslatorService, ThemesService],
+        (menuService, userblockService, settingsService, injector, router, sharedService, translator, themes) => {
             const component = new HeaderComponent(
                 menuService,
                 userblockService,
@@ -70,7 +73,8 @@ describe('Component: Header', () => {
                 injector,
                 router,
                 sharedService,
-                translator
+                translator,
+                themes
             );
 
             const widthSpy = spyOnProperty(window, 'innerWidth').and.returnValue(1200);
@@ -86,6 +90,28 @@ describe('Component: Header', () => {
             component.syncSidebarForViewport();
             expect(settingsService.getLayoutSetting('isCollapsed')).toBeFalse();
             expect(settingsService.getLayoutSetting('isCollapsedText')).toBeFalse();
+        }
+    ));
+
+    it('toggles the shared dark mode preference', inject(
+        [MenuService, UserblockService, SettingsService, Injector, Router, SharedService, TranslatorService, ThemesService],
+        (menuService, userblockService, settingsService, injector, router, sharedService, translator, themes) => {
+            const component = new HeaderComponent(
+                menuService,
+                userblockService,
+                settingsService,
+                injector,
+                router,
+                sharedService,
+                translator,
+                themes
+            );
+            spyOn(themes, 'toggleDarkMode');
+
+            component.toggleDarkMode();
+
+            expect(themes.toggleDarkMode).toHaveBeenCalledTimes(1);
+            component.ngOnDestroy();
         }
     ));
 });

@@ -48,4 +48,21 @@ describe('Component: Offsidebar', () => {
             let component = new OffsidebarComponent(settingsService, themesService, translatorService, mockElementRef);
             expect(component).toBeTruthy();
         })));
+
+    it('updates the shared dark mode preference', inject(
+        [SettingsService, ThemesService, TranslatorService, MockElementRef],
+        (settingsService, themesService, translatorService, mockElementRef) => {
+            const component = new OffsidebarComponent(
+                settingsService,
+                themesService,
+                translatorService,
+                mockElementRef
+            );
+            spyOn(themesService, 'setDarkMode');
+
+            component.setDarkMode(true);
+
+            expect(themesService.setDarkMode).toHaveBeenCalledOnceWith(true);
+        }
+    ));
 });
