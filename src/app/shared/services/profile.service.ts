@@ -1,5 +1,5 @@
-import { Injectable, Optional } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { Injectable, OnDestroy, Optional } from '@angular/core';
+import { BehaviorSubject, Subscription } from 'rxjs';
 
 import { createDefaultProfile, UserProfile } from '../models/profile.model';
 import { ThemesService } from '../../core/themes/themes.service';
@@ -9,11 +9,13 @@ import { CloudSyncStatusService } from './cloud-sync-status.service';
 @Injectable({
     providedIn: 'root'
 })
-export class ProfileService {
+export class ProfileService implements OnDestroy {
     private readonly guestStorageKey = 'logYourWo.profile';
     private activeUserId: string;
+    private applyingProfileTheme = false;
     private cloudWriteQueue: Promise<void> = Promise.resolve();
     private readonly profileSource = new BehaviorSubject<UserProfile>(this.readProfile(this.guestStorageKey));
+    private readonly themeSubscription?: Subscription;
 
     public readonly profile$ = this.profileSource.asObservable();
 
@@ -23,6 +25,13 @@ export class ProfileService {
         @Optional() private themes?: ThemesService
     ) {
         this.applyProfileTheme(this.profile);
+        this.themeSubscription = this.themes?.darkMode$?.subscribe(enabled => {
+            this.persistDarkModePreference(enabled);
+        });
+    }
+
+    public ngOnDestroy(): void {
+        this.themeSubscription?.unsubscribe();
     }
 
     public get profile(): UserProfile {
@@ -178,7 +187,27 @@ export class ProfileService {
     }
 
     private applyProfileTheme(profile: UserProfile): void {
-        this.themes?.setDarkMode(profile.darkMode);
+        if (!this.themes) {
+            return;
+        }
+
+        this.applyingProfileTheme = true;
+        try {
+            this.themes.setDarkMode(profile.darkMode);
+        } finally {
+            this.applyingProfileTheme = false;
+        }
+    }
+
+    private persistDarkModePreference(enabled: boolean): void {
+        if (this.applyingProfileTheme || !this.activeUserId || this.profile.darkMode === enabled) {
+            return;
+        }
+
+        void this.saveProfile({
+            ...this.profile,
+            darkMode: enabled
+        }).catch(() => undefined);
     }
 
     private enqueueCloudWrite(action: () => Promise<void>, errorMessage: string): Promise<void> {

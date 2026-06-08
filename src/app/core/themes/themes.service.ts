@@ -1,11 +1,15 @@
 import { Injectable } from '@angular/core';
+import { Subject } from 'rxjs';
 
 @Injectable()
 export class ThemesService {
 
     private readonly darkModeStorageKey = 'logYourWo.darkMode';
     private readonly darkModeClass = 'app-dark-mode';
+    private readonly darkModeSource = new Subject<boolean>();
     private darkModeEnabled: boolean;
+
+    public readonly darkMode$ = this.darkModeSource.asObservable();
 
     constructor() {
         this.darkModeEnabled = this.readDarkMode();
@@ -29,6 +33,8 @@ export class ThemesService {
         } catch {
             // The selected mode still applies when storage is unavailable.
         }
+
+        this.darkModeSource.next(enabled);
     }
 
     public toggleDarkMode(): void {

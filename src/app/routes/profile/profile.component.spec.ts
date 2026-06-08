@@ -1,5 +1,6 @@
 import { FormBuilder } from '@angular/forms';
 
+import { createDefaultProfile } from '../../shared/models/profile.model';
 import { ProfileComponent } from './profile.component';
 
 describe('ProfileComponent', () => {
@@ -60,5 +61,24 @@ describe('ProfileComponent', () => {
         expect(profileService.saveProfile).toHaveBeenCalledWith(
             jasmine.objectContaining({ darkMode: true })
         );
+    });
+
+    it('keeps unsaved form edits when only dark mode is persisted', () => {
+        const component = createComponent();
+        const initialProfile = {
+            ...createDefaultProfile(),
+            firstName: 'Saved',
+            updatedAt: '2026-06-07T12:00:00.000Z'
+        };
+        (component as any).loadProfile(initialProfile);
+        component.form.get('firstName').setValue('Unsaved');
+
+        (component as any).loadProfile({
+            ...initialProfile,
+            darkMode: true,
+            updatedAt: '2026-06-07T12:01:00.000Z'
+        });
+
+        expect(component.form.get('firstName').value).toBe('Unsaved');
     });
 });

@@ -39,6 +39,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     private sessionSub: Subscription;
     private formSub: Subscription;
     private currentUnitSystem: UnitSystem = 'imperial';
+    private loadedProfile: UserProfile;
 
     constructor(
         formBuilder: FormBuilder,
@@ -161,11 +162,24 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
     private loadProfile(profile: UserProfile): void {
         const loadedProfile = profile || createDefaultProfile();
+
+        if (this.loadedProfile && this.isThemeOnlyUpdate(this.loadedProfile, loadedProfile)) {
+            this.loadedProfile = loadedProfile;
+            return;
+        }
+
+        this.loadedProfile = loadedProfile;
         this.currentUnitSystem = loadedProfile.unitSystem;
         this.form.patchValue(loadedProfile, { emitEvent: false });
         this.preferredTraining = profile && profile.preferredTraining
             ? [...profile.preferredTraining]
             : [];
+    }
+
+    private isThemeOnlyUpdate(previous: UserProfile, current: UserProfile): boolean {
+        return previous.darkMode !== current.darkMode
+            && JSON.stringify({ ...previous, darkMode: undefined, updatedAt: undefined })
+                === JSON.stringify({ ...current, darkMode: undefined, updatedAt: undefined });
     }
 
     private convertMeasurement(value: number | undefined, multiplier: number): number | undefined {

@@ -1,4 +1,5 @@
 import { UserProfile } from '../models/profile.model';
+import { Subject } from 'rxjs';
 import { ThemesService } from '../../core/themes/themes.service';
 import { ProfileService } from './profile.service';
 import { SupabaseDataService } from './supabase-data.service';
@@ -131,6 +132,59 @@ describe('ProfileService', () => {
         service.setUserContext('user-1');
 
         expect(service.profile.darkMode).toBeTrue();
+    });
+
+    it('persists theme changes to the signed-in profile', async () => {
+        const cloud = jasmine.createSpyObj<SupabaseDataService>(
+            'SupabaseDataService',
+            ['getProfile', 'saveProfile']
+        );
+        const themeChanges = new Subject<boolean>();
+        const themes = jasmine.createSpyObj<ThemesService>(
+            'ThemesService',
+            ['setDarkMode'],
+            { darkMode$: themeChanges.asObservable() }
+        );
+        cloud.saveProfile.and.resolveTo();
+        const service = new ProfileService(cloud, undefined, themes);
+        service.setUserContext('user-1');
+
+        themeChanges.next(true);
+        await new Promise(resolve => setTimeout(resolve, 0));
+
+        expect(service.profile.darkMode).toBeTrue();
+        expect(JSON.parse(localStorage.getItem('logYourWo.user-1.profile')).darkMode).toBeTrue();
+        expect(cloud.saveProfile).toHaveBeenCalledWith(
+            'user-1',
+            jasmine.objectContaining({ darkMode: true })
+        );
+    });
+
+    it('does not persist profile-applied theme changes as user edits', async () => {
+        const cloud = jasmine.createSpyObj<SupabaseDataService>(
+            'SupabaseDataService',
+            ['getProfile', 'saveProfile']
+        );
+        const themeChanges = new Subject<boolean>();
+        const themes = jasmine.createSpyObj<ThemesService>(
+            'ThemesService',
+            ['setDarkMode'],
+            { darkMode$: themeChanges.asObservable() }
+        );
+        themes.setDarkMode.and.callFake(enabled => themeChanges.next(enabled));
+        localStorage.setItem('logYourWo.user-1.profile', JSON.stringify(profileWith({
+            darkMode: true,
+            updatedAt: '2026-06-07T12:00:00.000Z'
+        })));
+        const service = new ProfileService(cloud, undefined, themes);
+        service.setUserContext('user-1');
+        await new Promise(resolve => setTimeout(resolve, 0));
+
+        expect(service.profile.darkMode).toBeTrue();
+        expect(localStorage.getItem('logYourWo.user-1.profile')).toContain(
+            '"updatedAt":"2026-06-07T12:00:00.000Z"'
+        );
+        expect(cloud.saveProfile).not.toHaveBeenCalled();
     });
 });
 
