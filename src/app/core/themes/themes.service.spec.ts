@@ -51,4 +51,16 @@ describe('Service: Themes', () => {
     expect(service.isDarkMode()).toBeTrue();
     expect(document.documentElement.classList.contains('app-dark-mode')).toBeTrue();
   });
+
+  it('publishes dark mode changes', inject([ThemesService], (service: ThemesService) => {
+    const changes: boolean[] = [];
+    const subscription = service.darkMode$.subscribe(enabled => changes.push(enabled));
+
+    service.setDarkMode(true);
+    service.setDarkMode(true);
+    service.toggleDarkMode();
+
+    expect(changes).toEqual([true, false]);
+    subscription.unsubscribe();
+  }));
 });

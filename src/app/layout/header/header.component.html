@@ -77,6 +77,10 @@
                 <em class="fas fa-chevron-down header-account__chevron" aria-hidden="true"></em>
             </button>
             <mat-menu #accountMenu="matMenu" xPosition="before">
+                <button *ngIf="!signedIn" mat-menu-item type="button" (click)="openSignIn()">
+                    <em class="icon-login header-menu-icon" aria-hidden="true"></em>
+                    <span>Sign in or register</span>
+                </button>
                 <button mat-menu-item type="button" (click)="openProfile()">
                     <em class="icon-user header-menu-icon" aria-hidden="true"></em>
                     <span>Profile</span>
@@ -91,10 +95,6 @@
                 <button *ngIf="signedIn" mat-menu-item type="button" (click)="signOut()">
                     <em class="icon-logout header-menu-icon" aria-hidden="true"></em>
                     <span>Log out</span>
-                </button>
-                <button *ngIf="!signedIn" mat-menu-item type="button" (click)="openSignIn()">
-                    <em class="icon-login header-menu-icon" aria-hidden="true"></em>
-                    <span>Sign in or register</span>
                 </button>
             </mat-menu>
         </li>
