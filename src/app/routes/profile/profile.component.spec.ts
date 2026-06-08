@@ -47,4 +47,18 @@ describe('ProfileComponent', () => {
 
         expect(themes.setDarkMode).toHaveBeenCalledOnceWith(false);
     });
+
+    it('includes dark mode when saving the profile', async () => {
+        const themes = jasmine.createSpyObj('ThemesService', ['isDarkMode', 'setDarkMode']);
+        themes.isDarkMode.and.returnValue(true);
+        const component = createComponent(themes);
+        const profileService = (component as any).profileService;
+        profileService.saveProfile.and.resolveTo();
+
+        await component.save();
+
+        expect(profileService.saveProfile).toHaveBeenCalledWith(
+            jasmine.objectContaining({ darkMode: true })
+        );
+    });
 });

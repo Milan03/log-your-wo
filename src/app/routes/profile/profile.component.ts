@@ -114,7 +114,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
             await this.profileService.saveProfile({
                 ...createDefaultProfile(),
                 ...this.form.value,
-                preferredTraining: this.preferredTraining
+                preferredTraining: this.preferredTraining,
+                darkMode: this.darkMode
             });
             this.saved = true;
         } catch {

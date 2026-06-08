@@ -16,6 +16,7 @@ export interface UserProfile {
     workoutsPerWeek: number;
     preferredTraining: string[];
     emailUpdates: boolean;
+    darkMode: boolean;
     updatedAt: string;
 }
 
@@ -35,6 +36,7 @@ export function createDefaultProfile(): UserProfile {
         workoutsPerWeek: 3,
         preferredTraining: [],
         emailUpdates: false,
+        darkMode: false,
         updatedAt: ''
     };
 }

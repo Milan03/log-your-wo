@@ -1,4 +1,5 @@
 import { UserProfile } from '../models/profile.model';
+import { ThemesService } from '../../core/themes/themes.service';
 import { ProfileService } from './profile.service';
 import { SupabaseDataService } from './supabase-data.service';
 
@@ -98,6 +99,39 @@ describe('ProfileService', () => {
         expect(service.profile.firstName).toBe('Local');
         expect(cloud.saveProfile.calls.mostRecent().args[1].firstName).toBe('Local');
     });
+
+    it('applies dark mode restored from the signed-in profile', async () => {
+        const cloud = jasmine.createSpyObj<SupabaseDataService>(
+            'SupabaseDataService',
+            ['getProfile', 'saveProfile']
+        );
+        const themes = jasmine.createSpyObj<ThemesService>('ThemesService', ['setDarkMode']);
+        cloud.getProfile.and.resolveTo(profileWith({
+            darkMode: true,
+            updatedAt: '2026-06-07T12:00:00.000Z'
+        }));
+        cloud.saveProfile.and.resolveTo();
+        const service = new ProfileService(cloud, undefined, themes);
+
+        service.setUserContext('user-1');
+        await service.syncWithCloud();
+
+        expect(service.profile.darkMode).toBeTrue();
+        expect(themes.setDarkMode).toHaveBeenCalledWith(true);
+    });
+
+    it('migrates an older profile using the saved browser theme', async () => {
+        localStorage.setItem('logYourWo.darkMode', 'true');
+        localStorage.setItem('logYourWo.user-1.profile', JSON.stringify({
+            ...profileWith({ updatedAt: '2026-06-07T12:00:00.000Z' }),
+            darkMode: undefined
+        }));
+        const service = new ProfileService();
+
+        service.setUserContext('user-1');
+
+        expect(service.profile.darkMode).toBeTrue();
+    });
 });
 
 function profileWith(values: Partial<UserProfile>): UserProfile {
@@ -116,6 +150,7 @@ function profileWith(values: Partial<UserProfile>): UserProfile {
         workoutsPerWeek: 3,
         preferredTraining: [],
         emailUpdates: false,
+        darkMode: false,
         updatedAt: '',
         ...values
     };

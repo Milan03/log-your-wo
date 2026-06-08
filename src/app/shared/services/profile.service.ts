@@ -2,6 +2,7 @@ import { Injectable, Optional } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 
 import { createDefaultProfile, UserProfile } from '../models/profile.model';
+import { ThemesService } from '../../core/themes/themes.service';
 import { SupabaseDataService } from './supabase-data.service';
 import { CloudSyncStatusService } from './cloud-sync-status.service';
 
@@ -18,8 +19,11 @@ export class ProfileService {
 
     constructor(
         private cloudData?: SupabaseDataService,
-        @Optional() private syncStatus?: CloudSyncStatusService
-    ) { }
+        @Optional() private syncStatus?: CloudSyncStatusService,
+        @Optional() private themes?: ThemesService
+    ) {
+        this.applyProfileTheme(this.profile);
+    }
 
     public get profile(): UserProfile {
         return this.profileSource.value;
@@ -27,12 +31,12 @@ export class ProfileService {
 
     public setUserContext(userId: string): void {
         this.activeUserId = userId;
-        this.profileSource.next(this.readProfile(this.storageKey()));
+        this.publishProfile(this.readProfile(this.storageKey()));
     }
 
     public clearUserContext(): void {
         this.activeUserId = undefined;
-        this.profileSource.next(this.readProfile(this.guestStorageKey));
+        this.publishProfile(this.readProfile(this.guestStorageKey));
     }
 
     public async syncWithCloud(): Promise<void> {
@@ -66,7 +70,7 @@ export class ProfileService {
             localStorage.removeItem(this.guestStorageKey);
         }
 
-        this.profileSource.next(this.selectNewestProfile(
+        this.publishProfile(this.selectNewestProfile(
             profile,
             this.readStoredProfile(accountStorageKey)
         ));
@@ -81,7 +85,7 @@ export class ProfileService {
         };
 
         this.writeProfile(savedProfile);
-        this.profileSource.next(savedProfile);
+        this.publishProfile(savedProfile);
 
         if (this.activeUserId) {
             const userId = this.activeUserId;
@@ -115,7 +119,7 @@ export class ProfileService {
     }
 
     private readProfile(key: string): UserProfile {
-        return this.readStoredProfile(key) || createDefaultProfile();
+        return this.readStoredProfile(key) || this.defaultProfile();
     }
 
     private readStoredProfile(key: string): UserProfile | undefined {
@@ -123,7 +127,7 @@ export class ProfileService {
 
         try {
             return stored
-                ? { ...createDefaultProfile(), ...JSON.parse(stored) }
+                ? this.normalizeProfile(JSON.parse(stored))
                 : undefined;
         } catch {
             return undefined;
@@ -135,11 +139,46 @@ export class ProfileService {
     }
 
     private selectNewestProfile(...profiles: Array<UserProfile | undefined>): UserProfile {
-        return profiles.filter(Boolean).reduce((newest, profile) => {
+        return profiles.filter(Boolean).map(profile => this.normalizeProfile(profile)).reduce((newest, profile) => {
             return (profile.updatedAt || '').localeCompare(newest.updatedAt || '') >= 0
                 ? profile
                 : newest;
-        }, createDefaultProfile());
+        }, this.defaultProfile());
+    }
+
+    private normalizeProfile(profile: Partial<UserProfile>): UserProfile {
+        return {
+            ...createDefaultProfile(),
+            ...profile,
+            preferredTraining: profile.preferredTraining || [],
+            darkMode: typeof profile.darkMode === 'boolean'
+                ? profile.darkMode
+                : this.readStoredDarkMode()
+        };
+    }
+
+    private defaultProfile(): UserProfile {
+        return {
+            ...createDefaultProfile(),
+            darkMode: this.readStoredDarkMode()
+        };
+    }
+
+    private readStoredDarkMode(): boolean {
+        try {
+            return localStorage.getItem('logYourWo.darkMode') === 'true';
+        } catch {
+            return false;
+        }
+    }
+
+    private publishProfile(profile: UserProfile): void {
+        this.applyProfileTheme(profile);
+        this.profileSource.next(profile);
+    }
+
+    private applyProfileTheme(profile: UserProfile): void {
+        this.themes?.setDarkMode(profile.darkMode);
     }
 
     private enqueueCloudWrite(action: () => Promise<void>, errorMessage: string): Promise<void> {
