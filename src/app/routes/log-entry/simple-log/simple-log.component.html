@@ -1,30 +1,30 @@
 <div [formGroup]="simpleLogForm">
     <div class="simple-log-shell" [class.simple-log-shell--imported]="isImportedWorkout">
-        <aside *ngIf="!isImportedWorkout" class="simple-log-library" aria-label="Saved simple logs">
+        <aside *ngIf="!isImportedWorkout" class="simple-log-library" [attr.aria-label]="'log-entry.WorkoutHistory' | translate">
             <div class="simple-log-library__header">
                 <div>
-                    <span>Workout history</span>
-                    <strong>{{ getSelectedDateLogs().length }} on this day</strong>
+                    <span>{{ 'log-entry.WorkoutHistory' | translate }}</span>
+                    <strong>{{ 'log-entry.OnThisDay' | translate:{ count: getSelectedDateLogs().length } }}</strong>
                 </div>
                 <div class="simple-log-library__header-actions">
                     <button class="simple-log-library__toggle" type="button"
                         [attr.aria-expanded]="isHistoryExpanded"
                         (click)="toggleHistory()">
-                        History
+                        {{ 'log-entry.History' | translate }}
                         <em class="fa" [class.fa-chevron-down]="!isHistoryExpanded" [class.fa-chevron-up]="isHistoryExpanded"></em>
                     </button>
-                    <button class="btn btn-primary btn-sm" type="button" (click)="createNewSimpleLog()">New Log</button>
+                    <button class="btn btn-primary btn-sm" type="button" (click)="createNewSimpleLog()">{{ 'log-entry.NewLog' | translate }}</button>
                 </div>
             </div>
 
             <div class="simple-log-library__body" [class.simple-log-library__body--expanded]="isHistoryExpanded">
                 <div class="simple-log-calendar">
                     <div class="simple-log-calendar__header">
-                        <button type="button" aria-label="Previous month" (click)="changeCalendarMonth(-1)">
+                        <button type="button" [attr.aria-label]="'log-entry.PreviousMonth' | translate" (click)="changeCalendarMonth(-1)">
                             <em class="fa fa-chevron-left"></em>
                         </button>
                         <strong>{{ getCalendarMonthLabel() }}</strong>
-                        <button type="button" aria-label="Next month" (click)="changeCalendarMonth(1)">
+                        <button type="button" [attr.aria-label]="'log-entry.NextMonth' | translate" (click)="changeCalendarMonth(1)">
                             <em class="fa fa-chevron-right"></em>
                         </button>
                     </div>
@@ -51,26 +51,26 @@
                         class="simple-log-library__item"
                         [class.simple-log-library__item--active]="currentLog?.logId?.toString() === log.id">
                         <button class="simple-log-library__select" type="button" (click)="selectSimpleLog(log)">
-                            <strong>{{ log.title || 'Simple Log' }}</strong>
+                            <strong>{{ log.title || ('log-entry.SimpleLog' | translate) }}</strong>
                             <span>{{ getSimpleLogDateLabel(log.workoutDate) }}</span>
                             <span class="simple-log-library__item-meta">
                                 <span class="simple-log-library__status"
                                     [ngClass]="'simple-log-library__status--' + getSimpleLogStatus(log)">
                                     {{ getSimpleLogStatusLabel(log) }}
                                 </span>
-                                <small>{{ getSimpleLogExerciseCount(log) }} entries</small>
+                                <small>{{ getSimpleLogExerciseCount(log) }} {{ 'global.Entries' | translate }}</small>
                             </span>
                         </button>
                         <button class="simple-log-library__delete"
                             type="button"
-                            aria-label="Delete workout log"
+                            [attr.aria-label]="'log-entry.DeleteWorkoutLog' | translate"
                             (click)="deleteSavedSimpleLog($event, log)">
                             <em class="fa fa-trash" aria-hidden="true"></em>
                         </button>
                     </div>
                 </div>
                 <div *ngIf="!getSelectedDateLogs().length" class="simple-log-library__empty-day">
-                    No workouts saved for this day.
+                    {{ 'log-entry.NoWorkoutsForDay' | translate }}
                 </div>
             </div>
         </aside>
@@ -82,57 +82,57 @@
             <div class="imported-log-toolbar__left">
                 <button class="btn btn-outline-primary" type="button" (click)="navigateBackToWeek()">
                     <em class="fa fa-arrow-left"></em>
-                    Back to {{ importedWeek?.name }}
+                    {{ 'log-entry.BackTo' | translate:{ name: importedWeek?.name } }}
                 </button>
                 <div class="imported-log-context">
-                    <span>Current workout</span>
+                    <span>{{ 'log-entry.CurrentWorkout' | translate }}</span>
                     <strong>{{ importedWeek?.name }} - {{ importedDay?.name }}</strong>
                 </div>
             </div>
             <div class="imported-log-toolbar__timer">
                 <div class="imported-log-toolbar__timer-main">
                     <button *ngIf="!workoutStartedAt" class="btn btn-primary btn-sm" type="button" (click)="startWorkout()">
-                        Start Workout
+                        {{ 'log-entry.StartWorkout' | translate }}
                     </button>
                     <button *ngIf="workoutStartedAt && !workoutPausedAt && !workoutCompletedAt" class="btn btn-danger btn-sm" type="button" (click)="pauseWorkout()">
-                        Pause
+                        {{ 'log-entry.Pause' | translate }}
                     </button>
                     <button *ngIf="workoutPausedAt && !workoutCompletedAt" class="btn btn-success btn-sm" type="button" (click)="resumeWorkout()">
-                        Resume
+                        {{ 'log-entry.Resume' | translate }}
                     </button>
                     <span *ngIf="workoutPausedAt && !workoutCompletedAt" class="imported-log-toolbar__paused-pill">
-                        Paused
+                        {{ 'log-entry.Paused' | translate }}
                     </span>
-                    <span>Elapsed Time</span>
+                    <span>{{ 'log-entry.ElapsedTime' | translate }}</span>
                     <strong>{{ getElapsedTimeLabel() }}</strong>
                 </div>
                 <small *ngIf="workoutCompletedAt" class="imported-log-toolbar__status">
-                    Completed {{ workoutCompletedAt | date:'MM/dd/yyyy h:mm a' }}
+                    {{ 'log-entry.CompletedAt' | translate:{ date: (workoutCompletedAt | date:'short') } }}
                 </small>
             </div>
         </div>
         <section *ngIf="!isImportedWorkout" class="simple-log-intro">
             <div>
-                <span class="simple-log-intro__eyebrow">Simple Log</span>
+                <span class="simple-log-intro__eyebrow">{{ 'log-entry.SimpleLog' | translate }}</span>
                 <button *ngIf="!isEditingSimpleLogTitle" class="simple-log-title" type="button" (click)="beginSimpleLogTitleEdit()">
-                    <span>{{ currentLog.title || "Today's workout" }}</span>
+                    <span>{{ currentLog.title || ('log-entry.TodaysWorkout' | translate) }}</span>
                     <em class="fa fa-pen" aria-hidden="true"></em>
                 </button>
                 <div *ngIf="isEditingSimpleLogTitle" class="simple-log-title-edit">
                     <input type="text"
                         maxlength="25"
-                        aria-label="Workout title"
+                        [attr.aria-label]="'log-entry.WorkoutTitle' | translate"
                         [value]="simpleLogTitleDraft"
                         (input)="simpleLogTitleDraft = $any($event.target).value"
                         (keydown.enter)="saveSimpleLogTitle()"
                         (keydown.escape)="cancelSimpleLogTitleEdit()">
-                    <button class="btn btn-primary btn-sm" type="button" (click)="saveSimpleLogTitle()">Save</button>
-                    <button class="btn btn-outline-secondary btn-sm" type="button" (click)="cancelSimpleLogTitleEdit()">Cancel</button>
+                    <button class="btn btn-primary btn-sm" type="button" (click)="saveSimpleLogTitle()">{{ 'global.SaveLabel' | translate }}</button>
+                    <button class="btn btn-outline-secondary btn-sm" type="button" (click)="cancelSimpleLogTitleEdit()">{{ 'global.CancelLabel' | translate }}</button>
                 </div>
-                <p>Build a workout as you go. Add strength work, cardio, or both.</p>
+                <p>{{ 'log-entry.BuildAsYouGo' | translate }}</p>
             </div>
             <label class="simple-log-date">
-                <span>Workout date and time</span>
+                <span>{{ 'log-entry.WorkoutDateTime' | translate }}</span>
                 <input type="datetime-local" [value]="workoutDateTime" (change)="onWorkoutDateTimeChange($any($event.target).value)">
             </label>
         </section>
@@ -141,36 +141,36 @@
             class="simple-log-workout-toolbar">
             <div class="imported-log-toolbar__timer-main">
                 <button *ngIf="!workoutStartedAt" class="btn btn-primary btn-sm" type="button" (click)="startWorkout()">
-                    Start Workout
+                    {{ 'log-entry.StartWorkout' | translate }}
                 </button>
                 <button *ngIf="workoutStartedAt && !workoutPausedAt && !workoutCompletedAt" class="btn btn-danger btn-sm" type="button" (click)="pauseWorkout()">
-                    Pause
+                    {{ 'log-entry.Pause' | translate }}
                 </button>
                 <button *ngIf="workoutPausedAt && !workoutCompletedAt" class="btn btn-success btn-sm" type="button" (click)="resumeWorkout()">
-                    Resume
+                    {{ 'log-entry.Resume' | translate }}
                 </button>
-                <span *ngIf="workoutPausedAt && !workoutCompletedAt" class="imported-log-toolbar__paused-pill">Paused</span>
-                <span>Elapsed Time</span>
+                <span *ngIf="workoutPausedAt && !workoutCompletedAt" class="imported-log-toolbar__paused-pill">{{ 'log-entry.Paused' | translate }}</span>
+                <span>{{ 'log-entry.ElapsedTime' | translate }}</span>
                 <strong>{{ getElapsedTimeLabel() }}</strong>
             </div>
             <small *ngIf="workoutCompletedAt" class="imported-log-toolbar__status">
-                Completed {{ workoutCompletedAt | date:'MM/dd/yyyy h:mm a' }}
+                {{ 'log-entry.CompletedAt' | translate:{ date: (workoutCompletedAt | date:'short') } }}
             </small>
         </div>
 
         <section *ngIf="!isImportedWorkout && !currentLog.exercises.length && !currentLog.cardioExercises.length"
             class="simple-log-empty">
             <span class="simple-log-empty__icon"><em class="icon-notebook"></em></span>
-            <h2>What are you training?</h2>
-            <p>Start with an exercise. Your log will save automatically once it has an entry.</p>
+            <h2>{{ 'log-entry.EmptyTitle' | translate }}</h2>
+            <p>{{ 'log-entry.EmptyDescription' | translate }}</p>
             <div class="simple-log-empty__actions">
                 <button class="btn btn-primary" type="button" (click)="openExerciseDialog('strength')">
                     <em class="fa fa-plus"></em>
-                    Add Strength Exercise
+                    {{ 'log-entry.AddStrengthExercise' | translate }}
                 </button>
                 <button class="btn btn-outline-primary" type="button" (click)="openExerciseDialog('cardio')">
                     <em class="fa fa-plus"></em>
-                    Add Cardio
+                    {{ 'log-entry.AddCardio' | translate }}
                 </button>
             </div>
         </section>
@@ -179,13 +179,13 @@
             <div *ngFor="let group of getStrengthExerciseGroups()" class="log-mobile-card log-mobile-card--group">
                 <div class="log-mobile-card__header">
                     <div>
-                        <span class="log-mobile-card__eyebrow">Exercise</span>
+                        <span class="log-mobile-card__eyebrow">{{ 'log-entry.Exercise' | translate }}</span>
                         <strong [class.completed-exercise]="group.exercises.length === 1 && group.exercises[0].completed">
                             {{ group.exerciseName }}
                         </strong>
-                        <small *ngIf="group.exercises.length > 1">{{ group.exercises.length }} entries</small>
+                        <small *ngIf="group.exercises.length > 1">{{ group.exercises.length }} {{ 'global.Entries' | translate }}</small>
                     </div>
-                    <button type="button" class="icon add-icon" aria-label="Add another set" (click)="addRow(group.exercises[group.exercises.length - 1])">+</button>
+                    <button type="button" class="icon add-icon" [attr.aria-label]="'log-entry.AddAnotherSet' | translate" (click)="addRow(group.exercises[group.exercises.length - 1])">+</button>
                 </div>
 
                 <div class="log-mobile-group">
@@ -194,30 +194,30 @@
                         [class.completed-row]="exercise.completed"
                         (click)="onExerciseRowClick(exercise)">
                         <div class="log-mobile-group__index">
-                            <span>Entry</span>
+                            <span>{{ 'log-entry.Entry' | translate }}</span>
                             <strong>{{ rowIndex + 1 }}</strong>
                         </div>
                         <div class="log-mobile-group__metric">
-                            <span>Weight</span>
+                            <span>{{ 'log-entry.ExerciseWeight' | translate }}</span>
                             <strong class="log-mobile-group__weight">{{ getWeightDisplay(exercise) || '-' }}</strong>
                         </div>
                         <div class="log-mobile-group__metric">
-                            <span>Reps</span>
+                            <span>{{ 'log-entry.ExerciseReps' | translate }}</span>
                             <strong>{{ exercise.reps || '-' }}</strong>
                         </div>
                         <div class="log-mobile-group__metric">
-                            <span>Sets</span>
+                            <span>{{ 'log-entry.ExerciseSets' | translate }}</span>
                             <strong>{{ exercise.sets || '-' }}</strong>
                         </div>
                         <div class="log-mobile-group__controls">
                             <mat-checkbox [checked]="exercise.completed"
-                                aria-label="Complete exercise entry"
+                                [attr.aria-label]="'log-entry.CompleteExerciseEntry' | translate"
                                 (click)="$event.stopPropagation()"
                                 (change)="toggleExerciseComplete(exercise)"></mat-checkbox>
-                            <button type="button" class="icon edit-icon" aria-label="Edit exercise entry" (click)="$event.stopPropagation(); editRow(exercise)">
+                            <button type="button" class="icon edit-icon" [attr.aria-label]="'log-entry.EditExerciseEntry' | translate" (click)="$event.stopPropagation(); editRow(exercise)">
                                 <em class="fa fa-pen"></em>
                             </button>
-                            <button type="button" class="icon remove-icon" aria-label="Remove exercise entry" (click)="$event.stopPropagation(); removeRow(exercise)">-</button>
+                            <button type="button" class="icon remove-icon" [attr.aria-label]="'log-entry.RemoveExerciseEntry' | translate" (click)="$event.stopPropagation(); removeRow(exercise)">-</button>
                         </div>
                     </div>
                 </div>
@@ -229,13 +229,13 @@
             <div *ngFor="let group of getCardioExerciseGroups()" class="log-mobile-card log-mobile-card--group log-mobile-card--cardio-group">
                 <div class="log-mobile-card__header">
                     <div>
-                        <span class="log-mobile-card__eyebrow">Cardio</span>
+                        <span class="log-mobile-card__eyebrow">{{ 'log-entry.Cardio' | translate }}</span>
                         <strong [class.completed-exercise]="group.exercises.length === 1 && group.exercises[0].completed">
                             {{ group.exerciseName }}
                         </strong>
-                        <small *ngIf="group.exercises.length > 1">{{ group.exercises.length }} entries</small>
+                        <small *ngIf="group.exercises.length > 1">{{ group.exercises.length }} {{ 'global.Entries' | translate }}</small>
                     </div>
-                    <button type="button" class="icon add-icon" aria-label="Add another cardio entry"
+                    <button type="button" class="icon add-icon" [attr.aria-label]="'log-entry.AddAnotherCardioEntry' | translate"
                         (click)="addRow(group.exercises[group.exercises.length - 1])">+</button>
                 </div>
 
@@ -245,31 +245,31 @@
                         [class.completed-row]="exercise.completed"
                         (click)="onExerciseRowClick(exercise)">
                         <div class="log-mobile-group__index">
-                            <span>Entry</span>
+                            <span>{{ 'log-entry.Entry' | translate }}</span>
                             <strong>{{ rowIndex + 1 }}</strong>
                         </div>
                         <div class="log-mobile-group__metric">
-                            <span>Distance</span>
+                            <span>{{ 'log-entry.ExerciseDistance' | translate }}</span>
                             <strong>{{ getDistanceDisplay(exercise) || '-' }}</strong>
                         </div>
                         <div class="log-mobile-group__metric">
-                            <span>Duration</span>
+                            <span>{{ 'log-entry.ExerciseDuration' | translate }}</span>
                             <strong>{{ getDurationDisplay(exercise) }}</strong>
                         </div>
                         <div class="log-mobile-group__metric">
-                            <span>Intensity</span>
+                            <span>{{ 'log-entry.ExerciseIntensity' | translate }}</span>
                             <strong>{{ (exercise.intensity | formatIntensity) || '-' }}</strong>
                         </div>
                         <div class="log-mobile-group__controls">
                             <mat-checkbox [checked]="exercise.completed"
-                                aria-label="Complete cardio entry"
+                                [attr.aria-label]="'log-entry.CompleteCardioEntry' | translate"
                                 (click)="$event.stopPropagation()"
                                 (change)="toggleExerciseComplete(exercise)"></mat-checkbox>
-                            <button type="button" class="icon edit-icon" aria-label="Edit cardio entry"
+                            <button type="button" class="icon edit-icon" [attr.aria-label]="'log-entry.EditCardioEntry' | translate"
                                 (click)="$event.stopPropagation(); editRow(exercise)">
                                 <em class="fa fa-pen"></em>
                             </button>
-                            <button type="button" class="icon remove-icon" aria-label="Remove cardio entry"
+                            <button type="button" class="icon remove-icon" [attr.aria-label]="'log-entry.RemoveCardioEntry' | translate"
                                 (click)="$event.stopPropagation(); removeRow(exercise)">-</button>
                         </div>
                     </div>
@@ -279,28 +279,28 @@
         <!-- END Cardio Exercise Grid END -->
         <div *ngIf="currentLog.exercises.length || currentLog.cardioExercises.length || workoutStartedAt" class="imported-log-actions">
             <button *ngIf="!workoutCompletedAt && (currentLog.exercises.length || currentLog.cardioExercises.length)" class="btn btn-primary" type="button" (click)="markWorkoutComplete()">
-                Mark as Complete
+                {{ 'global.MarkAsComplete' | translate }}
             </button>
             <button *ngIf="workoutCompletedAt" class="btn btn-danger" type="button" (click)="markWorkoutIncomplete()">
-                Mark as Incomplete
+                {{ 'log-entry.MarkIncomplete' | translate }}
             </button>
             <button *ngIf="!workoutCompletedAt" class="btn btn-outline-secondary" type="button" (click)="unselectAllExercises()">
-                Unselect All
+                {{ 'log-entry.UnselectAll' | translate }}
             </button>
             <button *ngIf="!workoutPausedAt && !workoutCompletedAt" class="btn btn-danger" type="button" (click)="pauseWorkout()">
-                Pause Workout
+                {{ 'log-entry.PauseWorkout' | translate }}
             </button>
             <button *ngIf="workoutPausedAt" class="btn btn-success" type="button" (click)="resumeWorkout()">
-                Resume Workout
+                {{ 'log-entry.ResumeWorkout' | translate }}
             </button>
             <button *ngIf="!isImportedWorkout && hasActiveSimpleLog()" class="btn btn-outline-danger" type="button" (click)="deleteSimpleLog()">
-                Delete Log
+                {{ 'log-entry.DeleteLog' | translate }}
             </button>
         </div>
         <div *ngIf="isImportedWorkout" class="imported-log-back imported-log-back--bottom">
             <button class="btn btn-outline-primary" type="button" (click)="navigateBackToWeek()">
                 <em class="fa fa-arrow-left"></em>
-                Back to {{ importedWeek?.name }}
+                {{ 'log-entry.BackTo' | translate:{ name: importedWeek?.name } }}
             </button>
         </div>
         <!-- START Submit Buttons START -->

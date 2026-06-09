@@ -1,25 +1,25 @@
 <div class="profile-page">
     <header class="profile-hero">
         <div>
-            <span class="profile-hero__eyebrow">Your training space</span>
-            <h1>Profile & preferences</h1>
-            <p>Personalize workout defaults and keep a little context around what you are training for.</p>
+            <span class="profile-hero__eyebrow">{{ 'profile.Eyebrow' | translate }}</span>
+            <h1>{{ 'profile.Title' | translate }}</h1>
+            <p>{{ 'profile.Description' | translate }}</p>
         </div>
         <div class="profile-hero__status" [class.profile-hero__status--account]="signedIn">
             <em [class]="signedIn ? 'icon-cloud-upload' : 'icon-screen-desktop'" aria-hidden="true"></em>
             <div>
-                <strong>{{ signedIn ? 'Synced account' : 'Guest profile' }}</strong>
-                <span>{{ signedIn ? email : 'Saved only in this browser' }}</span>
+                <strong>{{ (signedIn ? 'profile.SyncedAccount' : 'profile.GuestProfile') | translate }}</strong>
+                <span>{{ signedIn ? email : ('profile.BrowserOnly' | translate) }}</span>
             </div>
         </div>
     </header>
 
     <div *ngIf="!signedIn" class="profile-account-callout">
         <div>
-            <strong>Take your profile and workouts with you.</strong>
-            <p>Create a free account when you want cloud backup and access from another device.</p>
+            <strong>{{ 'profile.AccountCalloutTitle' | translate }}</strong>
+            <p>{{ 'profile.AccountCalloutDescription' | translate }}</p>
         </div>
-        <button class="btn btn-primary" type="button" (click)="openAccount()">Sign in or register</button>
+        <button class="btn btn-primary" type="button" (click)="openAccount()">{{ 'global.SignInOrRegister' | translate }}</button>
     </div>
 
     <form [formGroup]="form" (ngSubmit)="save()" novalidate>
@@ -28,52 +28,52 @@
                 <div class="profile-card__heading">
                     <em class="icon-user" aria-hidden="true"></em>
                     <div>
-                        <h2 id="identity-heading">About you</h2>
-                        <p>Used to personalize your account and header.</p>
+                        <h2 id="identity-heading">{{ 'profile.AboutTitle' | translate }}</h2>
+                        <p>{{ 'profile.AboutDescription' | translate }}</p>
                     </div>
                 </div>
 
                 <div class="profile-form-grid">
                     <div class="form-group">
-                        <label for="profile-first-name">First name</label>
+                        <label for="profile-first-name">{{ 'profile.FirstName' | translate }}</label>
                         <input id="profile-first-name" class="form-control" formControlName="firstName" autocomplete="given-name">
                     </div>
                     <div class="form-group">
-                        <label for="profile-last-name">Last name</label>
+                        <label for="profile-last-name">{{ 'profile.LastName' | translate }}</label>
                         <input id="profile-last-name" class="form-control" formControlName="lastName" autocomplete="family-name">
                     </div>
                     <div class="form-group">
-                        <label for="profile-username">Username</label>
+                        <label for="profile-username">{{ 'profile.Username' | translate }}</label>
                         <input id="profile-username" class="form-control" formControlName="username" autocomplete="username"
                             aria-describedby="profile-username-help profile-username-error"
                             [attr.aria-invalid]="form.get('username').invalid && form.get('username').touched">
-                        <small id="profile-username-help" class="text-muted">Letters, numbers, periods, hyphens, and underscores.</small>
+                        <small id="profile-username-help" class="text-muted">{{ 'profile.UsernameHelp' | translate }}</small>
                         <small id="profile-username-error" *ngIf="form.get('username').invalid && form.get('username').touched"
-                            class="text-danger">Use no more than 30 supported characters.</small>
+                            class="text-danger">{{ 'profile.UsernameError' | translate }}</small>
                     </div>
                     <div class="form-group">
-                        <label for="profile-birth-date">Date of birth</label>
+                        <label for="profile-birth-date">{{ 'profile.BirthDate' | translate }}</label>
                         <input id="profile-birth-date" class="form-control" type="date" formControlName="birthDate"
                             [max]="today" aria-describedby="profile-birth-date-error"
                             [attr.aria-invalid]="form.get('birthDate').invalid && form.get('birthDate').touched">
                         <small id="profile-birth-date-error"
                             *ngIf="form.get('birthDate').invalid && form.get('birthDate').touched"
-                            class="text-danger">Date of birth cannot be in the future.</small>
+                            class="text-danger">{{ 'profile.BirthDateError' | translate }}</small>
                     </div>
                     <div class="form-group">
-                        <label for="profile-gender">Gender <span class="text-muted">(optional)</span></label>
+                        <label for="profile-gender">{{ 'profile.Gender' | translate }} <span class="text-muted">({{ 'profile.Optional' | translate }})</span></label>
                         <select id="profile-gender" class="form-control" formControlName="gender">
-                            <option value="">Prefer not to say</option>
-                            <option value="woman">Woman</option>
-                            <option value="man">Man</option>
-                            <option value="non-binary">Non-binary</option>
-                            <option value="self-described">Self-described</option>
+                            <option value="">{{ 'profile.PreferNot' | translate }}</option>
+                            <option value="woman">{{ 'profile.Woman' | translate }}</option>
+                            <option value="man">{{ 'profile.Man' | translate }}</option>
+                            <option value="non-binary">{{ 'profile.NonBinary' | translate }}</option>
+                            <option value="self-described">{{ 'profile.SelfDescribed' | translate }}</option>
                         </select>
                     </div>
                     <div class="form-group profile-form-grid__wide">
-                        <label for="profile-bio">Training bio</label>
+                        <label for="profile-bio">{{ 'profile.TrainingBio' | translate }}</label>
                         <textarea id="profile-bio" class="form-control" rows="3" formControlName="bio"
-                            placeholder="What keeps you training?"></textarea>
+                            [placeholder]="'profile.TrainingBioPlaceholder' | translate"></textarea>
                     </div>
                 </div>
             </section>
@@ -82,52 +82,52 @@
                 <div class="profile-card__heading">
                     <em class="icon-energy" aria-hidden="true"></em>
                     <div>
-                        <h2 id="training-heading">Training profile</h2>
-                        <p>Your goals, experience, and weekly rhythm.</p>
+                        <h2 id="training-heading">{{ 'profile.TrainingTitle' | translate }}</h2>
+                        <p>{{ 'profile.TrainingDescription' | translate }}</p>
                     </div>
                 </div>
 
                 <div class="profile-form-grid">
                     <div class="form-group">
-                        <label for="profile-goal">Primary goal</label>
+                        <label for="profile-goal">{{ 'profile.PrimaryGoal' | translate }}</label>
                         <select id="profile-goal" class="form-control" formControlName="fitnessGoal">
-                            <option value="">Select a goal</option>
-                            <option value="general-fitness">General fitness</option>
-                            <option value="strength">Build strength</option>
-                            <option value="muscle">Build muscle</option>
-                            <option value="weight-loss">Fat loss</option>
-                            <option value="endurance">Improve endurance</option>
-                            <option value="competition">Prepare for competition</option>
-                            <option value="mobility">Mobility and recovery</option>
+                            <option value="">{{ 'profile.SelectGoal' | translate }}</option>
+                            <option value="general-fitness">{{ 'profile.GeneralFitness' | translate }}</option>
+                            <option value="strength">{{ 'profile.BuildStrength' | translate }}</option>
+                            <option value="muscle">{{ 'profile.BuildMuscle' | translate }}</option>
+                            <option value="weight-loss">{{ 'profile.FatLoss' | translate }}</option>
+                            <option value="endurance">{{ 'profile.ImproveEndurance' | translate }}</option>
+                            <option value="competition">{{ 'profile.Competition' | translate }}</option>
+                            <option value="mobility">{{ 'profile.MobilityRecovery' | translate }}</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="profile-experience">Experience</label>
+                        <label for="profile-experience">{{ 'profile.Experience' | translate }}</label>
                         <select id="profile-experience" class="form-control" formControlName="experienceLevel">
-                            <option value="">Select experience</option>
-                            <option value="beginner">Beginner</option>
-                            <option value="intermediate">Intermediate</option>
-                            <option value="advanced">Advanced</option>
-                            <option value="competitive">Competitive athlete</option>
+                            <option value="">{{ 'profile.SelectExperience' | translate }}</option>
+                            <option value="beginner">{{ 'profile.Beginner' | translate }}</option>
+                            <option value="intermediate">{{ 'profile.Intermediate' | translate }}</option>
+                            <option value="advanced">{{ 'profile.Advanced' | translate }}</option>
+                            <option value="competitive">{{ 'profile.CompetitiveAthlete' | translate }}</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="profile-frequency">Workouts per week</label>
+                        <label for="profile-frequency">{{ 'profile.WorkoutsPerWeek' | translate }}</label>
                         <input id="profile-frequency" class="form-control" type="number" min="1" max="14"
                             formControlName="workoutsPerWeek" aria-describedby="profile-frequency-error"
                             [attr.aria-invalid]="form.get('workoutsPerWeek').invalid && form.get('workoutsPerWeek').touched">
                         <small id="profile-frequency-error"
                             *ngIf="form.get('workoutsPerWeek').invalid && form.get('workoutsPerWeek').touched"
-                            class="text-danger">Enter between 1 and 14 workouts.</small>
+                            class="text-danger">{{ 'profile.WorkoutFrequencyError' | translate }}</small>
                     </div>
                     <div class="form-group profile-form-grid__wide">
-                        <span class="profile-label">Training interests</span>
-                        <div class="profile-tags" aria-label="Training interests">
+                        <span class="profile-label">{{ 'profile.TrainingInterests' | translate }}</span>
+                        <div class="profile-tags" [attr.aria-label]="'profile.TrainingInterests' | translate">
                             <button *ngFor="let option of trainingOptions" type="button"
                                 [class.profile-tag--selected]="isTrainingSelected(option)"
                                 [attr.aria-pressed]="isTrainingSelected(option)"
                                 (click)="toggleTraining(option)">
-                                {{ option }}
+                                {{ getTrainingOptionKey(option) | translate }}
                             </button>
                         </div>
                     </div>
@@ -138,22 +138,22 @@
                 <div class="profile-card__heading">
                     <em class="icon-speedometer" aria-hidden="true"></em>
                     <div>
-                        <h2 id="metrics-heading">Metrics & defaults</h2>
-                        <p>Optional reference values and measurement preferences.</p>
+                        <h2 id="metrics-heading">{{ 'profile.MetricsTitle' | translate }}</h2>
+                        <p>{{ 'profile.MetricsDescription' | translate }}</p>
                     </div>
                 </div>
 
                 <div class="profile-form-grid">
                     <div class="form-group">
-                        <label for="profile-units">Unit system</label>
+                        <label for="profile-units">{{ 'profile.UnitSystem' | translate }}</label>
                         <select id="profile-units" class="form-control" formControlName="unitSystem"
                             (change)="changeUnitSystemFromEvent($event)">
-                            <option value="imperial">Imperial (lb, ft/in, mi)</option>
-                            <option value="metric">Metric (kg, cm, km)</option>
+                            <option value="imperial">{{ 'profile.Imperial' | translate }}</option>
+                            <option value="metric">{{ 'profile.Metric' | translate }}</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="profile-height">Height</label>
+                        <label for="profile-height">{{ 'profile.Height' | translate }}</label>
                         <div class="input-group">
                             <input id="profile-height" class="form-control" type="number" min="1" max="300"
                                 formControlName="height" aria-describedby="profile-height-error"
@@ -161,10 +161,10 @@
                             <span class="input-group-text">{{ form.get('unitSystem').value === 'metric' ? 'cm' : 'in' }}</span>
                         </div>
                         <small id="profile-height-error" *ngIf="form.get('height').invalid && form.get('height').touched"
-                            class="text-danger">Enter a valid height.</small>
+                            class="text-danger">{{ 'profile.HeightError' | translate }}</small>
                     </div>
                     <div class="form-group">
-                        <label for="profile-weight">Body weight</label>
+                        <label for="profile-weight">{{ 'profile.BodyWeight' | translate }}</label>
                         <div class="input-group">
                             <input id="profile-weight" class="form-control" type="number" min="1" max="1000"
                                 formControlName="bodyWeight" aria-describedby="profile-weight-error"
@@ -172,14 +172,14 @@
                             <span class="input-group-text">{{ form.get('unitSystem').value === 'metric' ? 'kg' : 'lb' }}</span>
                         </div>
                         <small id="profile-weight-error" *ngIf="form.get('bodyWeight').invalid && form.get('bodyWeight').touched"
-                            class="text-danger">Enter a valid body weight.</small>
+                            class="text-danger">{{ 'profile.BodyWeightError' | translate }}</small>
                     </div>
                     <div class="form-group profile-form-grid__wide">
                         <label class="profile-check">
                             <input type="checkbox" formControlName="emailUpdates">
                             <span>
-                                <strong>Product updates</strong>
-                                <small>Occasional news about meaningful app improvements.</small>
+                                <strong>{{ 'profile.ProductUpdates' | translate }}</strong>
+                                <small>{{ 'profile.ProductUpdatesDescription' | translate }}</small>
                             </span>
                         </label>
                     </div>
@@ -203,16 +203,25 @@
                         <small>{{ 'appearance.SavedDescription' | translate }}</small>
                     </span>
                 </label>
+
+                <div class="profile-language-setting">
+                    <label for="profile-language">{{ 'global.Language' | translate }}</label>
+                    <select id="profile-language" class="form-control" formControlName="preferredLanguage"
+                        (change)="setLanguageFromEvent($event)">
+                        <option *ngFor="let language of languages" [value]="language.code">{{ language.text }}</option>
+                    </select>
+                    <small>{{ 'appearance.LanguageDescription' | translate }}</small>
+                </div>
             </section>
         </div>
 
         <div class="profile-actions">
             <span *ngIf="saved" class="profile-saved" role="status">
-                <em class="icon-check" aria-hidden="true"></em> Profile saved
+                <em class="icon-check" aria-hidden="true"></em> {{ 'profile.Saved' | translate }}
             </span>
             <span *ngIf="saveError" class="text-danger" role="alert">{{ saveError }}</span>
             <button class="btn btn-primary" type="submit" [disabled]="saving">
-                {{ saving ? 'Saving...' : 'Save profile' }}
+                {{ (saving ? 'profile.Saving' : 'profile.Save') | translate }}
             </button>
         </div>
     </form>

@@ -1,6 +1,7 @@
 import { UserProfile } from '../models/profile.model';
 import { Subject } from 'rxjs';
 import { ThemesService } from '../../core/themes/themes.service';
+import { TranslatorService } from '../../core/translator/translator.service';
 import { ProfileService } from './profile.service';
 import { SupabaseDataService } from './supabase-data.service';
 
@@ -186,6 +187,61 @@ describe('ProfileService', () => {
         );
         expect(cloud.saveProfile).not.toHaveBeenCalled();
     });
+
+    it('persists language changes to the signed-in profile', async () => {
+        const cloud = jasmine.createSpyObj<SupabaseDataService>(
+            'SupabaseDataService',
+            ['getProfile', 'saveProfile']
+        );
+        const languageChanges = new Subject<string>();
+        const translator = jasmine.createSpyObj<TranslatorService>(
+            'TranslatorService',
+            ['useLanguage'],
+            {
+                language: 'en-ca',
+                languageChangeEmitted$: languageChanges.asObservable()
+            }
+        );
+        cloud.saveProfile.and.resolveTo();
+        const service = new ProfileService(cloud, undefined, undefined, translator);
+        service.setUserContext('user-1');
+
+        languageChanges.next('fr-ca');
+        await new Promise(resolve => setTimeout(resolve, 0));
+
+        expect(service.profile.preferredLanguage).toBe('fr-ca');
+        expect(JSON.parse(localStorage.getItem('logYourWo.user-1.profile')).preferredLanguage).toBe('fr-ca');
+        expect(cloud.saveProfile).toHaveBeenCalledWith(
+            'user-1',
+            jasmine.objectContaining({ preferredLanguage: 'fr-ca' })
+        );
+    });
+
+    it('applies the language restored from the signed-in profile', async () => {
+        const cloud = jasmine.createSpyObj<SupabaseDataService>(
+            'SupabaseDataService',
+            ['getProfile', 'saveProfile']
+        );
+        const translator = jasmine.createSpyObj<TranslatorService>(
+            'TranslatorService',
+            ['useLanguage'],
+            {
+                language: 'en-ca',
+                languageChangeEmitted$: new Subject<string>().asObservable()
+            }
+        );
+        cloud.getProfile.and.resolveTo(profileWith({
+            preferredLanguage: 'fr-ca',
+            updatedAt: '2026-06-07T12:00:00.000Z'
+        }));
+        cloud.saveProfile.and.resolveTo();
+        const service = new ProfileService(cloud, undefined, undefined, translator);
+
+        service.setUserContext('user-1');
+        await service.syncWithCloud();
+
+        expect(translator.useLanguage).toHaveBeenCalledWith('fr-ca');
+    });
 });
 
 function profileWith(values: Partial<UserProfile>): UserProfile {
@@ -205,6 +261,7 @@ function profileWith(values: Partial<UserProfile>): UserProfile {
         preferredTraining: [],
         emailUpdates: false,
         darkMode: false,
+        preferredLanguage: 'en-ca',
         updatedAt: '',
         ...values
     };

@@ -1,21 +1,21 @@
 <div class="program-import-shell" [class.program-import-shell--empty]="!programCards.length">
-    <aside class="program-import__library" [class.program-import__library--empty]="!programCards.length" aria-label="Imported programs">
+    <aside class="program-import__library" [class.program-import__library--empty]="!programCards.length" [attr.aria-label]="'program-import.ImportedProgram' | translate">
         <div class="program-import__library-toolbar">
             <div class="program-import__library-header">
-                <span>Imports</span>
+                <span>{{ 'program-import.Imports' | translate }}</span>
                 <span>{{ programCards.length }}</span>
             </div>
             <div class="program-import__library-actions">
                 <label class="btn btn-primary mb-0 program-import__file-control program-import__file-control--library">
                     <span>
                         <em class="fa fa-upload" aria-hidden="true"></em>
-                        Import
+                        {{ 'program-import.Import' | translate }}
                     </span>
                     <input class="program-import__file-input" type="file" accept=".xlsx,.xls" (change)="onFileSelected($event)">
                 </label>
                 <button *ngIf="program" class="btn btn-outline-danger program-import__library-clear" type="button" (click)="clearProgram()">
                     <em class="fa fa-trash" aria-hidden="true"></em>
-                    <span class="sr-only">Delete current imported program</span>
+                    <span class="sr-only">{{ 'program-import.DeleteCurrent' | translate }}</span>
                 </button>
             </div>
         </div>
@@ -33,11 +33,11 @@
                     </span>
                     <mat-progress-bar mode="determinate" [value]="card.progressPercent"></mat-progress-bar>
                     <span class="program-import__library-row">
-                        <span>{{ card.program.weeks.length }} weeks</span>
+                        <span>{{ card.program.weeks.length }} {{ 'global.Weeks' | translate }}</span>
                     </span>
                 </button>
                 <button class="program-import__library-delete" type="button"
-                    [attr.aria-label]="'Delete ' + card.program.name"
+                    [attr.aria-label]="'program-import.DeleteNamed' | translate:{ name: card.program.name }"
                     (click)="deleteProgram($event, card.program)">
                     <em class="fa fa-trash" aria-hidden="true"></em>
                 </button>
@@ -48,20 +48,20 @@
     <div class="program-import">
         <div class="program-import__header">
             <div>
-                <h1>Workout Program</h1>
-                <p>Import an Excel program, browse the weeks, and open any workout as a log.</p>
+                <h1>{{ 'program-import.Title' | translate }}</h1>
+                <p>{{ 'program-import.Description' | translate }}</p>
             </div>
             <div class="program-import__actions">
                 <label class="btn btn-primary mb-0 program-import__file-control">
                     <span>
                         <em class="fa fa-upload" aria-hidden="true"></em>
-                        Import Excel
+                        {{ 'program-import.ImportExcel' | translate }}
                     </span>
                     <input class="program-import__file-input" type="file" accept=".xlsx,.xls" (change)="onFileSelected($event)">
                 </label>
                 <button *ngIf="program" class="btn btn-outline-danger" type="button" (click)="clearProgram()">
                     <em class="fa fa-trash" aria-hidden="true"></em>
-                    <span class="sr-only">Delete current imported program</span>
+                    <span class="sr-only">{{ 'program-import.DeleteCurrent' | translate }}</span>
                 </button>
             </div>
         </div>
@@ -71,34 +71,34 @@
 
         <div *ngIf="!program" class="program-import__empty">
             <img alt="Log Your Workout" src="assets/img/log-your-wo-logo-single-black.svg">
-            <h2>No program imported</h2>
-            <p>Use an Excel workbook with week/day workout blocks to create a local training plan.</p>
+            <h2>{{ 'program-import.EmptyTitle' | translate }}</h2>
+            <p>{{ 'program-import.EmptyDescription' | translate }}</p>
         </div>
 
         <div *ngIf="program" class="program-import__content">
             <div class="program-import__meta">
                 <div>
-                    <span class="program-import__eyebrow">Imported Program</span>
+                    <span class="program-import__eyebrow">{{ 'program-import.ImportedProgram' | translate }}</span>
                     <h2>{{ program.name }}</h2>
                 </div>
                 <div class="program-import__meta-actions">
-                    <div class="program-import__color-picker" aria-label="Completion highlight color">
-                        <span>Complete</span>
+                    <div class="program-import__color-picker" [attr.aria-label]="'program-import.CompletionColor' | translate">
+                        <span>{{ 'global.Complete' | translate }}</span>
                         <button *ngFor="let color of completionColorOptions"
                             type="button"
                             class="program-import__color-swatch"
-                            [attr.aria-label]="'Use ' + color + ' for completed workouts'"
+                            [attr.aria-label]="'program-import.UseColor' | translate:{ color: color }"
                             [attr.aria-pressed]="completionColor === color"
                             [class.program-import__color-swatch--active]="completionColor === color"
                             [style.background]="color"
                             (click)="onCompletionColorChange(color)">
                         </button>
                     </div>
-                    <div class="program-import__count">{{ program.weeks.length }} weeks</div>
+                    <div class="program-import__count">{{ program.weeks.length }} {{ 'global.Weeks' | translate }}</div>
                 </div>
             </div>
 
-            <div class="program-import__weeks" aria-label="Program weeks">
+            <div class="program-import__weeks" [attr.aria-label]="'program-import.ProgramWeeks' | translate">
                 <button *ngFor="let week of weekCards; trackBy: trackWeekById"
                     #weekTab
                     type="button"
@@ -141,7 +141,7 @@
                             type="button"
                             [disabled]="day.complete"
                             (click)="markDayComplete($event, selectedWeek.id, day.id)">
-                            {{ day.complete ? 'Complete' : 'Mark as Complete' }}
+                            {{ (day.complete ? 'global.Complete' : 'global.MarkAsComplete') | translate }}
                         </button>
                     </div>
                 </div>

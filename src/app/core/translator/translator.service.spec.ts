@@ -9,6 +9,7 @@ import { TranslatorService } from './translator.service';
 
 describe('Service: Translator', () => {
     beforeEach(() => {
+        localStorage.removeItem('logYourWo.language');
         TestBed.configureTestingModule({
             imports: [
                 HttpClientModule,
@@ -31,5 +32,31 @@ describe('Service: Translator', () => {
 
     it('should ...', inject([TranslatorService], (service: TranslatorService) => {
         expect(service).toBeTruthy();
+    }));
+
+    it('replays the current language to late subscribers', inject([TranslatorService], async (service: TranslatorService) => {
+        await service.useLanguage('fr-ca');
+        let currentLanguage = '';
+
+        service.languageChangeEmitted$.subscribe(language => currentLanguage = language);
+
+        expect(currentLanguage).toBe('fr-ca');
+    }));
+
+    it('persists the selected language in the browser', inject([TranslatorService], async (service: TranslatorService) => {
+        await service.useLanguage('fr-ca');
+
+        expect(localStorage.getItem('logYourWo.language')).toBe('fr-ca');
+    }));
+
+    it('publishes loading state around a language switch', inject([TranslatorService], async (service: TranslatorService) => {
+        const loadingStates: boolean[] = [];
+        const subscription = service.languageLoading$.subscribe(loading => loadingStates.push(loading));
+
+        await service.useLanguage('fr-ca');
+
+        expect(loadingStates).toContain(true);
+        expect(loadingStates[loadingStates.length - 1]).toBeFalse();
+        subscription.unsubscribe();
     }));
 });

@@ -1,8 +1,9 @@
 import { Injectable, OnDestroy, Optional } from '@angular/core';
 import { BehaviorSubject, Subscription } from 'rxjs';
 
-import { createDefaultProfile, UserProfile } from '../models/profile.model';
+import { createDefaultProfile, PreferredLanguage, UserProfile } from '../models/profile.model';
 import { ThemesService } from '../../core/themes/themes.service';
+import { TranslatorService } from '../../core/translator/translator.service';
 import { SupabaseDataService } from './supabase-data.service';
 import { CloudSyncStatusService } from './cloud-sync-status.service';
 
@@ -16,22 +17,28 @@ export class ProfileService implements OnDestroy {
     private cloudWriteQueue: Promise<void> = Promise.resolve();
     private readonly profileSource = new BehaviorSubject<UserProfile>(this.readProfile(this.guestStorageKey));
     private readonly themeSubscription?: Subscription;
+    private readonly languageSubscription?: Subscription;
 
     public readonly profile$ = this.profileSource.asObservable();
 
     constructor(
         private cloudData?: SupabaseDataService,
         @Optional() private syncStatus?: CloudSyncStatusService,
-        @Optional() private themes?: ThemesService
+        @Optional() private themes?: ThemesService,
+        @Optional() private translator?: TranslatorService
     ) {
-        this.applyProfileTheme(this.profile);
+        this.applyProfilePreferences(this.profile);
         this.themeSubscription = this.themes?.darkMode$?.subscribe(enabled => {
             this.persistDarkModePreference(enabled);
+        });
+        this.languageSubscription = this.translator?.languageChangeEmitted$?.subscribe(language => {
+            this.persistLanguagePreference(language as PreferredLanguage);
         });
     }
 
     public ngOnDestroy(): void {
         this.themeSubscription?.unsubscribe();
+        this.languageSubscription?.unsubscribe();
     }
 
     public get profile(): UserProfile {
@@ -90,6 +97,7 @@ export class ProfileService implements OnDestroy {
             ...createDefaultProfile(),
             ...profile,
             preferredTraining: profile.preferredTraining || [],
+            preferredLanguage: this.normalizeLanguage(profile.preferredLanguage),
             updatedAt: new Date().toISOString()
         };
 
@@ -162,14 +170,16 @@ export class ProfileService implements OnDestroy {
             preferredTraining: profile.preferredTraining || [],
             darkMode: typeof profile.darkMode === 'boolean'
                 ? profile.darkMode
-                : this.readStoredDarkMode()
+                : this.readStoredDarkMode(),
+            preferredLanguage: this.normalizeLanguage(profile.preferredLanguage)
         };
     }
 
     private defaultProfile(): UserProfile {
         return {
             ...createDefaultProfile(),
-            darkMode: this.readStoredDarkMode()
+            darkMode: this.readStoredDarkMode(),
+            preferredLanguage: this.readStoredLanguage()
         };
     }
 
@@ -182,20 +192,21 @@ export class ProfileService implements OnDestroy {
     }
 
     private publishProfile(profile: UserProfile): void {
-        this.applyProfileTheme(profile);
+        this.applyProfilePreferences(profile);
         this.profileSource.next(profile);
     }
 
-    private applyProfileTheme(profile: UserProfile): void {
-        if (!this.themes) {
-            return;
+    private applyProfilePreferences(profile: UserProfile): void {
+        if (this.themes) {
+            this.applyingProfileTheme = true;
+            try {
+                this.themes.setDarkMode(profile.darkMode);
+            } finally {
+                this.applyingProfileTheme = false;
+            }
         }
-
-        this.applyingProfileTheme = true;
-        try {
-            this.themes.setDarkMode(profile.darkMode);
-        } finally {
-            this.applyingProfileTheme = false;
+        if (this.translator && this.translator.language !== profile.preferredLanguage) {
+            void this.translator.useLanguage(profile.preferredLanguage);
         }
     }
 
@@ -208,6 +219,33 @@ export class ProfileService implements OnDestroy {
             ...this.profile,
             darkMode: enabled
         }).catch(() => undefined);
+    }
+
+    private persistLanguagePreference(language: PreferredLanguage): void {
+        if (!this.activeUserId || this.profile.preferredLanguage === language) {
+            return;
+        }
+
+        void this.saveProfile({
+            ...this.profile,
+            preferredLanguage: language
+        }).catch(() => undefined);
+    }
+
+    private normalizeLanguage(language: string): PreferredLanguage {
+        return language === 'fr-ca' || language === 'en-ca'
+            ? language
+            : this.readStoredLanguage();
+    }
+
+    private readStoredLanguage(): PreferredLanguage {
+        try {
+            return localStorage.getItem('logYourWo.language') === 'fr-ca'
+                ? 'fr-ca'
+                : 'en-ca';
+        } catch {
+            return 'en-ca';
+        }
     }
 
     private enqueueCloudWrite(action: () => Promise<void>, errorMessage: string): Promise<void> {

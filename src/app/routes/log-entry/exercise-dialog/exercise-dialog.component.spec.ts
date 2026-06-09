@@ -93,4 +93,16 @@ describe('ExerciseDialogComponent', () => {
 
     expect(component.exerciseLogForm.get('weight').value).toBe('70-80%');
   });
+
+  it('finds French autocomplete labels while retaining canonical exercise names', () => {
+    (component as any).currentLanguage = 'fr-ca';
+    (component as any).exerciseNames = ['Barbell Bench Press - Medium Grip'];
+    (component as any).updateLocalizedExerciseLists();
+
+    const matches = (component as any).filterExercises('développé couché');
+
+    expect(matches.length).toBe(1);
+    expect(matches[0].name).toBe('Barbell Bench Press - Medium Grip');
+    expect(matches[0].localizedName).toBe('Développé couché à la barre - prise moyenne');
+  });
 });

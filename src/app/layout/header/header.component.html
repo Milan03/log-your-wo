@@ -17,13 +17,13 @@
         <li class="nav-item">
             <!-- Button used to collapse the left sidebar. Only visible on tablet and desktops-->
             <button class="nav-link header-nav-button d-none d-md-block d-lg-block d-xl-block" type="button"
-                aria-label="Toggle sidebar" trigger-resize=""
+                [attr.aria-label]="'layout.ToggleSidebar' | translate" trigger-resize=""
                 (click)="toggleCollapsedSideabar()">
                 <em class="fas fa-bars" aria-hidden="true"></em>
             </button>
             <!-- Button to show/hide the sidebar on mobile. Visible on mobile only.-->
             <button class="nav-link header-nav-button sidebar-toggle d-md-none" type="button"
-                aria-label="Open navigation"
+                [attr.aria-label]="'layout.OpenNavigation' | translate"
                 (click)="settings.toggleLayoutSetting('asideToggled'); $event.stopPropagation()">
                 <em class="fas fa-bars" aria-hidden="true"></em>
                 <!--<span id="mobile-log-type">{{ currentLogType }}</span>-->
@@ -31,7 +31,7 @@
         </li>
         <!-- START Offsidebar button START -->
         <li class="nav-item">
-            <button class="nav-link header-nav-button" type="button" aria-label="Open app settings"
+            <button class="nav-link header-nav-button" type="button" [attr.aria-label]="'layout.OpenSettings' | translate"
                 (click)="toggleOffsidebar(); $event.stopPropagation()">
                 <em class="icon-notebook" aria-hidden="true"></em>
             </button>
@@ -65,25 +65,25 @@
     <ul class="navbar-nav flex-row">
         <li *ngIf="syncError" class="nav-item d-none d-md-flex align-items-center">
             <span class="nav-link header-sync-warning" role="status" [attr.title]="syncError">
-                Cloud sync unavailable
+                {{ 'layout.CloudUnavailable' | translate }}
             </span>
         </li>
         <li class="nav-item header-account-menu">
             <button class="nav-link header-account" type="button" [matMenuTriggerFor]="accountMenu"
-                [attr.aria-label]="'Open account menu for ' + accountLabel">
+                [attr.aria-label]="'layout.OpenAccountMenu' | translate:{ name: accountLabel }">
                 <span class="header-account__avatar" aria-hidden="true">{{ accountLabel.charAt(0) | uppercase }}</span>
                 <span class="header-account__name d-none d-sm-inline">{{ accountLabel }}</span>
-                <span *ngIf="!signedIn" class="header-account__local d-none d-lg-inline">Local</span>
+                <span *ngIf="!signedIn" class="header-account__local d-none d-lg-inline">{{ 'global.Local' | translate }}</span>
                 <em class="fas fa-chevron-down header-account__chevron" aria-hidden="true"></em>
             </button>
             <mat-menu #accountMenu="matMenu" xPosition="before">
                 <button *ngIf="!signedIn" mat-menu-item type="button" (click)="openSignIn()">
                     <em class="icon-login header-menu-icon" aria-hidden="true"></em>
-                    <span>Sign in or register</span>
+                    <span>{{ 'global.SignInOrRegister' | translate }}</span>
                 </button>
                 <button mat-menu-item type="button" (click)="openProfile()">
                     <em class="icon-user header-menu-icon" aria-hidden="true"></em>
-                    <span>Profile</span>
+                    <span>{{ 'global.Profile' | translate }}</span>
                 </button>
                 <button mat-menu-item type="button" role="menuitemcheckbox" [attr.aria-checked]="darkMode"
                     (click)="toggleDarkMode()">
@@ -94,7 +94,7 @@
                 </button>
                 <button *ngIf="signedIn" mat-menu-item type="button" (click)="signOut()">
                     <em class="icon-logout header-menu-icon" aria-hidden="true"></em>
-                    <span>Log out</span>
+                    <span>{{ 'global.LogOut' | translate }}</span>
                 </button>
             </mat-menu>
         </li>

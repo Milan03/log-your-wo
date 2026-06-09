@@ -225,7 +225,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
             await this.authService.signOut();
             await this._router.navigate(['/home']);
         } catch {
-            this.syncError = 'Unable to log out. Check your connection and try again.';
+            this.syncError = this.translatorService.translate.instant('layout.LogoutError');
         }
     }
 
@@ -270,7 +270,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
             ? this.profileService.getDisplayName(this.signedIn ? this.userEmail : undefined)
             : this.signedIn && this.userEmail
                 ? this.userEmail.split('@')[0]
-                : 'Guest';
+                : this.translatorService.translate.instant('global.Guest');
     }
 
     // toggleFullScreen(event) {

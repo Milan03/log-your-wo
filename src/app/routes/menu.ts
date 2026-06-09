@@ -17,14 +17,14 @@ const ImportProgram = {
     text: 'Import Program',
     link: '/log-entry/import-program',
     icon: 'icon-cloud-upload',
-    translate: ''
+    translate: 'home.ImportProgram'
 };
 
 const Profile = {
     text: 'Profile',
     link: '/profile',
     icon: 'icon-user',
-    translate: ''
+    translate: 'global.Profile'
 };
 
 const headingMain = {

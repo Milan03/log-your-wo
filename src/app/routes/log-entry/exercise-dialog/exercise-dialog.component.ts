@@ -9,10 +9,17 @@ import { ExerciseDialogData } from 'src/app/shared/interfaces/exercise-dialog-da
 import { SharedService } from '../../../shared/services/shared.service';
 import { TranslatorService } from '../../../core/translator/translator.service';
 import { ExerciseDirectoryService } from '../../../shared/services/exercise-directory.service';
+import { ExerciseNameLocalizerService } from '../../../shared/services/exercise-name-localizer.service';
 
 import { FormValues } from '../../../shared/common/common.constants';
 
 import * as moment from 'moment';
+
+interface LocalizedExerciseOption {
+    name: string;
+    localizedName: string;
+    searchText: string;
+}
 
 @Component({
     selector: 'exercise-dialog',
@@ -37,14 +44,16 @@ export class ExerciseDialogComponent {
     public readonly exerciseNameCharLimit: number = 50;
     public readonly exerciseAlphaNumericCharLimit: number = 15;
     public intensities = FormValues.ExerciseIntensities;
-    public exerciseList: string[] = [];
-    public cardioExerciseList: string[] = [];
+    public exerciseList: LocalizedExerciseOption[] = [];
+    public cardioExerciseList: LocalizedExerciseOption[] = [];
 
-    public filteredExercises: Observable<string[]>;
-    public filteredCardioExercises: Observable<string[]>;
+    public filteredExercises: Observable<LocalizedExerciseOption[]>;
+    public filteredCardioExercises: Observable<LocalizedExerciseOption[]>;
     private langSub: Subscription;
     private exerciseSub: Subscription;
     private cardioExerciseSub: Subscription;
+    private exerciseNames: string[] = [];
+    private cardioExerciseNames: string[] = [];
 
     constructor(
         @Inject(MAT_DIALOG_DATA) public _exerciseDialogData: ExerciseDialogData,
@@ -52,7 +61,8 @@ export class ExerciseDialogComponent {
         public _dialogRef: MatDialogRef<ExerciseDialogComponent>,
         private _sharedService: SharedService,
         private _translatorService: TranslatorService,
-        private _exerciseDirectoryService: ExerciseDirectoryService
+        private _exerciseDirectoryService: ExerciseDirectoryService,
+        private _exerciseNameLocalizer: ExerciseNameLocalizerService
     ) {
         this.exerciseLogForm = this._formBuilder.group({
             'exerciseName': ['', Validators.compose([Validators.required, Validators.maxLength(50)])],
@@ -147,6 +157,7 @@ export class ExerciseDialogComponent {
                 } else {
                     this.intensities = FormValues.ExerciseIntensitiesFR;
                 }
+                this.updateLocalizedExerciseLists();
             }
         );
     }
@@ -154,7 +165,8 @@ export class ExerciseDialogComponent {
     private subToExerciseDirectoryService(): void {
         this.exerciseSub = this._exerciseDirectoryService.getExercises().subscribe({
             next: (data) => {
-                this.exerciseList = data.exercises.map(exercise => exercise.name);
+                this.exerciseNames = data.exercises.map(exercise => exercise.name);
+                this.updateLocalizedExerciseLists();
                 this.filteredExercises = this.exerciseLogForm.get('exerciseName').valueChanges.pipe(
                     startWith(''),
                     map(value => this.filterExercises(value))
@@ -169,7 +181,8 @@ export class ExerciseDialogComponent {
     private subToCardioExerciseDirectoryService(): void {
         this.cardioExerciseSub = this._exerciseDirectoryService.getCardioExercises().subscribe({
             next: (data) => {
-                this.cardioExerciseList = data.exercises.map(exercise => exercise.name);
+                this.cardioExerciseNames = data.exercises.map(exercise => exercise.name);
+                this.updateLocalizedExerciseLists();
                 this.filteredCardioExercises = this.exerciseLogForm.get('exerciseName').valueChanges.pipe(
                     startWith(''),
                     map(value => this.filterCardioExercises(value))
@@ -181,19 +194,22 @@ export class ExerciseDialogComponent {
         });
     }
 
-    private filterExercises(value: string): string[] {
+    public displayExerciseName = (name: string): string =>
+        this._exerciseNameLocalizer.localize(name, this.currentLanguage);
+
+    private filterExercises(value: string): LocalizedExerciseOption[] {
         if (value) {
-            const filterValue = value.toLowerCase();
-            return this.exerciseList.filter(option => option.toLowerCase().includes(filterValue));
+            const filterValue = this._exerciseNameLocalizer.normalize(value);
+            return this.exerciseList.filter(option => option.searchText.includes(filterValue));
         }
 
         return [];
     }
 
-    private filterCardioExercises(value: string): string[] {
+    private filterCardioExercises(value: string): LocalizedExerciseOption[] {
         if (value) {
-            const filterValue = value.toLowerCase();
-            return this.cardioExerciseList.filter(option => option.toLowerCase().includes(filterValue));
+            const filterValue = this._exerciseNameLocalizer.normalize(value);
+            return this.cardioExerciseList.filter(option => option.searchText.includes(filterValue));
         }
 
         return [];
@@ -218,6 +234,22 @@ export class ExerciseDialogComponent {
                 });
             }
         }, 250);
+    }
+
+    private updateLocalizedExerciseLists(): void {
+        this.exerciseList = this.localizeExerciseNames(this.exerciseNames);
+        this.cardioExerciseList = this.localizeExerciseNames(this.cardioExerciseNames);
+    }
+
+    private localizeExerciseNames(names: string[]): LocalizedExerciseOption[] {
+        return names.map(name => {
+            const localizedName = this._exerciseNameLocalizer.localize(name, this.currentLanguage);
+            return {
+                name,
+                localizedName,
+                searchText: this._exerciseNameLocalizer.normalize(`${name} ${localizedName}`)
+            };
+        });
     }
 
     private preventAutocompleteOnModalOpen() {
