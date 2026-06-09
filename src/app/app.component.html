@@ -1,1 +1,8 @@
 <router-outlet></router-outlet>
+<div *ngIf="translator.languageLoading$ | async" class="language-loading-overlay" role="status"
+    aria-live="polite" aria-busy="true">
+    <div class="language-loading-overlay__content">
+        <span class="spinner-border text-primary" aria-hidden="true"></span>
+        <strong>{{ translator.loadingLabel }}</strong>
+    </div>
+</div>

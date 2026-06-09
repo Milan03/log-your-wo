@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, QueryList, ViewChildren } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, Optional, QueryList, ViewChildren } from '@angular/core';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { filter, Subscription } from 'rxjs';
 
@@ -10,6 +10,7 @@ import {
 } from '../../../shared/models/imported-program.model';
 import { ProgramImportService } from '../../../shared/services/program-import.service';
 import { SharedService } from '../../../shared/services/shared.service';
+import { TranslatorService } from '../../../core/translator/translator.service';
 
 const swal = require('sweetalert');
 
@@ -46,6 +47,7 @@ export class ProgramImportComponent implements OnInit, AfterViewInit, OnDestroy 
     private programsSub: Subscription;
     private routeSub: Subscription;
     private navigationSub: Subscription;
+    private languageSub: Subscription;
     private weekTabsSub: Subscription;
     private dayCardsSub: Subscription;
     private focusTimerId: ReturnType<typeof setTimeout>;
@@ -59,7 +61,8 @@ export class ProgramImportComponent implements OnInit, AfterViewInit, OnDestroy 
         private _programImportService: ProgramImportService,
         private _sharedService: SharedService,
         private _router: Router,
-        private _activatedRoute: ActivatedRoute
+        private _activatedRoute: ActivatedRoute,
+        @Optional() private _translatorService?: TranslatorService
     ) { }
 
     ngOnInit(): void {
@@ -88,6 +91,12 @@ export class ProgramImportComponent implements OnInit, AfterViewInit, OnDestroy 
         this.navigationSub = this._router.events.pipe(
             filter(event => event instanceof NavigationEnd)
         ).subscribe(() => this.queueRequestedFocus());
+        if (this._translatorService) {
+            this.languageSub = this._translatorService.languageChangeEmitted$.subscribe(() => {
+                this.refreshProgramCards();
+                this.refreshDayCards();
+            });
+        }
     }
 
     ngAfterViewInit(): void {
@@ -114,6 +123,9 @@ export class ProgramImportComponent implements OnInit, AfterViewInit, OnDestroy 
         }
         if (this.navigationSub) {
             this.navigationSub.unsubscribe();
+        }
+        if (this.languageSub) {
+            this.languageSub.unsubscribe();
         }
         if (this.focusTimerId !== undefined) {
             clearTimeout(this.focusTimerId);
@@ -142,7 +154,7 @@ export class ProgramImportComponent implements OnInit, AfterViewInit, OnDestroy 
             const message = error instanceof Error ? error.message : '';
             this.importError = /10 MB|No recognizable workout weeks/.test(message)
                 ? message
-                : 'That workbook could not be imported. Try another .xlsx file.';
+                : this.t('program-import.ImportError', undefined, 'That workbook could not be imported. Try another .xlsx file.');
         } finally {
             this.isImporting = false;
             input.value = '';
@@ -298,7 +310,7 @@ export class ProgramImportComponent implements OnInit, AfterViewInit, OnDestroy 
                 status,
                 statusLabel: this.formatProgramStatus(status),
                 statusClass: `program-import__library-status--${status}`,
-                progressLabel: `${progress.completed}/${progress.total} days`,
+                progressLabel: `${progress.completed}/${progress.total} ${this.t('global.Days', undefined, 'days')}`,
                 progressPercent: progress.total ? (progress.completed / progress.total) * 100 : 0
             };
         });
@@ -395,10 +407,12 @@ export class ProgramImportComponent implements OnInit, AfterViewInit, OnDestroy 
 
     private formatProgramStatus(status: ProgramImportStatus): string {
         if (status === 'complete') {
-            return 'Complete';
+            return this.t('global.Complete', undefined, 'Complete');
         }
 
-        return status === 'in-progress' ? 'In progress' : 'Not started';
+        return status === 'in-progress'
+            ? this.t('log-entry.InProgress', undefined, 'In progress')
+            : this.t('log-entry.NotStarted', undefined, 'Not started');
     }
 
     private getStatusFromProgress(progress: { completed: number, total: number, started: number }): ProgramImportStatus {
@@ -411,10 +425,17 @@ export class ProgramImportComponent implements OnInit, AfterViewInit, OnDestroy 
 
     private async confirmAndDeleteProgram(program: ImportedProgram): Promise<void> {
         const confirmed = await swal({
-            title: 'Delete imported program?',
-            text: `"${program.name}" and its saved workout progress will be removed.`,
+            title: this.t('program-import.DeleteTitle', undefined, 'Delete imported program?'),
+            text: this.t(
+                'program-import.DeleteText',
+                { name: program.name },
+                `"${program.name}" and its saved workout progress will be removed.`
+            ),
             icon: 'warning',
-            buttons: ['Cancel', 'Delete'],
+            buttons: [
+                this.t('global.CancelLabel', undefined, 'Cancel'),
+                this.t('global.DeleteLabel', undefined, 'Delete')
+            ],
             dangerMode: true
         });
 
@@ -432,6 +453,12 @@ export class ProgramImportComponent implements OnInit, AfterViewInit, OnDestroy 
         const blue = parseInt(normalized.substring(4, 6), 16);
 
         return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
+    }
+
+    private t(key: string, params?: object, fallback?: string): string {
+        return this._translatorService
+            ? this._translatorService.translate.instant(key, params)
+            : fallback || key;
     }
 }
 

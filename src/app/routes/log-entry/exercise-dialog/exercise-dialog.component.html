@@ -1,8 +1,8 @@
 <div class="exercise-dialog">
     <div class="exercise-dialog__header">
         <div>
-            <span class="exercise-dialog__eyebrow">{{ currentExercise.exerciseType === 'cardio' ? 'Cardio' : 'Strength' }}</span>
-            <h1 mat-dialog-title>{{ _exerciseDialogData.isEdit ? 'Edit Exercise' : ('log-entry.AddExercise' | translate) }}</h1>
+            <span class="exercise-dialog__eyebrow">{{ (currentExercise.exerciseType === 'cardio' ? 'log-entry.Cardio' : 'log-entry.Strength') | translate }}</span>
+            <h1 mat-dialog-title>{{ (_exerciseDialogData.isEdit ? 'log-entry.EditExercise' : 'log-entry.AddExercise') | translate }}</h1>
         </div>
 
     </div>
@@ -12,17 +12,17 @@
             <mat-form-field appearance="outline" subscriptSizing="dynamic" class="exercise-dialog__name">
                 <input *ngIf="currentExercise.exerciseType === 'strength'"
                     #strExerciseName type="text" matInput [matAutocomplete]="strengthAuto" formControlName="exerciseName">
-                <mat-autocomplete #strengthAuto="matAutocomplete">
-                    <mat-option *ngFor="let exerciseName of filteredExercises | async" [value]="exerciseName">
-                        {{ exerciseName }}
+                <mat-autocomplete #strengthAuto="matAutocomplete" [displayWith]="displayExerciseName">
+                    <mat-option *ngFor="let exercise of filteredExercises | async" [value]="exercise.name">
+                        {{ exercise.localizedName }}
                     </mat-option>
                 </mat-autocomplete>
 
                 <input *ngIf="currentExercise.exerciseType === 'cardio'"
                     #carExerciseName type="text" matInput [matAutocomplete]="cardioAuto" formControlName="exerciseName">
-                <mat-autocomplete #cardioAuto="matAutocomplete">
-                    <mat-option *ngFor="let exerciseName of filteredCardioExercises | async" [value]="exerciseName">
-                        {{ exerciseName }}
+                <mat-autocomplete #cardioAuto="matAutocomplete" [displayWith]="displayExerciseName">
+                    <mat-option *ngFor="let exercise of filteredCardioExercises | async" [value]="exercise.name">
+                        {{ exercise.localizedName }}
                     </mat-option>
                 </mat-autocomplete>
 
@@ -36,14 +36,14 @@
             </mat-form-field>
 
             <mat-button-toggle-group *ngIf="currentExercise.exerciseType === 'strength'"
-                class="exercise-dialog__unit-toggle" aria-label="Weight unit"
+                class="exercise-dialog__unit-toggle" [attr.aria-label]="'log-entry.WeightUnit' | translate"
                 [value]="selectedWeightChip" (change)="onChipClick($event.value)">
                 <mat-button-toggle value="lbs">lb</mat-button-toggle>
                 <mat-button-toggle value="kg">kg</mat-button-toggle>
             </mat-button-toggle-group>
 
             <mat-button-toggle-group *ngIf="currentExercise.exerciseType === 'cardio'"
-                class="exercise-dialog__unit-toggle" aria-label="Distance unit"
+                class="exercise-dialog__unit-toggle" [attr.aria-label]="'log-entry.DistanceUnit' | translate"
                 [value]="selectedDistanceChip" (change)="onChipClick($event.value)">
                 <mat-button-toggle value="km">km</mat-button-toggle>
                 <mat-button-toggle value="mi">mi</mat-button-toggle>
@@ -54,7 +54,7 @@
             class="exercise-dialog__grid exercise-dialog__grid--strength">
             <mat-form-field appearance="outline" subscriptSizing="dynamic">
                 <input #weight matInput formControlName="weight" inputmode="decimal">
-                <mat-label>Weight ({{ selectedWeightChip }})</mat-label>
+                <mat-label>{{ 'log-entry.WeightWithUnit' | translate:{ unit: selectedWeightChip } }}</mat-label>
                 <mat-error *ngIf="exerciseLogForm.get('weight').hasError('maxlength')">
                     {{ 'global.CharacterLimit' | translate }} {{ exerciseAlphaNumericCharLimit }}
                 </mat-error>
@@ -64,7 +64,7 @@
                 <input matInput formControlName="reps" type="text" inputmode="text">
                 <mat-label>{{ 'log-entry.ExerciseReps' | translate }}</mat-label>
                 <mat-error *ngIf="exerciseLogForm.get('reps').hasError('pattern')">
-                    Use a number, range, or + notation
+                    {{ 'log-entry.RangeNotation' | translate }}
                 </mat-error>
             </mat-form-field>
 
@@ -72,7 +72,7 @@
                 <input matInput formControlName="sets" type="text" inputmode="text">
                 <mat-label>{{ 'log-entry.ExerciseSets' | translate }}</mat-label>
                 <mat-error *ngIf="exerciseLogForm.get('sets').hasError('pattern')">
-                    Use a number, range, or + notation
+                    {{ 'log-entry.RangeNotation' | translate }}
                 </mat-error>
             </mat-form-field>
         </div>
@@ -81,7 +81,7 @@
             <div class="exercise-dialog__grid exercise-dialog__grid--cardio">
                 <mat-form-field appearance="outline" subscriptSizing="dynamic">
                     <input #distance matInput formControlName="distance" inputmode="decimal">
-                    <mat-label>Distance ({{ selectedDistanceChip }})</mat-label>
+                    <mat-label>{{ 'log-entry.DistanceWithUnit' | translate:{ unit: selectedDistanceChip } }}</mat-label>
                     <mat-error *ngIf="exerciseLogForm.get('distance').hasError('maxlength')">
                         {{ 'global.CharacterLimit' | translate }} {{ exerciseAlphaNumericCharLimit }}
                     </mat-error>
@@ -101,17 +101,17 @@
                 <legend>{{ 'log-entry.ExerciseDuration' | translate }}</legend>
                 <div class="exercise-dialog__duration-grid">
                     <label class="exercise-dialog__duration-part">
-                        <span>Hours</span>
+                        <span>{{ 'log-entry.Hours' | translate }}</span>
                         <input type="number" min="0" max="99" inputmode="numeric" formControlName="durationHours">
                     </label>
                     <span class="exercise-dialog__duration-separator" aria-hidden="true">:</span>
                     <label class="exercise-dialog__duration-part">
-                        <span>Minutes</span>
+                        <span>{{ 'log-entry.Minutes' | translate }}</span>
                         <input type="number" min="0" max="59" inputmode="numeric" formControlName="durationMinutes">
                     </label>
                     <span class="exercise-dialog__duration-separator" aria-hidden="true">:</span>
                     <label class="exercise-dialog__duration-part">
-                        <span>Seconds</span>
+                        <span>{{ 'log-entry.Seconds' | translate }}</span>
                         <input type="number" min="0" max="59" inputmode="numeric" formControlName="durationSeconds">
                     </label>
                 </div>
@@ -123,7 +123,7 @@
                 {{ 'global.CancelLabel' | translate }}
             </button>
             <button class="btn btn-primary" type="submit">
-                {{ _exerciseDialogData.isEdit ? 'Save Exercise' : ('log-entry.AddExercise' | translate) }}
+                {{ (_exerciseDialogData.isEdit ? 'log-entry.SaveExercise' : 'log-entry.AddExercise') | translate }}
             </button>
         </div>
     </form>

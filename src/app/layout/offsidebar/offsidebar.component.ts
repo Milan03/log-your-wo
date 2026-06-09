@@ -1,4 +1,5 @@
 import { Component, OnInit, OnDestroy, ElementRef } from '@angular/core';
+import { Subscription } from 'rxjs';
 
 import { SettingsService } from '../../core/settings/settings.service';
 import { ThemesService } from '../../core/themes/themes.service';
@@ -13,6 +14,7 @@ import { TranslatorService } from '../../core/translator/translator.service';
 export class OffsidebarComponent implements OnInit, OnDestroy {
 
     selectedLanguage: string;
+    private languageSub: Subscription;
 
     public get darkMode(): boolean {
         return this.themes.isDarkMode();
@@ -24,19 +26,22 @@ export class OffsidebarComponent implements OnInit, OnDestroy {
         public translator: TranslatorService,
         public elem: ElementRef
     ) {
-        this.selectedLanguage = this.getLangs()[0].code;
+        this.selectedLanguage = this.translator.language;
     }
 
     ngOnInit() {
         this.anyClickClose();
+        this.languageSub = this.translator.languageChangeEmitted$.subscribe(language => {
+            this.selectedLanguage = language;
+        });
     }
 
     getLangs() {
         return this.translator.getAvailableLanguages();
     }
 
-    setLang(value) {
-        this.translator.useLanguage(value);
+    setLang(value: string) {
+        void this.translator.useLanguage(value);
     }
 
     public setDarkMode(enabled: boolean): void {
@@ -56,5 +61,6 @@ export class OffsidebarComponent implements OnInit, OnDestroy {
 
     ngOnDestroy() {
         document.removeEventListener('click', this.checkCloseOffsidebar);
+        this.languageSub?.unsubscribe();
     }
 }

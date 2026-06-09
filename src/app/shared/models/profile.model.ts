@@ -1,5 +1,6 @@
 export type UnitSystem = 'imperial' | 'metric';
 export type ExperienceLevel = '' | 'beginner' | 'intermediate' | 'advanced' | 'competitive';
+export type PreferredLanguage = 'en-ca' | 'fr-ca';
 
 export interface UserProfile {
     firstName: string;
@@ -17,6 +18,7 @@ export interface UserProfile {
     preferredTraining: string[];
     emailUpdates: boolean;
     darkMode: boolean;
+    preferredLanguage: PreferredLanguage;
     updatedAt: string;
 }
 
@@ -37,6 +39,7 @@ export function createDefaultProfile(): UserProfile {
         preferredTraining: [],
         emailUpdates: false,
         darkMode: false,
+        preferredLanguage: 'en-ca',
         updatedAt: ''
     };
 }

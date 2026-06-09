@@ -1,13 +1,14 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, Optional } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 
 import { AuthService } from '../../core/auth/auth.service';
-import { createDefaultProfile, UnitSystem, UserProfile } from '../../shared/models/profile.model';
+import { createDefaultProfile, PreferredLanguage, UnitSystem, UserProfile } from '../../shared/models/profile.model';
 import { ProfileService } from '../../shared/services/profile.service';
 import { SharedService } from '../../shared/services/shared.service';
 import { ThemesService } from '../../core/themes/themes.service';
+import { TranslatorService } from '../../core/translator/translator.service';
 
 @Component({
     selector: 'app-profile',
@@ -34,6 +35,16 @@ export class ProfileComponent implements OnInit, OnDestroy {
         'Cycling',
         'Mobility'
     ];
+    private readonly trainingOptionKeys: Record<string, string> = {
+        'Strength': 'profile.InterestStrength',
+        'Olympic lifting': 'profile.InterestOlympic',
+        'Bodybuilding': 'profile.InterestBodybuilding',
+        'Powerlifting': 'profile.InterestPowerlifting',
+        'Cross training': 'profile.InterestCrossTraining',
+        'Running': 'profile.InterestRunning',
+        'Cycling': 'profile.InterestCycling',
+        'Mobility': 'profile.InterestMobility'
+    };
 
     private profileSub: Subscription;
     private sessionSub: Subscription;
@@ -47,7 +58,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
         private profileService: ProfileService,
         private sharedService: SharedService,
         private router: Router,
-        private themes: ThemesService
+        private themes: ThemesService,
+        @Optional() private translator?: TranslatorService
     ) {
         this.form = formBuilder.group({
             firstName: ['', Validators.maxLength(50)],
@@ -59,6 +71,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
             height: [undefined, [Validators.min(1), Validators.max(300)]],
             bodyWeight: [undefined, [Validators.min(1), Validators.max(1000)]],
             unitSystem: ['imperial', Validators.required],
+            preferredLanguage: ['en-ca', Validators.required],
             fitnessGoal: [''],
             experienceLevel: [''],
             workoutsPerWeek: [3, [Validators.min(1), Validators.max(14)]],
@@ -120,7 +133,9 @@ export class ProfileComponent implements OnInit, OnDestroy {
             });
             this.saved = true;
         } catch {
-            this.saveError = 'Your profile is saved on this device, but cloud sync failed. Please try again.';
+            this.saveError = this.translator
+                ? this.translator.translate.instant('profile.SyncError')
+                : 'Your profile is saved on this device, but cloud sync failed. Please try again.';
         } finally {
             this.saving = false;
         }
@@ -160,11 +175,31 @@ export class ProfileComponent implements OnInit, OnDestroy {
         this.themes.setDarkMode(enabled);
     }
 
+    public setLanguage(language: PreferredLanguage): void {
+        this.form.get('preferredLanguage').setValue(language);
+        if (this.translator) {
+            void this.translator.useLanguage(language);
+        }
+    }
+
+    public setLanguageFromEvent(event: Event): void {
+        this.setLanguage((event.target as HTMLSelectElement).value as PreferredLanguage);
+    }
+
+    public get languages(): Array<{ code: string, text: string }> {
+        return this.translator ? this.translator.getAvailableLanguages() : [];
+    }
+
+    public getTrainingOptionKey(option: string): string {
+        return this.trainingOptionKeys[option] || option;
+    }
+
     private loadProfile(profile: UserProfile): void {
         const loadedProfile = profile || createDefaultProfile();
 
-        if (this.loadedProfile && this.isThemeOnlyUpdate(this.loadedProfile, loadedProfile)) {
+        if (this.loadedProfile && this.isPreferenceOnlyUpdate(this.loadedProfile, loadedProfile)) {
             this.loadedProfile = loadedProfile;
+            this.form.get('preferredLanguage').setValue(loadedProfile.preferredLanguage, { emitEvent: false });
             return;
         }
 
@@ -176,10 +211,21 @@ export class ProfileComponent implements OnInit, OnDestroy {
             : [];
     }
 
-    private isThemeOnlyUpdate(previous: UserProfile, current: UserProfile): boolean {
-        return previous.darkMode !== current.darkMode
-            && JSON.stringify({ ...previous, darkMode: undefined, updatedAt: undefined })
-                === JSON.stringify({ ...current, darkMode: undefined, updatedAt: undefined });
+    private isPreferenceOnlyUpdate(previous: UserProfile, current: UserProfile): boolean {
+        const preferencesChanged = previous.darkMode !== current.darkMode
+            || previous.preferredLanguage !== current.preferredLanguage;
+        return preferencesChanged
+            && JSON.stringify({
+                ...previous,
+                darkMode: undefined,
+                preferredLanguage: undefined,
+                updatedAt: undefined
+            }) === JSON.stringify({
+                ...current,
+                darkMode: undefined,
+                preferredLanguage: undefined,
+                updatedAt: undefined
+            });
     }
 
     private convertMeasurement(value: number | undefined, multiplier: number): number | undefined {

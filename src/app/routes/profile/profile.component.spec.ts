@@ -2,9 +2,13 @@ import { FormBuilder } from '@angular/forms';
 
 import { createDefaultProfile } from '../../shared/models/profile.model';
 import { ProfileComponent } from './profile.component';
+import { TranslatorService } from '../../core/translator/translator.service';
 
 describe('ProfileComponent', () => {
-    function createComponent(themes = jasmine.createSpyObj('ThemesService', ['isDarkMode', 'setDarkMode'])): ProfileComponent {
+    function createComponent(
+        themes = jasmine.createSpyObj('ThemesService', ['isDarkMode', 'setDarkMode']),
+        translator?: jasmine.SpyObj<TranslatorService>
+    ): ProfileComponent {
         return new ProfileComponent(
             new FormBuilder(),
             jasmine.createSpyObj('AuthService', [], { session$: { subscribe: () => undefined } }),
@@ -13,7 +17,8 @@ describe('ProfileComponent', () => {
             }),
             jasmine.createSpyObj('SharedService', ['emitLogType']),
             jasmine.createSpyObj('Router', ['navigate']),
-            themes
+            themes,
+            translator
         );
     }
 
@@ -80,5 +85,22 @@ describe('ProfileComponent', () => {
         });
 
         expect(component.form.get('firstName').value).toBe('Unsaved');
+    });
+
+    it('switches language from the profile preference', () => {
+        const translator = jasmine.createSpyObj<TranslatorService>(
+            'TranslatorService',
+            ['useLanguage', 'getAvailableLanguages']
+        );
+        translator.getAvailableLanguages.and.returnValue([
+            { code: 'en-ca', text: 'English' },
+            { code: 'fr-ca', text: 'Français' }
+        ]);
+        const component = createComponent(undefined, translator);
+
+        component.setLanguage('fr-ca');
+
+        expect(component.form.get('preferredLanguage').value).toBe('fr-ca');
+        expect(translator.useLanguage).toHaveBeenCalledOnceWith('fr-ca');
     });
 });

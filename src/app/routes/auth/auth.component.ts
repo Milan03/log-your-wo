@@ -1,9 +1,10 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, Optional } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 
 import { AuthService } from '../../core/auth/auth.service';
+import { TranslatorService } from '../../core/translator/translator.service';
 
 @Component({
     selector: 'app-auth',
@@ -26,7 +27,8 @@ export class AuthComponent implements OnInit, OnDestroy {
         formBuilder: FormBuilder,
         private auth: AuthService,
         private route: ActivatedRoute,
-        private router: Router
+        private router: Router,
+        @Optional() private translator?: TranslatorService
     ) {
         this.form = formBuilder.group({
             email: ['', [Validators.required, Validators.email]],
@@ -82,7 +84,7 @@ export class AuthComponent implements OnInit, OnDestroy {
             if (this.mode === 'register') {
                 const result = await this.auth.register(email, password);
                 if (result.confirmationRequired) {
-                    this.successMessage = 'Check your email to confirm your account, then return here to sign in.';
+                    this.successMessage = this.t('auth.ConfirmationRequired');
                     this.form.get('password').reset();
                 } else {
                     await this.router.navigateByUrl(this.returnUrl);
@@ -126,7 +128,7 @@ export class AuthComponent implements OnInit, OnDestroy {
             if (!session) {
                 if (this.callbackPending) {
                     this.callbackPending = false;
-                    this.errorMessage = 'The sign-in link is invalid or expired. Please try again.';
+                    this.errorMessage = this.t('auth.InvalidLink');
                 }
                 return;
             }
@@ -153,18 +155,24 @@ export class AuthComponent implements OnInit, OnDestroy {
                 : '';
 
         if (/invalid login credentials/i.test(message)) {
-            return 'The email or password is incorrect.';
+            return this.t('auth.InvalidCredentials');
         }
         if (/email not confirmed/i.test(message)) {
-            return 'Confirm your email address before signing in.';
+            return this.t('auth.EmailNotConfirmed');
         }
         if (/user already registered/i.test(message)) {
-            return 'An account already exists for this email address.';
+            return this.t('auth.AlreadyRegistered');
         }
         if (/password/i.test(message)) {
-            return message;
+            return this.t('auth.RequestFailed');
         }
 
-        return 'We could not complete that request. Check your connection and try again.';
+        return this.t('auth.RequestFailed');
+    }
+
+    private t(key: string): string {
+        return this.translator
+            ? this.translator.translate.instant(key)
+            : key;
     }
 }

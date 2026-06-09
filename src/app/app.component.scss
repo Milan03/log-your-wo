@@ -1,0 +1,31 @@
+.language-loading-overlay {
+    position: fixed;
+    z-index: 10000;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    background: rgba(248, 250, 252, 0.88);
+    backdrop-filter: blur(2px);
+}
+
+.language-loading-overlay__content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 18px 22px;
+    color: #263442;
+    border: 1px solid #d8e0e7;
+    border-radius: 10px;
+    background: #fff;
+    box-shadow: 0 14px 36px rgba(31, 41, 51, 0.16);
+}
+
+:host-context(.app-dark-mode) .language-loading-overlay {
+    background: rgba(17, 24, 39, 0.88);
+}
+
+:host-context(.app-dark-mode) .language-loading-overlay__content {
+    color: #e5e7eb;
+    border-color: #374151;
+    background: #1f2937;
+}

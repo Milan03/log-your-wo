@@ -3,6 +3,7 @@ import { Router, NavigationEnd } from '@angular/router';
 
 import { SettingsService } from './core/settings/settings.service';
 import { ThemesService } from './core/themes/themes.service';
+import { TranslatorService } from './core/translator/translator.service';
 
 declare let gtag: Function;
 
@@ -28,7 +29,8 @@ export class AppComponent implements OnInit {
     constructor(
         public _settings: SettingsService,
         public _router: Router,
-        themes: ThemesService
+        themes: ThemesService,
+        public translator: TranslatorService
     ) {
         // Construction applies the saved theme before routed content initializes.
         void themes;

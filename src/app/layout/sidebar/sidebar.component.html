@@ -112,17 +112,17 @@
         <!-- END sidebar nav-->
 
         <ul class="sidebar-nav sidebar-account-nav">
-            <li class="nav-heading">ACCOUNT</li>
+            <li class="nav-heading">{{ 'global.Account' | translate }}</li>
             <li *ngIf="!signedIn">
                 <button class="nav-item" type="button" (click)="openSignIn()">
                     <em class="icon-login" aria-hidden="true"></em>
-                    <span>Sign in or register</span>
+                    <span>{{ 'global.SignInOrRegister' | translate }}</span>
                 </button>
             </li>
             <li *ngIf="signedIn">
                 <button class="nav-item" type="button" (click)="signOut()">
                     <em class="icon-logout" aria-hidden="true"></em>
-                    <span>Log out</span>
+                    <span>{{ 'global.LogOut' | translate }}</span>
                 </button>
             </li>
         </ul>

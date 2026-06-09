@@ -65,4 +65,21 @@ describe('Component: Offsidebar', () => {
             expect(themesService.setDarkMode).toHaveBeenCalledOnceWith(true);
         }
     ));
+
+    it('switches the shared language preference', inject(
+        [SettingsService, ThemesService, TranslatorService, MockElementRef],
+        (settingsService, themesService, translatorService, mockElementRef) => {
+            const component = new OffsidebarComponent(
+                settingsService,
+                themesService,
+                translatorService,
+                mockElementRef
+            );
+            spyOn(translatorService, 'useLanguage').and.resolveTo();
+
+            component.setLang('fr-ca');
+
+            expect(translatorService.useLanguage).toHaveBeenCalledOnceWith('fr-ca');
+        }
+    ));
 });

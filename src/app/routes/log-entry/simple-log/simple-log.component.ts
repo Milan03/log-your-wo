@@ -104,7 +104,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     public isHistoryExpanded = false;
     public isEditingSimpleLogTitle = false;
     public simpleLogTitleDraft = '';
-    public readonly calendarWeekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    public calendarWeekdays: string[] = [];
 
     constructor(
         private _formBuilder: UntypedFormBuilder,
@@ -629,10 +629,12 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         }
 
         const confirmed = await swal({
-            title: 'Delete workout log?',
-            text: `"${this.currentLog.title || LogTypes.SimpleLog}" will be permanently removed.`,
+            title: this.t('log-entry.DeleteTitle'),
+            text: this.t('log-entry.DeleteText', {
+                name: this.currentLog.title || this.t('log-entry.SimpleLog')
+            }),
             icon: 'warning',
-            buttons: ['Cancel', 'Delete'],
+            buttons: [this.t('global.CancelLabel'), this.t('global.DeleteLabel')],
             dangerMode: true
         });
 
@@ -648,10 +650,12 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         event.stopPropagation();
 
         const confirmed = await swal({
-            title: 'Delete workout log?',
-            text: `"${log.title || LogTypes.SimpleLog}" will be permanently removed.`,
+            title: this.t('log-entry.DeleteTitle'),
+            text: this.t('log-entry.DeleteText', {
+                name: log.title || this.t('log-entry.SimpleLog')
+            }),
             icon: 'warning',
-            buttons: ['Cancel', 'Delete'],
+            buttons: [this.t('global.CancelLabel'), this.t('global.DeleteLabel')],
             dangerMode: true
         });
 
@@ -666,7 +670,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     }
 
     public getCalendarMonthLabel(): string {
-        return this.calendarMonth.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+        return this.calendarMonth.toLocaleDateString(this.currentLanguage, { month: 'long', year: 'numeric' });
     }
 
     public getSimpleLogExerciseCount(log: SavedSimpleLog): number {
@@ -689,10 +693,12 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         const status = this.getSimpleLogStatus(log);
 
         if (status === 'completed') {
-            return 'Completed';
+            return this.t('log-entry.Completed');
         }
 
-        return status === 'in-progress' ? 'In progress' : 'Not started';
+        return status === 'in-progress'
+            ? this.t('log-entry.InProgress')
+            : this.t('log-entry.NotStarted');
     }
 
     public hasActiveSimpleLog(): boolean {
@@ -700,7 +706,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     }
 
     public getSimpleLogDateLabel(dateValue: string): string {
-        return this.dateFromInputValue(dateValue).toLocaleDateString(undefined, {
+        return this.dateFromInputValue(dateValue).toLocaleDateString(this.currentLanguage, {
             weekday: 'long',
             month: 'short',
             day: 'numeric',
@@ -933,6 +939,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
                 } else {
                     this.intensities = FormValues.ExerciseIntensitiesFR;
                 }
+                this.calendarWeekdays = this.getCalendarWeekdays();
             }
         );
     }
@@ -1359,78 +1366,52 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
      * Sweet alert prompts.
      */
     private swalEmailSending(): void {
-        if (this.currentLanguage == FormValues.ENCode) {
-            swal({
-                title: 'Sending email...',
-                text: 'Please wait',
-                icon: 'info',
-                buttons: false,
-                closeOnClickOutside: false
-            });
-        } else {
-            swal({
-                title: 'Envoi d\'un e-mail ...',
-                text: 'S\'il vous pla\u00EEt, attendez',
-                icon: 'info',
-                buttons: false,
-                closeOnClickOutside: false
-            });
-        }
+        swal({
+            title: this.t('log-entry.SendingEmail'),
+            text: this.t('log-entry.PleaseWait'),
+            icon: 'info',
+            buttons: false,
+            closeOnClickOutside: false
+        });
     }
 
     private swalEmailSent(): void {
-        if (this.currentLanguage == FormValues.ENCode) {
-            swal({
-                title: 'Email Sent',
-                text: 'Email has been sent to the provided email address.',
-                icon: 'success',
-                buttons: false,
-                timer: 1500
-            });
-        } else {
-            swal({
-                title: 'Email envoy\u00E9',
-                text: 'Un e-mail a \u00E9t\u00E9 envoy\u00E9 \u00E0 l\'adresse e-mail fournie.',
-                icon: 'success',
-                buttons: false,
-                timer: 1500
-            });
-        }
+        swal({
+            title: this.t('log-entry.EmailSent'),
+            text: this.t('log-entry.EmailSentDescription'),
+            icon: 'success',
+            buttons: false,
+            timer: 1500
+        });
     }
 
     private swalEmailError(): void {
-        if (this.currentLanguage == FormValues.ENCode) {
-            swal({
-                title: 'Problem Sending Email',
-                text: 'There was a problem trying to send to the provided email address. Please try again.',
-                icon: 'error',
-                showConfirmButton: true
-            });
-        } else {
-            swal({
-                title: 'Probl\u00E9me d\'envoi d\'e-mail',
-                text: `Un probl\u00E8me est survenu lors de l'envoi à l'adresse e-mail fournie. Veuillez r\u00E9essayer.`,
-                icon: 'error',
-                showConfirmButton: true
-            });
-        }
+        swal({
+            title: this.t('log-entry.EmailError'),
+            text: this.t('log-entry.EmailErrorDescription'),
+            icon: 'error',
+            showConfirmButton: true
+        });
     }
 
     private swalPDFError(): void {
-        if (this.currentLanguage == FormValues.ENCode) {
-            swal({
-                title: 'Problem Creating PDF',
-                text: 'There was a problem creating your workout PDF. Please try again.',
-                icon: 'error',
-                showConfirmButton: true
-            });
-        } else {
-            swal({
-                title: 'Problème de création du PDF',
-                text: 'Un problème est survenu lors de la création de votre PDF. Veuillez réessayer.',
-                icon: 'error',
-                showConfirmButton: true
-            });
-        }
+        swal({
+            title: this.t('log-entry.PdfError'),
+            text: this.t('log-entry.PdfErrorDescription'),
+            icon: 'error',
+            showConfirmButton: true
+        });
+    }
+
+    private getCalendarWeekdays(): string[] {
+        const formatter = new Intl.DateTimeFormat(this.currentLanguage, { weekday: 'short' });
+        const sunday = new Date(2026, 0, 4);
+        return Array.from({ length: 7 }, (_, index) =>
+            formatter.format(new Date(2026, 0, sunday.getDate() + index))
+        );
+    }
+
+    private t(key: string, params?: object): string {
+        return this._translatorService.translate.instant(key, params);
     }
 }

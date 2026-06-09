@@ -21,6 +21,7 @@
     <select class="form-control" [ngModel]="selectedLanguage" (ngModelChange)="setLang($event)">
         <option [value]="lang.code" *ngFor="let lang of getLangs()">{{ lang.text }}</option>
     </select>
+    <small class="language-setting-help">{{ 'appearance.LanguageDescription' | translate }}</small>
 </div>
 
 <div class="p-2">
