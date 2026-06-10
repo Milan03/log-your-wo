@@ -496,6 +496,39 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         this.saveCurrentWorkoutState();
     }
 
+    public async resetWorkout(): Promise<void> {
+        if (!this.workoutStartedAt) {
+            return;
+        }
+
+        const confirmed = await swal({
+            title: this.t('log-entry.ResetTitle'),
+            text: this.t('log-entry.ResetText'),
+            icon: 'warning',
+            buttons: [this.t('global.CancelLabel'), this.t('log-entry.ResetConfirm')],
+            dangerMode: true
+        });
+
+        if (!confirmed) {
+            return;
+        }
+
+        this.applyWorkoutReset();
+    }
+
+    private applyWorkoutReset(): void {
+        this.currentLog.exercises = this.currentLog.exercises.map(exercise => ({
+            ...exercise,
+            completed: false
+        }));
+        this.currentLog.cardioExercises = this.currentLog.cardioExercises.map(exercise => ({
+            ...exercise,
+            completed: false
+        }));
+        this.clearWorkoutTiming();
+        this.saveCurrentWorkoutState();
+    }
+
     public unselectAllExercises(): void {
         this.currentLog.exercises = this.currentLog.exercises.map(exercise => ({
             ...exercise,

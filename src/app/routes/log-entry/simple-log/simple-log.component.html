@@ -293,6 +293,9 @@
             <button *ngIf="workoutPausedAt" class="btn btn-success" type="button" (click)="resumeWorkout()">
                 {{ 'log-entry.ResumeWorkout' | translate }}
             </button>
+            <button *ngIf="workoutStartedAt && !workoutCompletedAt" class="btn btn-outline-danger" type="button" (click)="resetWorkout()">
+                {{ 'log-entry.ResetWorkout' | translate }}
+            </button>
             <button *ngIf="!isImportedWorkout && hasActiveSimpleLog()" class="btn btn-outline-danger" type="button" (click)="deleteSimpleLog()">
                 {{ 'log-entry.DeleteLog' | translate }}
             </button>

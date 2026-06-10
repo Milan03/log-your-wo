@@ -487,6 +487,33 @@ describe('SimpleLogComponent', () => {
     expect(component.workoutCompletedAt).toBeUndefined();
   });
 
+  it('resets an in-progress workout by clearing the timer and unchecking every exercise', () => {
+    component.currentLog.exercises = [createExercise('Clean', false)];
+    component.currentLog.cardioExercises = [];
+    component.markWorkoutComplete();
+    const save = spyOn<any>(component, 'saveCurrentWorkoutState');
+
+    (component as any).applyWorkoutReset();
+
+    expect(component.currentLog.exercises[0].completed).toBeFalse();
+    expect(component.workoutStartedAt).toBeUndefined();
+    expect(component.workoutCompletedAt).toBeUndefined();
+    expect(component.workoutPausedAt).toBeUndefined();
+    expect(component.totalPausedMs).toBe(0);
+    expect(component.elapsedMs).toBe(0);
+    expect(save).toHaveBeenCalled();
+  });
+
+  it('does not reset when the workout has not been started', async () => {
+    component.currentLog.exercises = [createExercise('Clean', false)];
+    component.workoutStartedAt = undefined;
+    const apply = spyOn<any>(component, 'applyWorkoutReset');
+
+    await component.resetWorkout();
+
+    expect(apply).not.toHaveBeenCalled();
+  });
+
   it('does not save an imported workout merely because it was opened', () => {
     programImportService.saveProgram(createProgram());
     const saveState = spyOn(programImportService, 'saveWorkoutState').and.callThrough();
