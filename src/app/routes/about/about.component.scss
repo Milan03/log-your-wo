@@ -1,0 +1,103 @@
+.about-page {
+    display: block;
+    margin: 0 auto;
+    max-width: 760px;
+    padding: 8px 4px 32px;
+
+    .about-hero {
+        padding: 30px 32px;
+        margin-bottom: 24px;
+        color: #fff;
+        border: 1px solid #337a9d;
+        border-radius: 12px;
+        background:
+            radial-gradient(circle at 82% 18%, rgba(91, 198, 232, 0.2), transparent 36%),
+            linear-gradient(135deg, #132f45, #1c5b7c);
+        box-shadow: 0 14px 34px rgba(7, 25, 38, 0.22);
+    }
+
+    .about-hero__eyebrow {
+        display: block;
+        margin-bottom: 8px;
+        color: #a9e8ff;
+        font-size: 0.78rem;
+        font-weight: 800;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+    }
+
+    .about-hero__title {
+        margin: 0 0 12px;
+        color: #fff;
+        font-size: clamp(1.8rem, 4.5vw, 2.6rem);
+        line-height: 1.1;
+    }
+
+    .about-hero__intro {
+        margin: 0;
+        max-width: 60ch;
+        color: #d2e7f2;
+        font-size: 1.05rem;
+        line-height: 1.55;
+    }
+
+    .about-notice {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 16px 18px;
+        margin-bottom: 24px;
+        border: 1px solid rgba(28, 91, 124, 0.25);
+        border-radius: 10px;
+        background: rgba(91, 198, 232, 0.08);
+
+        em {
+            margin-top: 3px;
+            color: var(--seo-accent, #1c5b7c);
+            font-size: 1.2rem;
+        }
+
+        p {
+            margin: 0;
+            line-height: 1.6;
+        }
+    }
+
+    .about-section {
+        margin-bottom: 24px;
+
+        h2 {
+            margin-bottom: 8px;
+            font-size: 1.35rem;
+        }
+
+        p {
+            max-width: 70ch;
+            line-height: 1.65;
+        }
+
+        a {
+            color: var(--seo-accent, #1c5b7c);
+            font-weight: 600;
+        }
+    }
+
+    .about-backlinks {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 18px;
+        padding-top: 18px;
+        border-top: 1px solid rgba(0, 0, 0, 0.08);
+        font-size: 0.9rem;
+
+        a {
+            color: var(--seo-accent, #1c5b7c);
+        }
+    }
+
+    @media (max-width: 575px) {
+        .about-hero {
+            padding: 24px 20px;
+        }
+    }
+}

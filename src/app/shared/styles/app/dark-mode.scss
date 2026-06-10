@@ -13,6 +13,9 @@ html.app-dark-mode {
     --dark-text: #f1f5f9;
     --dark-text-secondary: #c2cedb;
     --dark-text-muted: #9eacbc;
+    /* Accent for SEO/landing/feature surfaces. Light mode uses #1c5b7c (7.4:1 on
+       white); this lighter cyan keeps AA contrast on dark surfaces (~9:1). */
+    --seo-accent: #7dd3fc;
 
     body,
     .wrapper,

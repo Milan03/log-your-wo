@@ -6,15 +6,25 @@
         <div class="home-text">
             <span class="home-hero__eyebrow">{{ 'home.Eyebrow' | translate }}</span>
             <h1 class="home-text-big">{{ 'global.LogYourWorkout' | translate }}</h1>
-            <p class="lead">{{ 'global.LogYourWorkoutDescription' | translate }}</p>
+            <p class="lead">{{ 'home.HeroLead' | translate }}</p>
+            <div class="home-hero__actions">
+                <button class="btn btn-primary" type="button" (click)="navigateToSimpleLogEntry()">
+                    {{ 'home.StartLogging' | translate }}
+                </button>
+                <button class="btn btn-outline-light" type="button" (click)="navigateToImportProgram()">
+                    {{ 'home.ImportProgram' | translate }}
+                </button>
+            </div>
         </div>
     </div>
+
+    <!-- Primary actions -->
     <div class="row">
-        <div class="col-lg-4">
+        <div class="col-lg-6">
             <div class="card b">
                 <button class="btn-transparent" (click)="navigateToSimpleLogEntry()">
                     <div class="card-header">
-                        <h3>{{ 'log-entry.SimpleLog' | translate }}</h3>
+                        <h2>{{ 'log-entry.SimpleLog' | translate }}</h2>
                     </div>
                     <div class="card-body">
                         {{ 'log-entry.SimpleLogDescription' | translate }}
@@ -22,11 +32,11 @@
                 </button>
             </div>
         </div>
-        <div class="col-lg-4">
+        <div class="col-lg-6">
             <div class="card b">
                 <button class="btn-transparent" (click)="navigateToImportProgram()">
                     <div class="card-header">
-                        <h3>{{ 'home.ImportProgram' | translate }}</h3>
+                        <h2>{{ 'home.ImportProgram' | translate }}</h2>
                     </div>
                     <div class="card-body">
                         {{ 'home.ImportProgramDescription' | translate }}
@@ -34,48 +44,32 @@
                 </button>
             </div>
         </div>
-        <!-- 
-        <div class="col-lg-4">
-            <div class="card b">
-                <div class="card-header">
-                    <h3>Generators</h3>
-                </div>
-                <div class="card-body">
-                    Angular-CLI tool provides generators to create components, services, directives and pipe from the command line.
-                </div>
-            </div>
-        </div>
     </div>
-    <div class="row">
-        <div class="col-lg-4">
-            <div class="card b">
-                <div class="card-header">
-                    <h3>Modularized</h3>
-                </div>
-                <div class="card-body">
-                    This project has been carefully designed to provide modules for Core, Layout, Shared and Routed components.
-                </div>
+
+    <!-- Feature overview / internal linking for discoverability -->
+    <section class="home-features" aria-labelledby="home-features-title">
+        <h2 id="home-features-title" class="home-section-title">{{ 'home.FeaturesTitle' | translate }}</h2>
+        <p class="home-section-lead">{{ 'home.FeaturesLead' | translate }}</p>
+        <div class="row">
+            <div class="col-md-6 col-lg-4" *ngFor="let feature of features">
+                <a class="home-feature-card" [routerLink]="feature.link">
+                    <em [class]="feature.icon" aria-hidden="true"></em>
+                    <h3>{{ feature.titleKey | translate }}</h3>
+                    <p>{{ feature.descKey | translate }}</p>
+                    <span class="home-feature-card__more">{{ 'home.LearnMore' | translate }} &rarr;</span>
+                </a>
             </div>
         </div>
-        <div class="col-lg-4">
-            <div class="card b">
-                <div class="card-header">
-                    <h3>Environments</h3>
-                </div>
-                <div class="card-body">
-                    Ready to work with multiple environments, from first stage development through test and production.
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-4">
-            <div class="card b">
-                <div class="card-header">
-                    <h3>Style Guide</h3>
-                </div>
-                <div class="card-body">
-                    Better practices for Code organization and Project structure based on the official Angular style guide.
-                </div>
-            </div>
-        </div> -->
-    </div>
+    </section>
+
+    <!-- Reassurance / what the app does -->
+    <section class="home-pitch" aria-labelledby="home-pitch-title">
+        <h2 id="home-pitch-title" class="home-section-title">{{ 'home.WhyTitle' | translate }}</h2>
+        <ul class="home-pitch__list">
+            <li><strong>{{ 'home.WhyGuestTitle' | translate }}</strong> {{ 'home.WhyGuestDesc' | translate }}</li>
+            <li><strong>{{ 'home.WhyCloudTitle' | translate }}</strong> {{ 'home.WhyCloudDesc' | translate }}</li>
+            <li><strong>{{ 'home.WhyDevicesTitle' | translate }}</strong> {{ 'home.WhyDevicesDesc' | translate }}</li>
+            <li><strong>{{ 'home.WhyProgramsTitle' | translate }}</strong> {{ 'home.WhyProgramsDesc' | translate }}</li>
+        </ul>
+    </section>
 </div>

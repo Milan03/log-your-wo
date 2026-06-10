@@ -1,0 +1,41 @@
+<article *ngIf="content" class="feature-page">
+    <header class="feature-hero">
+        <span class="feature-hero__eyebrow">{{ content.eyebrow }}</span>
+        <h1 class="feature-hero__title">{{ content.h1 }}</h1>
+        <p class="feature-hero__intro">{{ content.intro }}</p>
+        <a class="btn btn-primary feature-hero__cta" [routerLink]="content.cta.routerLink">
+            {{ content.cta.label }}
+        </a>
+    </header>
+
+    <ul class="feature-highlights">
+        <li *ngFor="let bullet of content.bullets">
+            <em class="fas fa-check" aria-hidden="true"></em>
+            <span>{{ bullet }}</span>
+        </li>
+    </ul>
+
+    <section *ngFor="let section of content.sections" class="feature-section">
+        <h2>{{ section.heading }}</h2>
+        <p *ngFor="let paragraph of section.body">{{ paragraph }}</p>
+    </section>
+
+    <section class="feature-related" aria-label="Related pages">
+        <h2>Explore more</h2>
+        <div class="feature-related__grid">
+            <a *ngFor="let link of content.related" class="feature-related__card" [routerLink]="link.routerLink">
+                <strong>{{ link.label }}</strong>
+                <span>{{ link.description }}</span>
+            </a>
+        </div>
+    </section>
+
+    <nav class="feature-backlinks" aria-label="Site navigation">
+        <a routerLink="/home">Home</a>
+        <a routerLink="/features/workout-tracker">Workout tracker</a>
+        <a routerLink="/features/excel-workout-import">Excel import</a>
+        <a routerLink="/features/workout-pdf-export">PDF export</a>
+        <a routerLink="/features/strength-training-log">Strength log</a>
+        <a routerLink="/features/workout-history-progress">History &amp; progress</a>
+    </nav>
+</article>

@@ -11,17 +11,83 @@
 
     </script>
     <meta charset="utf-8">
-    <title>Log Your Workout</title>
+    <title>Log Your Workout — Free Workout Tracker, Log &amp; Program Importer</title>
     <base href="/">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <meta name="theme-color" content="#3F51B5">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Log Your Workout">
+
+    <!-- SEO: default values. Per-page titles/descriptions are set at runtime by SeoService. -->
+    <meta name="description"
+        content="Log Your Workout is a free workout tracker and gym log. Record strength and cardio sessions, import Excel workout programs, track week/day plans, export PDFs, and sync to the cloud — on mobile and desktop.">
+    <meta name="keywords"
+        content="workout tracker, workout log, gym workout tracker, strength training log, workout journal, workout program tracker, excel workout importer, workout pdf export">
+    <meta name="author" content="Log Your Workout">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://logyourworkout.app/">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Log Your Workout">
+    <meta property="og:title" content="Log Your Workout — Free Workout Tracker, Log &amp; Program Importer">
+    <meta property="og:description"
+        content="Track strength and cardio workouts, import Excel programs, export PDFs, and sync to the cloud. Works on mobile and desktop, with a free guest mode.">
+    <meta property="og:url" content="https://logyourworkout.app/">
+    <meta property="og:image" content="https://logyourworkout.app/assets/img/log-your-wo-logo-single.png">
+
+    <!-- Twitter / X -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Log Your Workout — Free Workout Tracker, Log &amp; Program Importer">
+    <meta name="twitter:description"
+        content="Track strength and cardio workouts, import Excel programs, export PDFs, and sync to the cloud. Works on mobile and desktop, with a free guest mode.">
+    <meta name="twitter:image" content="https://logyourworkout.app/assets/img/log-your-wo-logo-single.png">
+
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180x180.png">
     <link rel="manifest" href="manifest.webmanifest">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <!-- Structured data: Organization + the application itself. Page-specific JSON-LD is added by SeoService. -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@graph": [
+            {
+                "@type": "Organization",
+                "@id": "https://logyourworkout.app/#organization",
+                "name": "Log Your Workout",
+                "url": "https://logyourworkout.app/",
+                "logo": "https://logyourworkout.app/assets/img/log-your-wo-logo-single.png"
+            },
+            {
+                "@type": ["WebApplication", "SoftwareApplication"],
+                "@id": "https://logyourworkout.app/#app",
+                "name": "Log Your Workout",
+                "url": "https://logyourworkout.app/",
+                "description": "A free workout tracker and gym log to record strength and cardio workouts, import Excel workout programs, track week/day plans, export PDFs, and sync to the cloud on mobile and desktop.",
+                "applicationCategory": "HealthApplication",
+                "operatingSystem": "Any (web, iOS, Android, Windows, macOS)",
+                "browserRequirements": "Requires JavaScript. Works in any modern browser.",
+                "featureList": [
+                    "Workout logging for strength and cardio",
+                    "Excel workout program import",
+                    "Week and day program tracking",
+                    "Workout PDF export and email",
+                    "Cloud sync across devices",
+                    "Free guest mode with local storage"
+                ],
+                "offers": {
+                    "@type": "Offer",
+                    "price": "0",
+                    "priceCurrency": "USD"
+                },
+                "publisher": { "@id": "https://logyourworkout.app/#organization" }
+            }
+        ]
+    }
+    </script>
 </head>
 
 <body>

@@ -1,0 +1,11 @@
+# robots.txt for https://logyourworkout.app
+# Allow all crawlers to index public content.
+
+User-agent: *
+Allow: /
+
+# Keep auth and callback flows out of the index (no useful content to rank).
+Disallow: /auth
+Disallow: /auth/callback
+
+Sitemap: https://logyourworkout.app/sitemap.xml
