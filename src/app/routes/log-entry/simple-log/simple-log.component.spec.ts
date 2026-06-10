@@ -172,7 +172,11 @@ describe('SimpleLogComponent', () => {
     expect(component.calendarDays.some(day => day.dateValue === component.workoutDate && day.hasWorkout)).toBeTrue();
   });
 
-  it('selects an empty calendar day without collapsing history', () => {
+  it('shows the calendar by default when landing on the page', () => {
+    expect(component.isHistoryExpanded).toBeTrue();
+  });
+
+  it('keeps the calendar open when selecting an empty calendar day', () => {
     component.isHistoryExpanded = true;
     const day = component.calendarDays.find(calendarDay => !calendarDay.hasWorkout && calendarDay.inCurrentMonth);
 
@@ -182,10 +186,52 @@ describe('SimpleLogComponent', () => {
     expect(component.isHistoryExpanded).toBeTrue();
   });
 
-  it('collapses history for an explicit new log', () => {
+  it('keeps the calendar open and does not open a log when selecting a populated day', () => {
+    const log = component.currentLog;
+    log.exercises = [createExercise('Press', false)];
+    const saved = simpleLogService.saveLog(log, component.workoutDate);
+    component.isHistoryExpanded = true;
+    routerSpy.navigate.calls.reset();
+    const day = component.calendarDays.find(calendarDay => calendarDay.dateValue === saved.workoutDate);
+
+    component.selectCalendarDay(day);
+
+    expect(component.workoutDate).toBe(saved.workoutDate);
+    expect(component.isHistoryExpanded).toBeTrue();
+    expect(routerSpy.navigate).not.toHaveBeenCalled();
+  });
+
+  it('keeps the calendar open when creating a new log', () => {
     component.isHistoryExpanded = true;
 
     component.createNewSimpleLog();
+
+    expect(component.isHistoryExpanded).toBeTrue();
+  });
+
+  it('collapses history when starting a new log from the button', () => {
+    component.isHistoryExpanded = true;
+
+    component.startNewLog();
+
+    expect(component.isHistoryExpanded).toBeFalse();
+  });
+
+  it('collapses history when a specific workout is opened', () => {
+    const log = component.currentLog;
+    log.exercises = [createExercise('Press', false)];
+    const saved = simpleLogService.saveLog(log, component.workoutDate);
+    component.isHistoryExpanded = true;
+
+    component.selectSimpleLog(saved);
+
+    expect(component.isHistoryExpanded).toBeFalse();
+  });
+
+  it('collapses history when the workout is started', () => {
+    component.isHistoryExpanded = true;
+
+    component.startWorkout();
 
     expect(component.isHistoryExpanded).toBeFalse();
   });

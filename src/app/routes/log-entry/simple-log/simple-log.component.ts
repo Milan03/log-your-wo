@@ -101,7 +101,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     public workoutDateTime = '';
     public calendarMonth = new Date();
     public calendarDays: CalendarDay[] = [];
-    public isHistoryExpanded = false;
+    public isHistoryExpanded = true;
     public isEditingSimpleLogTitle = false;
     public simpleLogTitleDraft = '';
     public calendarWeekdays: string[] = [];
@@ -572,8 +572,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     }
 
     public createNewSimpleLog(
-        dateValue: string = this.toDateInputValue(new Date()),
-        collapseHistory: boolean = true
+        dateValue: string = this.toDateInputValue(new Date())
     ): void {
         const now = new Date();
         this.currentLog = new SimpleLog();
@@ -586,9 +585,6 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         this.workoutDateTime = this.toDateTimeInputValue(this.currentLog.startDatim);
         this.clearWorkoutTiming();
         this.isEditingSimpleLogTitle = false;
-        if (collapseHistory) {
-            this.isHistoryExpanded = false;
-        }
         this.calendarMonth = new Date(this.currentLog.startDatim.getFullYear(), this.currentLog.startDatim.getMonth(), 1);
         this.refreshCalendar();
         this._sharedService.emitLogType(this.currentLog.title);
@@ -597,22 +593,28 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     }
 
     public selectSimpleLog(log: SavedSimpleLog): void {
+        this.isHistoryExpanded = false;
         this._router.navigate(['/log-entry/simple-log'], {
             queryParams: { logId: log.id }
         });
+    }
+
+    public startNewLog(): void {
+        this.isHistoryExpanded = false;
+        this.createNewSimpleLog();
     }
 
     public selectCalendarDay(day: CalendarDay): void {
         this.workoutDate = day.dateValue;
         if (!day.inCurrentMonth) {
             this.calendarMonth = new Date(day.date.getFullYear(), day.date.getMonth(), 1);
+            this.refreshCalendar();
         }
 
-        const log = this.savedLogs.find(savedLog => savedLog.workoutDate === day.dateValue);
-        if (log) {
-            this.selectSimpleLog(log);
-        } else {
-            this.createNewSimpleLog(day.dateValue, false);
+        // Selecting a day only surfaces that day's workouts; the calendar stays
+        // open until the user opens a specific workout or starts a new log.
+        if (!this.savedLogs.some(savedLog => savedLog.workoutDate === day.dateValue)) {
+            this.createNewSimpleLog(day.dateValue);
         }
     }
 
@@ -1311,6 +1313,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         }
 
         this.workoutStartedAt = new Date().toISOString();
+        this.isHistoryExpanded = false;
         this.syncElapsedTimer();
     }
 
