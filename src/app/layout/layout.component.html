@@ -37,7 +37,17 @@
         <div class="content-wrapper">
             <router-outlet></router-outlet>
         </div>
+        <!-- Site footer: internal links aid navigation and search-engine discovery -->
+        <footer class="site-footer" role="contentinfo">
+            <nav class="site-footer__links" [attr.aria-label]="'global.MainNavigation' | translate">
+                <a routerLink="/home">{{ 'global.Home' | translate }}</a>
+                <a routerLink="/features/workout-tracker">{{ 'home.FeatureTrackerTitle' | translate }}</a>
+                <a routerLink="/features/excel-workout-import">{{ 'home.FeatureImportTitle' | translate }}</a>
+                <a routerLink="/features/workout-pdf-export">{{ 'home.FeaturePdfTitle' | translate }}</a>
+                <a routerLink="/features/strength-training-log">{{ 'home.FeatureStrengthTitle' | translate }}</a>
+                <a routerLink="/features/workout-history-progress">{{ 'home.FeatureHistoryTitle' | translate }}</a>
+                <a routerLink="/about">{{ 'about.Title' | translate }}</a>
+            </nav>
+        </footer>
     </section>
-    <!-- Page footer-->
-    <!-- <footer class="footer-container" app-footer></footer> -->
 </div>

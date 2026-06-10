@@ -1,0 +1,35 @@
+<article class="about-page">
+    <header class="about-hero">
+        <span class="about-hero__eyebrow">{{ 'about.Eyebrow' | translate }}</span>
+        <h1 class="about-hero__title">{{ 'about.Heading' | translate }}</h1>
+        <p class="about-hero__intro">{{ 'about.Intro' | translate }}</p>
+    </header>
+
+    <section class="about-notice" role="note">
+        <em class="fas fa-screwdriver-wrench" aria-hidden="true"></em>
+        <p>{{ 'about.InDevelopment' | translate }}</p>
+    </section>
+
+    <section class="about-section">
+        <h2>{{ 'about.BugsHeading' | translate }}</h2>
+        <p>
+            {{ 'about.BugsBody' | translate }}
+            <a [href]="'mailto:' + contactEmail">{{ contactEmail }}</a>.
+        </p>
+    </section>
+
+    <section class="about-section">
+        <h2>{{ 'about.ExcelHeading' | translate }}</h2>
+        <p>
+            {{ 'about.ExcelBody' | translate }}
+            <a [href]="'mailto:' + contactEmail + '?subject=Excel%20import%20issue'">{{ contactEmail }}</a>.
+            {{ 'about.ExcelNote' | translate }}
+        </p>
+    </section>
+
+    <nav class="about-backlinks" [attr.aria-label]="'global.MainNavigation' | translate">
+        <a routerLink="/home">{{ 'global.Home' | translate }}</a>
+        <a routerLink="/features/workout-tracker">{{ 'home.FeatureTrackerTitle' | translate }}</a>
+        <a routerLink="/features/excel-workout-import">{{ 'home.FeatureImportTitle' | translate }}</a>
+    </nav>
+</article>

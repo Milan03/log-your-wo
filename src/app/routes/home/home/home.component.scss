@@ -26,7 +26,7 @@
         border-radius: 12px;
         background:
             radial-gradient(circle at 82% 18%, rgba(91, 198, 232, 0.2), transparent 36%),
-            linear-gradient(135deg, #132f45, #1c5b7c);
+            linear-gradient(135deg, #132f45, var(--seo-accent, #1c5b7c));
         box-shadow: 0 14px 34px rgba(7, 25, 38, 0.22);
     }
 
@@ -68,9 +68,97 @@
     }
 
     .lead {
-        margin: 0;
+        margin: 0 0 18px;
         color: #d2e7f2;
         font-size: 1rem;
+        max-width: 56ch;
+    }
+
+    .home-hero__actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .home-section-title {
+        margin: 36px 0 6px;
+        font-size: 1.6rem;
+    }
+
+    .home-section-lead {
+        margin: 0 0 18px;
+        max-width: 68ch;
+        color: inherit;
+        opacity: 0.85;
+    }
+
+    .home-features {
+        margin-top: 8px;
+
+        .col-md-6 {
+            margin-bottom: 20px;
+        }
+    }
+
+    .home-feature-card {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        padding: 22px 22px 18px;
+        border: 1px solid rgba(28, 91, 124, 0.22);
+        border-radius: 10px;
+        color: inherit;
+        text-decoration: none;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+
+        em {
+            margin-bottom: 12px;
+            color: var(--seo-accent, #1c5b7c);
+            font-size: 1.6rem;
+        }
+
+        h3 {
+            margin: 0 0 8px;
+            font-size: 1.15rem;
+        }
+
+        p {
+            margin: 0 0 14px;
+            line-height: 1.55;
+        }
+
+        &__more {
+            margin-top: auto;
+            color: var(--seo-accent, #1c5b7c);
+            font-weight: 600;
+        }
+
+        &:hover,
+        &:focus {
+            border-color: var(--seo-accent, #1c5b7c);
+            box-shadow: 0 10px 24px rgba(7, 25, 38, 0.12);
+            transform: translateY(-2px);
+        }
+    }
+
+    .home-pitch {
+        margin: 14px 0 8px;
+    }
+
+    .home-pitch__list {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+
+        li {
+            padding: 12px 0;
+            border-top: 1px solid rgba(0, 0, 0, 0.08);
+            line-height: 1.6;
+        }
+
+        strong {
+            color: var(--seo-accent, #1c5b7c);
+        }
     }
 
     @media (max-width: 767px) {

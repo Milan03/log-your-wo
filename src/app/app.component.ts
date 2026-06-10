@@ -1,11 +1,24 @@
 import { Component, HostBinding, OnInit } from '@angular/core';
-import { Router, NavigationEnd } from '@angular/router';
+import { ActivatedRoute, Router, NavigationEnd } from '@angular/router';
+import { filter } from 'rxjs/operators';
 
 import { SettingsService } from './core/settings/settings.service';
 import { ThemesService } from './core/themes/themes.service';
 import { TranslatorService } from './core/translator/translator.service';
+import { SeoData, SeoService } from './core/seo/seo.service';
 
 declare let gtag: Function;
+
+/** Applied to any route that does not declare its own `data.seo`. */
+const DEFAULT_SEO: SeoData = {
+    title: 'Free Workout Tracker, Log & Program Importer',
+    rawTitle: false,
+    description: 'Log Your Workout is a free workout tracker and gym log. Record strength and cardio '
+        + 'sessions, import Excel workout programs, track week/day plans, export PDFs, and sync to the '
+        + 'cloud — on mobile and desktop.',
+    keywords: 'workout tracker, workout log, gym workout tracker, strength training log, workout journal',
+    path: '/'
+};
 
 @Component({
     selector: 'app-root',
@@ -29,20 +42,34 @@ export class AppComponent implements OnInit {
     constructor(
         public _settings: SettingsService,
         public _router: Router,
+        private _activatedRoute: ActivatedRoute,
+        private _seo: SeoService,
         themes: ThemesService,
         public translator: TranslatorService
     ) {
         // Construction applies the saved theme before routed content initializes.
         void themes;
-        this._router.events.subscribe(event => {
-            if (event instanceof NavigationEnd) {
-                gtag('config', 'UA-100428382-2',
-                    {
-                        'page_path': event.urlAfterRedirects
-                    }
-                );
-            }
+        this._router.events.pipe(
+            filter((event): event is NavigationEnd => event instanceof NavigationEnd)
+        ).subscribe(event => {
+            gtag('config', 'UA-100428382-2', { 'page_path': event.urlAfterRedirects });
+            this.applySeo(event.urlAfterRedirects);
         });
+    }
+
+    /** Walk to the deepest activated route and apply its `data.seo`, or a default. */
+    private applySeo(url: string): void {
+        let route = this._activatedRoute;
+        while (route.firstChild) {
+            route = route.firstChild;
+        }
+        const seo = route.snapshot.data['seo'] as SeoData | undefined;
+        if (seo) {
+            // Routes may omit `path`; default it to the resolved URL.
+            this._seo.update({ ...seo, path: seo.path || url.split('?')[0].split('#')[0] });
+        } else {
+            this._seo.update(DEFAULT_SEO);
+        }
     }
 
     ngOnInit() {
