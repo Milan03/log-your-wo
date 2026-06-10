@@ -94,6 +94,7 @@
     },
     "sidebar": {
         "WELCOME": "Bienvenu",
+        "ImportProgram": "Importer Excel",
         "heading": {
             "HEADER": "Titre du menu"
         },
