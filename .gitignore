@@ -55,3 +55,6 @@ ng-serve.out.log
 # System Files
 .DS_Store
 Thumbs.db
+
+# Local docs (kept out of version control)
+docs/SEO.md
