@@ -17,7 +17,7 @@ const ImportProgram = {
     text: 'Import Program',
     link: '/log-entry/import-program',
     icon: 'icon-cloud-upload',
-    translate: 'home.ImportProgram'
+    translate: 'sidebar.ImportProgram'
 };
 
 const Profile = {

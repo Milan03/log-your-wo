@@ -94,6 +94,7 @@
     },
     "sidebar": {
         "WELCOME": "Welcome",
+        "ImportProgram": "Import Program",
         "heading": {
             "HEADER": "Menu Heading"
         },
