@@ -6,7 +6,8 @@ import {
     ImportedProgram,
     ImportedProgramDay,
     ImportedProgramExercise,
-    ImportedProgramWeek
+    ImportedProgramWeek,
+    ProgramImportPreview
 } from '../../../shared/models/imported-program.model';
 import { ProgramImportService } from '../../../shared/services/program-import.service';
 import { SharedService } from '../../../shared/services/shared.service';
@@ -32,6 +33,8 @@ export class ProgramImportComponent implements OnInit, AfterViewInit, OnDestroy 
     public selectedWeek: ImportedProgramWeek;
     public isImporting = false;
     public importError = '';
+    public importPreview: ProgramImportPreview;
+    public selectedReviewWeekIndex = 0;
     public completionColor = '#2fb379';
     public completionStyles: { [key: string]: string } = {};
     public completionColorOptions = [
@@ -149,16 +152,99 @@ export class ProgramImportComponent implements OnInit, AfterViewInit, OnDestroy 
         this.importError = '';
 
         try {
-            await this._programImportService.importWorkbook(file);
+            const preview = await this._programImportService.previewWorkbook(file);
+            if (!preview.program) {
+                this.importError = preview.warnings[0]
+                    || this.t('program-import.ImportError', undefined, 'That workbook could not be imported. Try another .xlsx file.');
+            } else {
+                this.importPreview = preview;
+                this.selectedReviewWeekIndex = 0;
+            }
         } catch (error) {
             const message = error instanceof Error ? error.message : '';
-            this.importError = /10 MB|No recognizable workout weeks/.test(message)
+            this.importError = /10 MB/.test(message)
                 ? message
                 : this.t('program-import.ImportError', undefined, 'That workbook could not be imported. Try another .xlsx file.');
         } finally {
             this.isImporting = false;
             input.value = '';
         }
+    }
+
+    public confirmImport(): void {
+        if (!this.importPreview?.program) {
+            return;
+        }
+
+        const program = {
+            ...this.importPreview.program,
+            weeks: this.importPreview.program.weeks.map(week => ({
+                ...week,
+                days: week.days.map(day => ({
+                    ...day,
+                    exercises: day.exercises
+                        .filter(exercise => exercise.exerciseName.trim())
+                        .map(exercise => ({
+                            ...exercise,
+                            exerciseName: exercise.exerciseName.trim(),
+                            prescription: this.buildReviewedPrescription(exercise)
+                        }))
+                })).filter(day => day.exercises.length > 0)
+            })).filter(week => week.days.length > 0)
+        };
+
+        if (!program.weeks.length) {
+            this.importError = this.t(
+                'program-import.NoReviewRows',
+                undefined,
+                'Keep at least one exercise before saving the imported program.'
+            );
+            return;
+        }
+
+        this._programImportService.saveProgram(program);
+        this.importPreview = undefined;
+        this.selectedReviewWeekIndex = 0;
+        this.importError = '';
+    }
+
+    public cancelImportReview(): void {
+        this.importPreview = undefined;
+        this.selectedReviewWeekIndex = 0;
+        this.importError = '';
+    }
+
+    public deleteReviewExercise(weekIndex: number, dayIndex: number, exerciseIndex: number): void {
+        this.importPreview.program.weeks[weekIndex].days[dayIndex].exercises.splice(exerciseIndex, 1);
+    }
+
+    public trackExerciseById(index: number, exercise: ImportedProgramExercise): string {
+        return exercise.id;
+    }
+
+    public selectReviewWeek(index: number): void {
+        const lastIndex = (this.importPreview?.program?.weeks.length || 1) - 1;
+        this.selectedReviewWeekIndex = Math.max(0, Math.min(index, lastIndex));
+    }
+
+    public previousReviewWeek(): void {
+        this.selectReviewWeek(this.selectedReviewWeekIndex - 1);
+    }
+
+    public nextReviewWeek(): void {
+        this.selectReviewWeek(this.selectedReviewWeekIndex + 1);
+    }
+
+    public get selectedReviewWeek(): ImportedProgramWeek {
+        return this.importPreview?.program?.weeks[this.selectedReviewWeekIndex];
+    }
+
+    public get reviewExerciseCount(): number {
+        if (!this.importPreview?.program) {
+            return 0;
+        }
+        return this.importPreview.program.weeks.reduce((total, week) =>
+            total + week.days.reduce((dayTotal, day) => dayTotal + day.exercises.length, 0), 0);
     }
 
     public selectWeek(week: ImportedProgramWeek): void {
@@ -453,6 +539,30 @@ export class ProgramImportComponent implements OnInit, AfterViewInit, OnDestroy 
         const blue = parseInt(normalized.substring(4, 6), 16);
 
         return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
+    }
+
+    private buildReviewedPrescription(exercise: ImportedProgramExercise): string {
+        const parts: string[] = [];
+        const percentage = /%/.test(exercise.weight || '')
+            ? exercise.weight
+            : exercise.percentage1Rm;
+        if (percentage && exercise.reps && exercise.sets) {
+            parts.push(`${exercise.sets} x ${exercise.reps} @ ${percentage}`);
+        } else if (exercise.weight && exercise.reps && exercise.sets) {
+            parts.push(`${exercise.weight} x ${exercise.reps} x ${exercise.sets}`);
+        } else if (exercise.sets && exercise.reps) {
+            parts.push(`${exercise.sets} x ${exercise.reps}`);
+        } else {
+            if (exercise.weight) parts.push(`Weight: ${exercise.weight}`);
+            if (exercise.sets) parts.push(`Sets: ${exercise.sets}`);
+            if (exercise.reps) parts.push(`Reps: ${exercise.reps}`);
+        }
+        if (exercise.percentage1Rm && !percentage) parts.push(exercise.percentage1Rm);
+        if (exercise.rest) parts.push(`Rest: ${exercise.rest}`);
+        if (exercise.tempo) parts.push(`Tempo: ${exercise.tempo}`);
+        if (exercise.rpe) parts.push(`RPE: ${exercise.rpe}`);
+        if (exercise.notes) parts.push(`Notes: ${exercise.notes}`);
+        return parts.join(' | ') || exercise.prescription || '';
     }
 
     private t(key: string, params?: object, fallback?: string): string {

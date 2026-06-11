@@ -69,13 +69,135 @@
         <mat-progress-bar *ngIf="isImporting" mode="indeterminate"></mat-progress-bar>
         <div *ngIf="importError" class="alert alert-danger">{{ importError }}</div>
 
-        <div *ngIf="!program" class="program-import__empty">
+        <section *ngIf="importPreview?.program" class="program-import__review">
+            <div class="program-import__review-header">
+                <div>
+                    <span class="program-import__eyebrow">{{ 'program-import.ReviewEyebrow' | translate }}</span>
+                    <h2>{{ 'program-import.ReviewTitle' | translate }}</h2>
+                    <p>
+                        {{ importPreview.program.weeks.length }} {{ 'global.Weeks' | translate }},
+                        {{ reviewExerciseCount }} {{ 'program-import.Exercises' | translate }}
+                    </p>
+                </div>
+                <span class="program-import__confidence">
+                    {{ 'program-import.Confidence' | translate }}:
+                    {{ importPreview.confidence | percent:'1.0-0' }}
+                </span>
+            </div>
+
+            <div *ngIf="importPreview.lowConfidence" class="alert alert-warning">
+                {{ importPreview.warnings[0] }}
+            </div>
+
+            <div class="program-import__review-actions program-import__review-actions--top">
+                <button class="btn btn-outline-secondary" type="button" (click)="cancelImportReview()">
+                    {{ 'global.CancelLabel' | translate }}
+                </button>
+                <button class="btn btn-primary" type="button" (click)="confirmImport()">
+                    {{ 'program-import.ConfirmImport' | translate }}
+                </button>
+            </div>
+
+            <nav class="program-import__review-pagination" [attr.aria-label]="'program-import.ReviewWeeks' | translate">
+                <button class="btn btn-outline-secondary program-import__review-nav-button" type="button"
+                    [disabled]="selectedReviewWeekIndex === 0"
+                    (click)="previousReviewWeek()">
+                    <em class="fa fa-chevron-left" aria-hidden="true"></em>
+                    {{ 'program-import.PreviousWeek' | translate }}
+                </button>
+                <div class="program-import__review-week-tabs">
+                    <button *ngFor="let week of importPreview.program.weeks; let weekIndex = index"
+                        type="button"
+                        class="program-import__review-week-tab"
+                        [class.program-import__review-week-tab--active]="weekIndex === selectedReviewWeekIndex"
+                        [attr.aria-current]="weekIndex === selectedReviewWeekIndex ? 'page' : null"
+                        (click)="selectReviewWeek(weekIndex)">
+                        {{ week.name }}
+                    </button>
+                </div>
+                <button class="btn btn-outline-secondary program-import__review-nav-button" type="button"
+                    [disabled]="selectedReviewWeekIndex === importPreview.program.weeks.length - 1"
+                    (click)="nextReviewWeek()">
+                    {{ 'program-import.NextWeek' | translate }}
+                    <em class="fa fa-chevron-right" aria-hidden="true"></em>
+                </button>
+            </nav>
+
+            <div class="program-import__review-weeks">
+                <section *ngIf="selectedReviewWeek as week" class="program-import__review-week">
+                    <div class="program-import__review-week-heading">
+                        <h3>{{ week.name }}</h3>
+                        <span>
+                            {{ selectedReviewWeekIndex + 1 }} / {{ importPreview.program.weeks.length }}
+                        </span>
+                    </div>
+                    <section *ngFor="let day of week.days; let dayIndex = index"
+                        class="program-import__review-day">
+                        <h4>{{ day.name }}</h4>
+                        <div class="program-import__review-table">
+                            <div *ngFor="let exercise of day.exercises; let exerciseIndex = index; trackBy: trackExerciseById"
+                                class="program-import__review-row">
+                                <label>
+                                    <span>{{ 'program-import.ExerciseName' | translate }}</span>
+                                    <input class="form-control" [(ngModel)]="exercise.exerciseName">
+                                </label>
+                                <label>
+                                    <span>{{ 'program-import.Sets' | translate }}</span>
+                                    <input class="form-control" [(ngModel)]="exercise.sets">
+                                </label>
+                                <label>
+                                    <span>{{ 'program-import.Reps' | translate }}</span>
+                                    <input class="form-control" [(ngModel)]="exercise.reps">
+                                </label>
+                                <label>
+                                    <span>{{ 'program-import.Weight' | translate }}</span>
+                                    <input class="form-control" [(ngModel)]="exercise.weight">
+                                </label>
+                                <label>
+                                    <span>{{ 'program-import.Rest' | translate }}</span>
+                                    <input class="form-control" [(ngModel)]="exercise.rest">
+                                </label>
+                                <label>
+                                    <span>{{ 'program-import.Tempo' | translate }}</span>
+                                    <input class="form-control" [(ngModel)]="exercise.tempo">
+                                </label>
+                                <label>
+                                    <span>RPE</span>
+                                    <input class="form-control" [(ngModel)]="exercise.rpe">
+                                </label>
+                                <label class="program-import__review-notes">
+                                    <span>{{ 'program-import.Notes' | translate }}</span>
+                                    <input class="form-control" [(ngModel)]="exercise.notes">
+                                </label>
+                                <button class="btn btn-outline-danger program-import__review-delete"
+                                    type="button"
+                                    [attr.aria-label]="'program-import.DeleteExercise' | translate:{ name: exercise.exerciseName }"
+                                    (click)="deleteReviewExercise(selectedReviewWeekIndex, dayIndex, exerciseIndex)">
+                                    <em class="fa fa-trash" aria-hidden="true"></em>
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+                </section>
+            </div>
+
+            <div class="program-import__review-actions">
+                <button class="btn btn-outline-secondary" type="button" (click)="cancelImportReview()">
+                    {{ 'global.CancelLabel' | translate }}
+                </button>
+                <button class="btn btn-primary" type="button" (click)="confirmImport()">
+                    {{ 'program-import.ConfirmImport' | translate }}
+                </button>
+            </div>
+        </section>
+
+        <div *ngIf="!program && !importPreview" class="program-import__empty">
             <img alt="Log Your Workout" src="assets/img/log-your-wo-logo-single-black.svg">
             <h2>{{ 'program-import.EmptyTitle' | translate }}</h2>
             <p>{{ 'program-import.EmptyDescription' | translate }}</p>
         </div>
 
-        <div *ngIf="program" class="program-import__content">
+        <div *ngIf="program && !importPreview" class="program-import__content">
             <div class="program-import__meta">
                 <div>
                     <span class="program-import__eyebrow">{{ 'program-import.ImportedProgram' | translate }}</span>

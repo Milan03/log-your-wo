@@ -240,6 +240,8 @@ html.app-dark-mode {
     .log-mobile-card--group,
     .program-import__library-item,
     .program-import__empty,
+    .program-import__review-week,
+    .program-import__review-week-tab,
     .program-import__week:not(.program-import__week--complete),
     .program-import__day:not(.program-import__day--complete) {
         color: var(--dark-text-secondary);
@@ -296,6 +298,7 @@ html.app-dark-mode {
     .program-import__library-row,
     .program-import__header p,
     .program-import__count,
+    .program-import__review-row label,
     .program-import__elapsed {
         color: var(--dark-text-muted);
     }
@@ -465,7 +468,46 @@ html.app-dark-mode {
 
     .log-mobile-group__row,
     .program-import__meta,
+    .program-import__review-day,
     .simple-log-intro {
+        border-color: var(--dark-border);
+    }
+
+    .program-import__confidence {
+        color: #8edcff;
+        background-color: #1d3042;
+    }
+
+    .program-import__review-week-tab--active {
+        color: #8edcff;
+        border-color: #55c7ee;
+        background-color: #1d3042;
+    }
+
+    .program-import__review-nav-button,
+    .program-import__review-nav-button:hover,
+    .program-import__review-nav-button:focus,
+    .program-import__review-nav-button:active {
+        color: #f8fafc !important;
+        border-color: #8fa2b8 !important;
+        background-color: #26384b !important;
+    }
+
+    .program-import__review-nav-button:hover,
+    .program-import__review-nav-button:focus,
+    .program-import__review-nav-button:active {
+        color: #07131f !important;
+        border-color: #8edcff !important;
+        background-color: #8edcff !important;
+    }
+
+    .program-import__review-nav-button:disabled {
+        color: #a8b6c5 !important;
+        border-color: #536579 !important;
+        background-color: #1b2b3a !important;
+    }
+
+    .program-import__review-actions--top {
         border-color: var(--dark-border);
     }
 

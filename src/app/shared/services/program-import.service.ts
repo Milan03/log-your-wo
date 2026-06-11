@@ -1,18 +1,18 @@
 import { Injectable, Optional } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import * as moment from 'moment';
-import * as XLSX from 'xlsx';
 
 import { Exercise } from '../models/exercise.model';
 import {
     ImportedProgram,
     ImportedProgramDay,
-    ImportedProgramExercise,
     ImportedProgramWeek,
-    ImportedWorkoutState
+    ImportedWorkoutState,
+    ProgramImportPreview
 } from '../models/imported-program.model';
 import { SupabaseDataService } from './supabase-data.service';
 import { CloudSyncStatusService } from './cloud-sync-status.service';
+import { ProgramWorkbookParserService } from './program-workbook-parser.service';
 
 @Injectable({
     providedIn: 'root'
@@ -37,7 +37,8 @@ export class ProgramImportService {
 
     constructor(
         private cloudData?: SupabaseDataService,
-        @Optional() private syncStatus?: CloudSyncStatusService
+        @Optional() private syncStatus?: CloudSyncStatusService,
+        @Optional() private workbookParser?: ProgramWorkbookParserService
     ) { }
 
     public setUserContext(userId: string): void {
@@ -135,38 +136,23 @@ export class ProgramImportService {
     }
 
     public async importWorkbook(file: File): Promise<ImportedProgram> {
+        const preview = await this.previewWorkbook(file);
+        if (!preview.program || !preview.program.weeks.length) {
+            throw new Error('No recognizable workout weeks were found in this workbook.');
+        }
+
+        this.saveProgram(preview.program);
+        return preview.program;
+    }
+
+    public async previewWorkbook(file: File): Promise<ProgramImportPreview> {
         if (file.size > this.maximumWorkbookBytes) {
             throw new Error('Workbook files must be 10 MB or smaller.');
         }
 
         const data = await file.arrayBuffer();
-        const workbook = XLSX.read(data, { type: 'array', cellDates: false });
-        const weeks: ImportedProgramWeek[] = [];
-
-        workbook.SheetNames.forEach(sheetName => {
-            const worksheet = workbook.Sheets[sheetName];
-            const rows = XLSX.utils.sheet_to_json<unknown[]>(worksheet, {
-                header: 1,
-                raw: false,
-                defval: ''
-            });
-            weeks.push(...this.parseSheet(rows));
-        });
-
-        const uniqueWeeks = this.dedupeWeeks(weeks);
-        if (!uniqueWeeks.length) {
-            throw new Error('No recognizable workout weeks were found in this workbook.');
-        }
-
-        const program: ImportedProgram = {
-            id: this.createId(),
-            name: this.cleanFileName(file.name),
-            importedAt: new Date().toISOString(),
-            weeks: uniqueWeeks.sort((a, b) => a.weekNumber - b.weekNumber)
-        };
-
-        this.saveProgram(program);
-        return program;
+        const parser = this.workbookParser || new ProgramWorkbookParserService();
+        return parser.parse(data, file.name);
     }
 
     public getProgram(): ImportedProgram {
@@ -830,98 +816,6 @@ export class ProgramImportService {
         return operation;
     }
 
-    private parseSheet(rows: unknown[][]): ImportedProgramWeek[] {
-        const weekStarts = rows
-            .map((row, index) => ({ row, index }))
-            .filter(entry => entry.row.some(cell => /^week\s+\d+/i.test(this.toText(cell))));
-
-        return weekStarts.map((entry, weekIndex) => {
-            const weekCell = entry.row.find(cell => /^week\s+\d+/i.test(this.toText(cell)));
-            const weekNumberMatch = this.toText(weekCell).match(/\d+/);
-            const weekNumber = weekNumberMatch ? Number(weekNumberMatch[0]) : weekIndex + 1;
-            const endIndex = weekStarts[weekIndex + 1] ? weekStarts[weekIndex + 1].index : rows.length;
-            const days = this.parseWeekDays(rows, entry.index, endIndex, weekNumber);
-
-            return {
-                id: `week-${weekNumber}`,
-                name: `Week ${weekNumber}`,
-                weekNumber,
-                days
-            };
-        }).filter(week => week.days.length > 0);
-    }
-
-    private dedupeWeeks(weeks: ImportedProgramWeek[]): ImportedProgramWeek[] {
-        const byWeekNumber = new Map<number, ImportedProgramWeek>();
-
-        weeks.forEach(week => {
-            if (!byWeekNumber.has(week.weekNumber)) {
-                byWeekNumber.set(week.weekNumber, week);
-            }
-        });
-
-        return Array.from(byWeekNumber.values());
-    }
-
-    private parseWeekDays(rows: unknown[][], startIndex: number, endIndex: number, weekNumber: number): ImportedProgramDay[] {
-        const dayColumnPairs = [
-            { name: 1, prescription: 2 },
-            { name: 4, prescription: 5 },
-            { name: 7, prescription: 8 }
-        ];
-
-        const daySections = [];
-
-        for (let rowIndex = startIndex; rowIndex < endIndex; rowIndex++) {
-            dayColumnPairs.forEach((pair, pairIndex) => {
-                const dayName = this.toText(rows[rowIndex][pair.name]);
-
-                if (this.isDayName(dayName)) {
-                    daySections.push({
-                        name: dayName,
-                        startIndex: rowIndex,
-                        pair,
-                        pairIndex
-                    });
-                }
-            });
-        }
-
-        return daySections.sort((a, b) => (a.pairIndex - b.pairIndex) || (a.startIndex - b.startIndex)).map((section, dayIndex) => {
-            const nextSection = daySections.find(currentSection => currentSection.pairIndex === section.pairIndex && currentSection.startIndex > section.startIndex);
-            const sectionEndIndex = nextSection ? nextSection.startIndex : endIndex;
-            const exercises: ImportedProgramExercise[] = [];
-            let currentExerciseName = '';
-
-            for (let rowIndex = section.startIndex + 1; rowIndex < sectionEndIndex; rowIndex++) {
-                const exerciseName = this.cleanExerciseName(this.toText(rows[rowIndex][section.pair.name]));
-                const prescription = this.toText(rows[rowIndex][section.pair.prescription]);
-                const rowExerciseName = exerciseName || (prescription ? currentExerciseName : '');
-
-                if (!this.isExerciseRow(rowExerciseName, prescription)) {
-                    continue;
-                }
-
-                if (exerciseName) {
-                    currentExerciseName = exerciseName;
-                }
-
-                exercises.push({
-                    id: `week-${weekNumber}-day-${dayIndex + 1}-exercise-${rowIndex}`,
-                    exerciseName: rowExerciseName,
-                    prescription,
-                    ...this.parsePrescription(prescription)
-                });
-            }
-
-            return {
-                id: `week-${weekNumber}-day-${dayIndex + 1}`,
-                name: `Day ${String(dayIndex + 1).padStart(2, '0')}`,
-                exercises: this.combineCompoundExerciseNames(exercises)
-            };
-        }).filter(day => day.exercises.length > 0);
-    }
-
     private combineCompoundExerciseNames<T extends { exerciseName?: string }>(exercises: T[]): T[] {
         const combined = exercises.map(exercise => ({ ...exercise }));
 
@@ -985,61 +879,5 @@ export class ProgramImportService {
 
     private hasCompoundContinuation(name: string): boolean {
         return /\+\s*$/.test(name || '');
-    }
-
-    private parsePrescription(value: string): { weight?: string, reps?: string, sets?: string } {
-        const normalized = value.replace(/\s+/g, ' ').trim();
-        const match = normalized.match(/^(.+?)\s*x\s*([^x]+?)(?:\s*x\s*(.+))?$/i);
-
-        if (!match) {
-            return {};
-        }
-
-        const weight = match[1].trim();
-        return {
-            weight: weight.toLowerCase() === 'x' ? undefined : weight,
-            reps: match[2] ? match[2].trim() : undefined,
-            sets: match[3] ? match[3].trim() : undefined
-        };
-    }
-
-    private isExerciseRow(exerciseName: string, prescription: string): boolean {
-        if (!exerciseName || /^week\s+\d+/i.test(exerciseName) || this.isDayName(exerciseName)) {
-            return false;
-        }
-
-        if (/^!+$/.test(exerciseName) || /^x$/i.test(exerciseName) || this.isAnnotation(exerciseName)) {
-            return false;
-        }
-
-        return !!prescription || /[a-z]/i.test(exerciseName);
-    }
-
-    private isDayName(value: string): boolean {
-        return /^(monday|tuesday|wednesday|thursday|friday|saturday|sunday)$/i.test(value);
-    }
-
-    private cleanExerciseName(value: string): string {
-        return value.replace(/\([^)]*\)/g, '').replace(/\[[^\]]*\]/g, '').replace(/\s+/g, ' ').trim();
-    }
-
-    private isAnnotation(value: string): boolean {
-        return /^\(/.test(value) || /^\)/.test(value) || /^\s*without\b/i.test(value) || /^\s*into\b/i.test(value);
-    }
-
-    private toText(value: unknown): string {
-        if (value === undefined || value === null) {
-            return '';
-        }
-
-        return String(value).replace(/\s+/g, ' ').trim();
-    }
-
-    private createId(): string {
-        return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-    }
-
-    private cleanFileName(fileName: string): string {
-        return fileName.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ').trim();
     }
 }

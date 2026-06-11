@@ -27,6 +27,19 @@ export interface ImportedProgramExercise {
     weight?: string;
     reps?: string;
     sets?: string;
+    rest?: string;
+    tempo?: string;
+    rpe?: string;
+    notes?: string;
+    percentage1Rm?: string;
+}
+
+export interface ProgramImportPreview {
+    program?: ImportedProgram;
+    confidence: number;
+    strategy: string;
+    warnings: string[];
+    lowConfidence: boolean;
 }
 
 export interface ImportedWorkoutState {

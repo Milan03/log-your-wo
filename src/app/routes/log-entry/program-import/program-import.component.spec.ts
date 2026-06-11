@@ -162,6 +162,121 @@ describe('ProgramImportComponent', () => {
         expect(component.completionStyles['--completion-color']).toBe('#2f80ed');
     });
 
+    it('does not save a parsed program until the review is confirmed', async () => {
+        const draft = createProgram();
+        draft.id = 'draft-program';
+        draft.name = 'Draft Program';
+        spyOn(programImportService, 'previewWorkbook').and.resolveTo({
+            program: draft,
+            confidence: 0.8,
+            strategy: 'generic-header-table',
+            warnings: [],
+            lowConfidence: false
+        });
+        const input = document.createElement('input');
+        const file = new File(['workbook'], 'draft.xlsx');
+        Object.defineProperty(input, 'files', { value: [file] });
+
+        await component.onFileSelected({ target: input } as unknown as Event);
+
+        expect(component.importPreview.program.id).toBe('draft-program');
+        expect(programImportService.getPrograms().some(program => program.id === 'draft-program')).toBeFalse();
+
+        component.confirmImport();
+
+        expect(programImportService.getPrograms().some(program => program.id === 'draft-program')).toBeTrue();
+        expect(component.importPreview).toBeUndefined();
+    });
+
+    it('applies review edits and removes bad rows before saving', () => {
+        const draft = createProgram();
+        draft.id = 'reviewed-program';
+        draft.weeks[0].days[0].exercises.push({
+            id: 'bad-row',
+            exerciseName: 'Bad Row',
+            prescription: ''
+        });
+        component.importPreview = {
+            program: draft,
+            confidence: 0.5,
+            strategy: 'vertical-week-day-sections',
+            warnings: ['Review rows'],
+            lowConfidence: true
+        };
+        const exercise = draft.weeks[0].days[0].exercises[0];
+        exercise.sets = '4';
+        exercise.reps = '5';
+        exercise.rest = '2 min';
+
+        component.deleteReviewExercise(0, 0, 1);
+        component.confirmImport();
+
+        const saved = programImportService.getProgram();
+        expect(saved.id).toBe('reviewed-program');
+        expect(saved.weeks[0].days[0].exercises.length).toBe(1);
+        expect(saved.weeks[0].days[0].exercises[0].prescription).toBe('4 x 5 | Rest: 2 min');
+    });
+
+    it('keeps percentage prescriptions aligned when saving the review', () => {
+        const draft = createProgram();
+        const exercise = draft.weeks[0].days[0].exercises[0];
+        exercise.sets = '3';
+        exercise.reps = '1';
+        exercise.weight = '90%';
+        exercise.percentage1Rm = '90%';
+        component.importPreview = {
+            program: draft,
+            confidence: 0.98,
+            strategy: 'horizontal-day-columns',
+            warnings: [],
+            lowConfidence: false
+        };
+
+        component.confirmImport();
+
+        expect(programImportService.getProgram().weeks[0].days[0].exercises[0].prescription)
+            .toBe('3 x 1 @ 90%');
+    });
+
+    it('moves through import review one week at a time', () => {
+        component.importPreview = {
+            program: createProgram(),
+            confidence: 0.9,
+            strategy: 'legacy-fixed-layout',
+            warnings: [],
+            lowConfidence: false
+        };
+
+        expect(component.selectedReviewWeek.name).toBe('Week 1');
+
+        component.nextReviewWeek();
+
+        expect(component.selectedReviewWeekIndex).toBe(1);
+        expect(component.selectedReviewWeek.name).toBe('Week 2');
+
+        component.nextReviewWeek();
+        expect(component.selectedReviewWeekIndex).toBe(1);
+
+        component.previousReviewWeek();
+        expect(component.selectedReviewWeekIndex).toBe(0);
+    });
+
+    it('resets review pagination when the review is cancelled', () => {
+        component.importPreview = {
+            program: createProgram(),
+            confidence: 0.9,
+            strategy: 'legacy-fixed-layout',
+            warnings: [],
+            lowConfidence: false
+        };
+        component.selectReviewWeek(1);
+
+        component.cancelImportReview();
+
+        expect(component.selectedReviewWeekIndex).toBe(0);
+        expect(component.importPreview).toBeUndefined();
+    });
+
     it('falls back safely when returned week and day IDs are invalid', () => {
         routeParams.next(convertToParamMap({
             programId: 'program-1',

@@ -241,6 +241,155 @@
     margin: 0;
 }
 
+.program-import__review {
+    display: grid;
+    gap: 18px;
+}
+
+.program-import__review-header,
+.program-import__review-actions,
+.program-import__review-pagination,
+.program-import__review-week-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.program-import__review-header h2,
+.program-import__review-header p,
+.program-import__review-week h3,
+.program-import__review-day h4 {
+    margin: 0;
+}
+
+.program-import__confidence {
+    flex: 0 0 auto;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: #edf5f8;
+    color: #245b70;
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+.program-import__review-weeks,
+.program-import__review-week,
+.program-import__review-day {
+    display: grid;
+    gap: 12px;
+}
+
+.program-import__review-pagination {
+    min-width: 0;
+}
+
+.program-import__review-pagination .btn {
+    flex: 0 0 auto;
+}
+
+.program-import__review-nav-button,
+.program-import__review-nav-button:hover,
+.program-import__review-nav-button:focus,
+.program-import__review-nav-button:active {
+    color: #243746 !important;
+    border-color: #66788a !important;
+    background-color: #fff !important;
+}
+
+.program-import__review-nav-button:hover,
+.program-import__review-nav-button:focus,
+.program-import__review-nav-button:active {
+    color: #fff !important;
+    border-color: #334e68 !important;
+    background-color: #334e68 !important;
+}
+
+.program-import__review-nav-button:disabled {
+    color: #6c757d !important;
+    border-color: #c5cdd5 !important;
+    background-color: #f3f5f7 !important;
+    opacity: 1;
+}
+
+.program-import__review-week-tabs {
+    display: flex;
+    gap: 6px;
+    min-width: 0;
+    padding: 4px;
+    overflow-x: auto;
+}
+
+.program-import__review-week-tab {
+    flex: 0 0 auto;
+    padding: 7px 11px;
+    color: #4f5b67;
+    border: 1px solid #cbd3da;
+    border-radius: 4px;
+    background: #fff;
+    cursor: pointer;
+}
+
+.program-import__review-week-tab--active {
+    color: variables.$primary;
+    border-color: variables.$primary;
+    font-weight: 700;
+}
+
+.program-import__review-table {
+    display: grid;
+    gap: 12px;
+    overflow-x: auto;
+}
+
+.program-import__review-week {
+    padding: 16px;
+    border: 1px solid #dce1e6;
+    border-radius: 8px;
+    background: #fff;
+}
+
+.program-import__review-week-heading span {
+    color: #6c757d;
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+.program-import__review-day {
+    padding-top: 12px;
+    border-top: 1px solid #e5e9ed;
+}
+
+.program-import__review-row {
+    display: grid;
+    grid-template-columns: minmax(180px, 2fr) repeat(6, minmax(76px, 1fr)) minmax(160px, 2fr) auto;
+    gap: 8px;
+    align-items: end;
+    min-width: 1100px;
+}
+
+.program-import__review-row label {
+    display: grid;
+    gap: 4px;
+    margin: 0;
+    color: #4f5b67;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.program-import__review-delete {
+    min-height: 38px;
+}
+
+.program-import__review-actions {
+    justify-content: flex-end;
+}
+
+.program-import__review-actions--top {
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e5e9ed;
+}
+
 .program-import__content {
     display: grid;
     gap: 18px;
