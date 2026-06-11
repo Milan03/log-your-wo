@@ -189,7 +189,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
         this.trainingMaxes.push(this.formBuilder.group({
             id: [trainingMax?.id || this.createTrainingMaxId()],
             exerciseName: [trainingMax?.exerciseName || '', Validators.maxLength(80)],
-            value: [trainingMax?.value, [Validators.min(0.1), Validators.max(5000)]],
+            value: [trainingMax?.value, [Validators.min(1), Validators.max(5000)]],
             updatedAt: [trainingMax?.updatedAt]
         }));
         this.saved = false;
@@ -261,7 +261,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
             this.trainingMaxes.push(this.formBuilder.group({
                 id: [trainingMax.id],
                 exerciseName: [trainingMax.exerciseName, Validators.maxLength(80)],
-                value: [trainingMax.value, [Validators.min(0.1), Validators.max(5000)]],
+                value: [trainingMax.value, [Validators.min(1), Validators.max(5000)]],
                 updatedAt: [trainingMax.updatedAt]
             }), { emitEvent: false });
         });

@@ -277,6 +277,85 @@ describe('ProgramImportComponent', () => {
         expect(component.importPreview).toBeUndefined();
     });
 
+    it('prefills saved maxes, recalculates before review, and removes calculation metadata when saved', async () => {
+        const draft = createProgram();
+        const exercise = draft.weeks[0].days[0].exercises[0];
+        exercise.sets = '3';
+        exercise.reps = '1';
+        exercise.weight = '90';
+        exercise.workbookCalculation = {
+            address: 'B18',
+            formula: 'B2*0.9',
+            output: 'weight',
+            segments: [{
+                inputId: 'Program!B2',
+                multiplier: 0.9
+            }]
+        };
+        const preview = {
+            program: draft,
+            confidence: 0.98,
+            strategy: 'horizontal-day-columns',
+            warnings: [],
+            lowConfidence: false,
+            setup: {
+                instructions: ['Use a current max.'],
+                inputs: [{
+                    id: 'Program!B2',
+                    sheetName: 'Program',
+                    address: 'B2',
+                    label: 'Snatch',
+                    exerciseName: 'Snatch',
+                    originalValue: 100,
+                    value: 100
+                }],
+                unknownFormulaCount: 0
+            }
+        };
+        const profileService = {
+            profile: { unitSystem: 'metric' },
+            findTrainingMax: jasmine.createSpy('findTrainingMax').and.returnValue({
+                id: 'saved-snatch',
+                exerciseName: 'Snatch',
+                value: 120
+            }),
+            saveTrainingMaxes: jasmine.createSpy('saveTrainingMaxes').and.resolveTo()
+        };
+        (component as any)._profileService = profileService;
+        spyOn(programImportService, 'previewWorkbook').and.resolveTo(preview);
+        const input = document.createElement('input');
+        Object.defineProperty(input, 'files', {
+            value: [new File(['workbook'], 'calculated.xlsx')]
+        });
+
+        await component.onFileSelected({ target: input } as unknown as Event);
+
+        expect(component.importReviewStep).toBe('setup');
+        expect(component.importPreview.setup.inputs[0].value).toBe(120);
+        expect(component.workbookWeightUnit).toBe('kg');
+
+        component.continueToImportReview();
+
+        expect(component.importReviewStep).toBe('review');
+        expect(exercise.weight).toBe('108');
+        expect(exercise.prescription).toBe('108 x 1 x 3');
+        expect(profileService.saveTrainingMaxes).toHaveBeenCalledWith([
+            jasmine.objectContaining({
+                id: 'saved-snatch',
+                exerciseName: 'Snatch',
+                value: 120
+            })
+        ]);
+
+        component.editWorkbookMaxes();
+        expect(component.importReviewStep).toBe('setup');
+        component.continueToImportReview();
+        component.confirmImport();
+
+        expect(programImportService.getProgram().weeks[0].days[0].exercises[0].workbookCalculation)
+            .toBeUndefined();
+    });
+
     it('falls back safely when returned week and day IDs are invalid', () => {
         routeParams.next(convertToParamMap({
             programId: 'program-1',

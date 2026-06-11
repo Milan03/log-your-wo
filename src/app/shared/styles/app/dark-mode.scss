@@ -429,6 +429,17 @@ html.app-dark-mode {
         color: #d4deea !important;
     }
 
+    .program-import__setup-instructions {
+        color: var(--dark-text) !important;
+        border-color: var(--dark-border) !important;
+        background-color: #1b2b3a !important;
+    }
+
+    .program-import__setup-input,
+    .program-import__setup-control > span {
+        color: #d4deea !important;
+    }
+
     .program-import__day-title,
     .program-import__day-title span {
         color: #fff !important;

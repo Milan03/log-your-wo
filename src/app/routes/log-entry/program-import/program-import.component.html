@@ -70,6 +70,54 @@
         <div *ngIf="importError" class="alert alert-danger">{{ importError }}</div>
 
         <section *ngIf="importPreview?.program" class="program-import__review">
+            <div *ngIf="importReviewStep === 'setup'" class="program-import__setup">
+                <div class="program-import__review-header">
+                    <div>
+                        <span class="program-import__eyebrow">{{ 'program-import.SetupEyebrow' | translate }}</span>
+                        <h2>{{ 'program-import.SetupTitle' | translate }}</h2>
+                        <p>{{ 'program-import.SetupDescription' | translate }}</p>
+                    </div>
+                </div>
+
+                <div *ngIf="importPreview.setup?.instructions?.length" class="program-import__setup-instructions">
+                    <h3>{{ 'program-import.WorkbookInstructions' | translate }}</h3>
+                    <ul>
+                        <li *ngFor="let instruction of importPreview.setup.instructions">{{ instruction }}</li>
+                    </ul>
+                </div>
+
+                <div *ngIf="importPreview.setup?.inputs?.length" class="program-import__setup-inputs">
+                    <label *ngFor="let input of importPreview.setup.inputs" class="program-import__setup-input">
+                        <span>{{ input.label }}</span>
+                        <span class="program-import__setup-control">
+                            <input class="form-control" type="number" min="1" step="1"
+                                [(ngModel)]="input.value"
+                                [class.is-invalid]="!isWorkbookInputValid(input)"
+                                [attr.aria-invalid]="!isWorkbookInputValid(input)"
+                                (ngModelChange)="setupError = ''">
+                            <span>{{ workbookWeightUnit }}</span>
+                        </span>
+                        <small *ngIf="!isWorkbookInputValid(input)" class="program-import__setup-error">
+                            {{ 'program-import.MaxMustBePositive' | translate }}
+                        </small>
+                    </label>
+                </div>
+
+                <div *ngIf="setupError" class="alert alert-danger">{{ setupError }}</div>
+
+                <div class="program-import__review-actions">
+                    <button class="btn btn-outline-secondary" type="button" (click)="cancelImportReview()">
+                        {{ 'global.CancelLabel' | translate }}
+                    </button>
+                    <button class="btn btn-primary" type="button"
+                        [disabled]="!workbookSetupValid"
+                        (click)="continueToImportReview()">
+                        {{ 'program-import.CalculateAndReview' | translate }}
+                    </button>
+                </div>
+            </div>
+
+            <ng-container *ngIf="importReviewStep === 'review'">
             <div class="program-import__review-header">
                 <div>
                     <span class="program-import__eyebrow">{{ 'program-import.ReviewEyebrow' | translate }}</span>
@@ -85,11 +133,15 @@
                 </span>
             </div>
 
-            <div *ngIf="importPreview.lowConfidence" class="alert alert-warning">
-                {{ importPreview.warnings[0] }}
+            <div *ngIf="importPreview.warnings.length" class="alert alert-warning">
+                <div *ngFor="let warning of importPreview.warnings">{{ warning }}</div>
             </div>
 
             <div class="program-import__review-actions program-import__review-actions--top">
+                <button *ngIf="importPreview.setup?.inputs?.length"
+                    class="btn btn-outline-secondary" type="button" (click)="editWorkbookMaxes()">
+                    {{ 'program-import.EditMaxes' | translate }}
+                </button>
                 <button class="btn btn-outline-secondary" type="button" (click)="cancelImportReview()">
                     {{ 'global.CancelLabel' | translate }}
                 </button>
@@ -189,6 +241,7 @@
                     {{ 'program-import.ConfirmImport' | translate }}
                 </button>
             </div>
+            </ng-container>
         </section>
 
         <div *ngIf="!program && !importPreview" class="program-import__empty">

@@ -6,12 +6,24 @@ import {
     ImportedProgramDay,
     ImportedProgramExercise,
     ImportedProgramWeek,
-    ProgramImportPreview
+    ProgramImportPreview,
+    WorkbookExerciseCalculation,
+    WorkbookFormulaSegment,
+    WorkbookImportInput,
+    WorkbookImportSetup
 } from '../models/imported-program.model';
+
+interface NormalizedCell {
+    address: string;
+    formula?: string;
+    value?: unknown;
+    text: string;
+}
 
 interface NormalizedSheet {
     name: string;
     rows: string[][];
+    cells: NormalizedCell[][];
 }
 
 interface ParserResult {
@@ -39,6 +51,8 @@ interface HeaderMap {
 })
 export class ProgramWorkbookParserService {
     private readonly lowConfidenceThreshold = 0.55;
+    private inputByReference = new Map<string, WorkbookImportInput>();
+    private unknownFormulaAddresses = new Set<string>();
 
     public parse(data: ArrayBuffer, fileName: string): ProgramImportPreview {
         let workbook: XLSX.WorkBook;
@@ -56,6 +70,9 @@ export class ProgramWorkbookParserService {
             return this.emptyPreview('The workbook does not contain any non-empty sheets.');
         }
 
+        const setup = this.detectSetup(sheets);
+        this.inputByReference = new Map(setup.inputs.map(input => [input.id, input]));
+        this.unknownFormulaAddresses.clear();
         const results = [
             this.parseLegacy(sheets),
             this.parseVerticalSections(sheets),
@@ -81,52 +98,104 @@ export class ProgramWorkbookParserService {
             weeks: this.finalizeWeeks(best.weeks)
         };
         const lowConfidence = confidence < this.lowConfidenceThreshold;
+        setup.unknownFormulaCount = this.unknownFormulaAddresses.size;
+        const warnings = lowConfidence
+            ? ['This workbook layout was only partially recognized. Review and clean up the detected rows before saving.']
+            : [];
+        if (setup.unknownFormulaCount) {
+            warnings.push(
+                `${setup.unknownFormulaCount} workbook formula`
+                + `${setup.unknownFormulaCount === 1 ? '' : 's'} could not be recalculated and will use Excel's saved values.`
+            );
+        }
 
         return {
             program,
             confidence,
             strategy: best.strategy,
             lowConfidence,
-            warnings: lowConfidence
-                ? ['This workbook layout was only partially recognized. Review and clean up the detected rows before saving.']
-                : []
+            warnings,
+            setup: setup.inputs.length || setup.instructions.length ? setup : undefined
         };
+    }
+
+    public applyInputs(
+        preview: ProgramImportPreview,
+        values: { [inputId: string]: number }
+    ): ProgramImportPreview {
+        if (!preview?.program || !preview.setup) {
+            return preview;
+        }
+
+        preview.setup.inputs.forEach(input => {
+            const value = Number(values[input.id]);
+            if (Number.isFinite(value) && value > 0) {
+                input.value = value;
+            }
+        });
+        const inputValues = new Map(preview.setup.inputs.map(input => [input.id, input.value]));
+        preview.program.weeks.forEach(week => week.days.forEach(day => day.exercises.forEach(exercise => {
+            const calculation = exercise.workbookCalculation;
+            if (!calculation) {
+                return;
+            }
+            const calculated = this.evaluateCalculation(calculation, inputValues);
+            if (calculated === undefined) {
+                return;
+            }
+            if (calculation.output === 'weight') {
+                exercise.weight = calculated;
+                exercise.percentage1Rm = undefined;
+                exercise.prescription = this.buildPrescription(exercise);
+                return;
+            }
+            const detected = this.parsePrescription(calculated, true);
+            exercise.prescription = calculated;
+            Object.assign(exercise, detected);
+        })));
+        return preview;
     }
 
     private normalizeSheet(name: string, worksheet: XLSX.WorkSheet): NormalizedSheet {
         if (!worksheet || !worksheet['!ref']) {
-            return { name, rows: [] };
+            return { name, rows: [], cells: [] };
         }
 
         const range = XLSX.utils.decode_range(worksheet['!ref']);
-        const mergedValues = new Map<string, string>();
+        const mergedCells = new Map<string, XLSX.CellObject>();
         (worksheet['!merges'] || []).forEach(merge => {
-            const value = this.cellText(worksheet[XLSX.utils.encode_cell(merge.s)]);
+            const value = worksheet[XLSX.utils.encode_cell(merge.s)];
             for (let row = merge.s.r; row <= merge.e.r; row++) {
                 for (let column = merge.s.c; column <= merge.e.c; column++) {
-                    mergedValues.set(`${row}:${column}`, value);
+                    mergedCells.set(`${row}:${column}`, value);
                 }
             }
         });
 
         const rows: string[][] = [];
+        const cells: NormalizedCell[][] = [];
         for (let row = range.s.r; row <= range.e.r; row++) {
-            const values: string[] = [];
+            const normalizedCells: NormalizedCell[] = [];
             for (let column = range.s.c; column <= range.e.c; column++) {
                 const address = XLSX.utils.encode_cell({ r: row, c: column });
-                values.push(this.normalizeText(
-                    mergedValues.get(`${row}:${column}`) || this.cellText(worksheet[address])
-                ));
+                const cell = mergedCells.get(`${row}:${column}`) || worksheet[address];
+                normalizedCells.push({
+                    address,
+                    formula: cell?.f ? this.normalizeText(cell.f) : undefined,
+                    value: cell?.v,
+                    text: this.cellText(cell)
+                });
             }
-            if (values.some(Boolean)) {
-                while (values.length && !values[values.length - 1]) {
-                    values.pop();
+            if (normalizedCells.some(cell => cell.text)) {
+                while (normalizedCells.length && !normalizedCells[normalizedCells.length - 1].text) {
+                    normalizedCells.pop();
                 }
-                rows.push(values);
+                cells.push(normalizedCells);
+                rows.push(normalizedCells.map(cell => cell.text));
             }
         }
 
-        return { name: this.normalizeText(name), rows };
+        return { name: this.normalizeText(name), rows, cells };
     }
 
     private parseLegacy(sheets: NormalizedSheet[]): ParserResult {
@@ -194,7 +263,9 @@ export class ProgramWorkbookParserService {
                                 prescription,
                                 {},
                                 `week-${weekNumber}-day-${dayIndex + 1}-exercise-${rowIndex}`,
-                                true
+                                true,
+                                sheet.cells[rowIndex]?.[section.prescriptionColumn],
+                                sheet.name
                             ));
                         }
 
@@ -391,13 +462,14 @@ export class ProgramWorkbookParserService {
                         continue;
                     }
 
-                    const setValues = row
+                    const setCells = sheet.cells[rowIndex]
                         .slice(entry.column + 1, endColumn)
-                        .filter(value => /^\d+(?:\.\d+)?%?\+?$/.test(value));
+                        .filter(cell => /^\d+(?:\.\d+)?%?\+?$/.test(cell.text));
                     exercises.push(...this.createHorizontalSetExercises(
                         rawName,
-                        setValues,
-                        `week-${weekNumber}-day-${dayIndex + 1}-exercise-${rowIndex}`
+                        setCells,
+                        `week-${weekNumber}-day-${dayIndex + 1}-exercise-${rowIndex}`,
+                        sheet.name
                     ));
                 }
 
@@ -410,51 +482,75 @@ export class ProgramWorkbookParserService {
 
     private createHorizontalSetExercises(
         rawName: string,
-        setValues: string[],
-        idPrefix: string
+        setCells: NormalizedCell[],
+        idPrefix: string,
+        sheetName: string
     ): ImportedProgramExercise[] {
         const schemes = Array.from(rawName.matchAll(/(\d+)\s*[x×]\s*(\d+(?:-\d+)?)/gi))
             .map(match => ({ sets: match[1], reps: match[2] }));
-        const percentageRuns = setValues.reduce((runs, value) => {
-            const percentage = `${value.replace(/%?\+?$/, '')}%${value.endsWith('+') ? '+' : ''}`;
+        const percentageRuns = setCells.reduce((runs, cell) => {
+            const value = cell.text;
+            const calculation = this.calculationFromCell(cell, sheetName, 'weight');
+            const weight = calculation
+                ? value
+                : `${value.replace(/%?\+?$/, '')}%${value.endsWith('+') ? '+' : ''}`;
+            const calculationKey = calculation ? JSON.stringify(calculation.segments) : '';
             const current = runs[runs.length - 1];
-            if (current?.percentage === percentage) {
+            if (current?.weight === weight && current?.calculationKey === calculationKey) {
                 current.count++;
             } else {
-                runs.push({ percentage, count: 1 });
+                runs.push({
+                    weight,
+                    percentage: calculation ? undefined : weight,
+                    count: 1,
+                    calculation,
+                    calculationKey
+                });
             }
             return runs;
-        }, [] as Array<{ percentage: string, count: number }>);
+        }, [] as Array<{
+            weight: string,
+            percentage?: string,
+            count: number,
+            calculation?: WorkbookExerciseCalculation,
+            calculationKey: string
+        }>);
         const exerciseName = this.cleanExerciseName(rawName);
 
         if (!schemes.length) {
-            const percentages = percentageRuns.map(run => run.percentage).join(', ');
+            const weights = percentageRuns.map(run => run.weight).join(', ');
+            const percentages = percentageRuns.map(run => run.percentage).filter(Boolean).join(', ');
             const fields: Partial<ImportedProgramExercise> = {
-                sets: setValues.length ? String(setValues.length) : undefined,
-                weight: percentages || undefined,
+                sets: setCells.length ? String(setCells.length) : undefined,
+                weight: weights || undefined,
                 percentage1Rm: percentages || undefined
             };
-            return this.isExerciseRow(exerciseName, percentages)
-                ? [this.createExercise(exerciseName, this.buildSetPrescription(fields), fields, idPrefix)]
+            return this.isExerciseRow(exerciseName, weights)
+                ? [{
+                    ...this.createExercise(exerciseName, this.buildSetPrescription(fields), fields, idPrefix),
+                    workbookCalculation: percentageRuns[0]?.calculation
+                }]
                 : [];
         }
 
         return schemes.map((scheme, index) => {
             const run = percentageRuns[index]
                 || (percentageRuns.length === 1 ? percentageRuns[0] : undefined);
-            const percentage = run?.percentage;
             const fields: Partial<ImportedProgramExercise> = {
                 sets: scheme.sets,
                 reps: scheme.reps,
-                weight: percentage,
-                percentage1Rm: percentage
+                weight: run?.weight,
+                percentage1Rm: run?.percentage
             };
-            return this.createExercise(
+            return {
+                ...this.createExercise(
                 exerciseName,
                 this.buildSetPrescription(fields),
                 fields,
                 `${idPrefix}-${index + 1}`
-            );
+                ),
+                workbookCalculation: run?.calculation
+            };
         });
     }
 
@@ -513,7 +609,10 @@ export class ProgramWorkbookParserService {
                         exerciseName,
                         prescription,
                         fields,
-                        `${day.id}-exercise-${rowIndex}`
+                        `${day.id}-exercise-${rowIndex}`,
+                        false,
+                        this.formulaCellFromColumns(sheet, rowIndex, map),
+                        sheet.name
                     ));
                 }
             });
@@ -592,12 +691,34 @@ export class ProgramWorkbookParserService {
         };
     }
 
+    private formulaCellFromColumns(
+        sheet: NormalizedSheet,
+        rowIndex: number,
+        map: HeaderMap
+    ): NormalizedCell | undefined {
+        const columns = [
+            map.weight,
+            map.percentage1Rm,
+            map.sets,
+            map.reps,
+            map.rest,
+            map.tempo,
+            map.rpe,
+            map.notes
+        ].filter(column => column !== undefined);
+        return columns
+            .map(column => sheet.cells[rowIndex]?.[column])
+            .find(cell => cell?.formula);
+    }
+
     private createExercise(
         exerciseName: string,
         prescription: string,
         fields: Partial<ImportedProgramExercise>,
         id: string,
-        legacyLayout = false
+        legacyLayout = false,
+        sourceCell?: NormalizedCell,
+        sheetName?: string
     ): ImportedProgramExercise {
         const detected = this.parsePrescription(prescription, legacyLayout);
         return {
@@ -605,7 +726,10 @@ export class ProgramWorkbookParserService {
             exerciseName: this.cleanExerciseName(exerciseName),
             prescription: this.normalizeText(prescription) || this.buildPrescription(fields),
             ...detected,
-            ...this.withoutEmptyFields(fields)
+            ...this.withoutEmptyFields(fields),
+            workbookCalculation: sourceCell && sheetName
+                ? this.calculationFromCell(sourceCell, sheetName, 'prescription')
+                : undefined
         };
     }
 
@@ -738,6 +862,218 @@ export class ProgramWorkbookParserService {
         }
 
         return combined;
+    }
+
+    private detectSetup(sheets: NormalizedSheet[]): WorkbookImportSetup {
+        const referencedCells = new Set<string>();
+
+        sheets.forEach(sheet => sheet.cells.forEach(row => row.forEach(cell => {
+            if (!cell.formula) {
+                return;
+            }
+            this.formulaReferences(cell.formula).forEach(address => {
+                referencedCells.add(this.inputId(sheet.name, address));
+            });
+        })));
+
+        const inputs: WorkbookImportInput[] = [];
+        sheets.forEach(sheet => sheet.cells.forEach(row => row.forEach((cell, column) => {
+            const id = this.inputId(sheet.name, cell.address);
+            const numericValue = Number(cell.value);
+            if (
+                !referencedCells.has(id)
+                || cell.formula
+                || !Number.isFinite(numericValue)
+            ) {
+                return;
+            }
+
+            const labelCell = row
+                .slice(0, column)
+                .reverse()
+                .find(candidate => candidate.text && !candidate.formula);
+            const label = this.normalizeText(labelCell?.text)
+                .replace(/[:：]\s*$/, '')
+                || cell.address;
+            inputs.push({
+                id,
+                sheetName: sheet.name,
+                address: cell.address,
+                label,
+                exerciseName: this.inputExerciseName(label),
+                originalValue: numericValue,
+                value: numericValue
+            });
+        })));
+
+        const inputLabels = new Set(inputs.map(input => input.label.toLowerCase()));
+        const instructions = Array.from(new Set(sheets.flatMap(sheet => {
+            const firstProgramRow = sheet.rows.findIndex(row =>
+                row.some(cell => this.sectionLabel(cell)?.type === 'week')
+            );
+            const end = firstProgramRow >= 0 ? firstProgramRow : Math.min(sheet.rows.length, 30);
+            return sheet.rows.slice(0, end)
+                .flat()
+                .map(value => this.normalizeText(value))
+                .filter(value =>
+                    value
+                    && !inputLabels.has(value.replace(/[:：]\s*$/, '').toLowerCase())
+                    && (
+                        value.length >= 30
+                        || /^\*/.test(value)
+                        || /^notes?\b/i.test(value)
+                        || /\bnotation\b/i.test(value)
+                    )
+                );
+        }))).slice(0, 12);
+
+        return {
+            instructions,
+            inputs,
+            unknownFormulaCount: 0
+        };
+    }
+
+    private calculationFromCell(
+        cell: NormalizedCell,
+        sheetName: string,
+        output: 'weight' | 'prescription'
+    ): WorkbookExerciseCalculation | undefined {
+        if (!cell?.formula) {
+            return undefined;
+        }
+
+        const formula = cell.formula.replace(/^=/, '').trim();
+        const direct = this.directFormulaSegment(formula, sheetName);
+        if (direct) {
+            return {
+                address: cell.address,
+                formula,
+                output,
+                segments: [direct]
+            };
+        }
+
+        const concatenate = formula.match(/^CONCATENATE\((.*)\)$/i);
+        if (concatenate) {
+            const candidateSegments = this.splitFormulaArguments(concatenate[1])
+                .map(argument => this.formulaSegment(argument, sheetName));
+            if (
+                candidateSegments.length
+                && candidateSegments.every(Boolean)
+                && candidateSegments.some(segment => segment?.inputId)
+            ) {
+                return {
+                    address: cell.address,
+                    formula,
+                    output: 'prescription',
+                    segments: candidateSegments as WorkbookFormulaSegment[]
+                };
+            }
+        }
+
+        const referencesInput = this.formulaReferences(formula)
+            .some(address => this.inputByReference.has(this.inputId(sheetName, address)));
+        if (referencesInput) {
+            this.unknownFormulaAddresses.add(`${sheetName}!${cell.address}`);
+        }
+        return undefined;
+    }
+
+    private directFormulaSegment(formula: string, sheetName: string): WorkbookFormulaSegment | undefined {
+        const expression = formula.replace(/[()]/g, '').replace(/\$/g, '').replace(/\s+/g, '');
+        const referenceFirst = expression.match(/^([A-Z]+\d+)\*(-?\d+(?:\.\d+)?)$/i);
+        const multiplierFirst = expression.match(/^(-?\d+(?:\.\d+)?)\*([A-Z]+\d+)$/i);
+        const address = referenceFirst?.[1] || multiplierFirst?.[2];
+        const multiplier = Number(referenceFirst?.[2] || multiplierFirst?.[1]);
+        const inputId = address ? this.inputId(sheetName, address) : '';
+
+        return inputId && this.inputByReference.has(inputId) && Number.isFinite(multiplier)
+            ? { inputId, multiplier }
+            : undefined;
+    }
+
+    private formulaSegment(argument: string, sheetName: string): WorkbookFormulaSegment | undefined {
+        const value = argument.trim();
+        if (/^"(?:[^"]|"")*"$/.test(value)) {
+            return { literal: value.slice(1, -1).replace(/""/g, '"') };
+        }
+
+        const round = value.match(/^ROUND\((.*),\s*(\d+)\)$/i);
+        if (!round) {
+            return undefined;
+        }
+        const calculated = this.directFormulaSegment(round[1], sheetName);
+        return calculated ? { ...calculated, decimals: Number(round[2]) } : undefined;
+    }
+
+    private splitFormulaArguments(value: string): string[] {
+        const parts: string[] = [];
+        let start = 0;
+        let depth = 0;
+        let quoted = false;
+
+        for (let index = 0; index < value.length; index++) {
+            const character = value[index];
+            if (character === '"') {
+                if (quoted && value[index + 1] === '"') {
+                    index++;
+                    continue;
+                }
+                quoted = !quoted;
+            } else if (!quoted && character === '(') {
+                depth++;
+            } else if (!quoted && character === ')') {
+                depth--;
+            } else if (!quoted && character === ',' && depth === 0) {
+                parts.push(value.slice(start, index));
+                start = index + 1;
+            }
+        }
+        parts.push(value.slice(start));
+        return parts;
+    }
+
+    private evaluateCalculation(
+        calculation: WorkbookExerciseCalculation,
+        inputValues: Map<string, number>
+    ): string | undefined {
+        let result = '';
+
+        for (const segment of calculation.segments) {
+            if (segment.literal !== undefined) {
+                result += segment.literal;
+                continue;
+            }
+            const input = inputValues.get(segment.inputId);
+            if (!Number.isFinite(input) || !Number.isFinite(segment.multiplier)) {
+                return undefined;
+            }
+            const rawValue = input * segment.multiplier;
+            const calculated = segment.decimals === undefined
+                ? Math.round(rawValue * 100) / 100
+                : Number(rawValue.toFixed(segment.decimals));
+            result += String(calculated);
+        }
+        return this.normalizeText(result);
+    }
+
+    private formulaReferences(formula: string): string[] {
+        return Array.from(formula.matchAll(/\$?([A-Z]+)\$?(\d+)/gi))
+            .map(match => `${match[1].toUpperCase()}${match[2]}`);
+    }
+
+    private inputExerciseName(label: string): string {
+        return this.normalizeText(label)
+            .replace(/^best\s+/i, '')
+            .replace(/\b1\s*rm\b/ig, '')
+            .replace(/[:：]\s*$/, '')
+            .replace(/\bc&j\b/ig, 'Clean & Jerk')
+            .trim();
+    }
+
+    private inputId(sheetName: string, address: string): string {
+        return `${sheetName}!${address.replace(/\$/g, '').toUpperCase()}`;
     }
 
     private sectionLabel(value: string): { type: 'week' | 'day', label: string, number?: number } | undefined {

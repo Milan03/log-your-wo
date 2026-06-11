@@ -195,13 +195,134 @@ describe('ProgramWorkbookParserService', () => {
         expect(exercise.prescription).toContain('80%');
         expect(exercise.prescription).toContain('Rest: 3 min');
     });
+
+    it('detects direct-formula max inputs and recalculates horizontal working weights', () => {
+        const rows: unknown[][] = Array.from({ length: 18 }, () => []);
+        rows[0] = ['1RM', '', '', '* Percentages are based on each exercise max'];
+        rows[1] = ['Snatch', 100];
+        rows[2] = ['Clean & Jerk', 110];
+        rows[15] = sparseRow({ 0: 'Week 1', 8: 'Week 2' });
+        rows[16] = sparseRow({
+            0: 'Monday', 1: 'Set 1', 2: 'Set 2', 3: 'Set 3', 4: 'Set 4', 5: 'Set 5', 6: 'Set 6',
+            8: 'Monday', 9: 'Set 1', 10: 'Set 2', 11: 'Set 3'
+        });
+        rows[17] = sparseRow({
+            0: 'Snatch (3x1; 3x2)',
+            8: 'Clean & Jerk (3x2)'
+        });
+        const worksheet = XLSX.utils.aoa_to_sheet(rows);
+        setFormula(worksheet, 'B18', 90, 'B2*0.9');
+        setFormula(worksheet, 'C18', 90, '0.9*B2');
+        setFormula(worksheet, 'D18', 90, '0.9*B2');
+        setFormula(worksheet, 'E18', 85, 'B2*0.85');
+        setFormula(worksheet, 'F18', 85, 'B2*0.85');
+        setFormula(worksheet, 'G18', 85, 'B2*0.85');
+        setFormula(worksheet, 'J18', 88, 'B3*0.8');
+        setFormula(worksheet, 'K18', 88, 'B3*0.8');
+        setFormula(worksheet, 'L18', 88, 'B3*0.8');
+
+        const preview = parseWorksheet(parser, worksheet);
+
+        expect(preview.setup.inputs.map(input => input.exerciseName)).toEqual(['Snatch', 'Clean & Jerk']);
+        expect(preview.setup.instructions).toContain('* Percentages are based on each exercise max');
+        expect(preview.program.weeks[0].days[0].exercises[0].workbookCalculation)
+            .toEqual(jasmine.objectContaining({ address: 'B18', formula: 'B2*0.9', output: 'weight' }));
+
+        parser.applyInputs(preview, {
+            'Program!B2': 120,
+            'Program!B3': 150
+        });
+
+        expect(preview.program.weeks[0].days[0].exercises).toEqual([
+            jasmine.objectContaining({ sets: '3', reps: '1', weight: '108', prescription: '108 x 1 x 3' }),
+            jasmine.objectContaining({ sets: '3', reps: '2', weight: '102', prescription: '102 x 2 x 3' })
+        ]);
+        expect(preview.program.weeks[1].days[0].exercises[0])
+            .toEqual(jasmine.objectContaining({ weight: '120', prescription: '120 x 2 x 3' }));
+    });
+
+    it('recalculates rounded and ranged CONCATENATE prescriptions while preserving X rows', () => {
+        const rows: unknown[][] = Array.from({ length: 24 }, () => []);
+        rows[4] = ['', 'Notes from coach: use the main days first and keep technique controlled.'];
+        rows[13] = ['', 'Best Snatch:', 205, '', 'Notation: Weight x Reps x Sets; X means choose a weight yourself'];
+        rows[18] = ['Week 1', 'Monday'];
+        rows[19] = ['', 'Snatch'];
+        rows[20] = ['', 'Power Snatch'];
+        rows[21] = ['', 'Technique Snatch'];
+        rows[22] = ['', 'Snatch Pull'];
+        rows[23] = ['', 'Unknown Formula Lift'];
+        const worksheet = XLSX.utils.aoa_to_sheet(rows);
+        setFormula(worksheet, 'C20', '123x2 x2', 'CONCATENATE(ROUND(($C$14*0.6),0),"x2 x2")');
+        setFormula(
+            worksheet,
+            'C21',
+            '82-103x4 x5-6',
+            'CONCATENATE(ROUND(($C$14*0.4),0),"-",ROUND(($C$14*0.5),0),"x4 x5-6")'
+        );
+        setFormula(worksheet, 'C22', 'X x3+3 x2', 'CONCATENATE("X ","x3+3 x2")');
+        setFormula(worksheet, 'C23', '144x3 x2', 'CONCATENATE(ROUND(($C$14*0.7),0),"x3 x2")');
+        setFormula(worksheet, 'C24', 'cached x2 x2', 'IF($C$14>0,"cached x2 x2","")');
+
+        const preview = parseWorksheet(parser, worksheet);
+        parser.applyInputs(preview, { 'Program!C14': 211 });
+        const exercises = preview.program.weeks[0].days[0].exercises;
+
+        expect(preview.setup.inputs[0]).toEqual(jasmine.objectContaining({
+            address: 'C14',
+            label: 'Best Snatch',
+            exerciseName: 'Snatch',
+            originalValue: 205
+        }));
+        expect(exercises.find(exercise => exercise.exerciseName === 'Snatch').prescription).toBe('127x2 x2');
+        expect(exercises.find(exercise => exercise.exerciseName === 'Power Snatch').prescription)
+            .toBe('84-106x4 x5-6');
+        expect(exercises.find(exercise => exercise.exerciseName === 'Technique Snatch').prescription)
+            .toBe('X x3+3 x2');
+        expect(exercises.find(exercise => exercise.exerciseName === 'Snatch Pull').prescription)
+            .toBe('148x3 x2');
+        expect(exercises.find(exercise => exercise.exerciseName === 'Unknown Formula Lift').prescription)
+            .toBe('cached x2 x2');
+        expect(preview.setup.unknownFormulaCount).toBe(1);
+        expect(preview.warnings.some(warning => /could not be recalculated/.test(warning))).toBeTrue();
+    });
 });
 
 function parseRows(parser: ProgramWorkbookParserService, rows: unknown[][]) {
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet(rows), 'Program');
+    return parseWorkbook(parser, workbook);
+}
+
+function parseWorksheet(parser: ProgramWorkbookParserService, worksheet: XLSX.WorkSheet) {
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Program');
+    return parseWorkbook(parser, workbook);
+}
+
+function parseWorkbook(parser: ProgramWorkbookParserService, workbook: XLSX.WorkBook) {
     const data = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' }) as ArrayBuffer;
     return parser.parse(data, 'test-program.xlsx');
+}
+
+function setFormula(
+    worksheet: XLSX.WorkSheet,
+    address: string,
+    value: string | number,
+    formula: string
+): void {
+    worksheet[address] = {
+        t: typeof value === 'number' ? 'n' : 's',
+        v: value,
+        w: String(value),
+        f: formula
+    };
+    const range = XLSX.utils.decode_range(worksheet['!ref'] || address);
+    const cell = XLSX.utils.decode_cell(address);
+    range.s.r = Math.min(range.s.r, cell.r);
+    range.s.c = Math.min(range.s.c, cell.c);
+    range.e.r = Math.max(range.e.r, cell.r);
+    range.e.c = Math.max(range.e.c, cell.c);
+    worksheet['!ref'] = XLSX.utils.encode_range(range);
 }
 
 function sparseRow(values: { [column: number]: string }): string[] {

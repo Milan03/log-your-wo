@@ -246,6 +246,63 @@
     gap: 18px;
 }
 
+.program-import__setup {
+    display: grid;
+    gap: 18px;
+}
+
+.program-import__setup-instructions {
+    padding: 16px;
+    border: 1px solid #dce1e6;
+    border-radius: 8px;
+    background: #f7f9fb;
+}
+
+.program-import__setup-instructions h3 {
+    margin: 0 0 10px;
+    font-size: 1rem;
+}
+
+.program-import__setup-instructions ul {
+    display: grid;
+    gap: 6px;
+    margin: 0;
+    padding-left: 20px;
+}
+
+.program-import__setup-inputs {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+}
+
+.program-import__setup-input {
+    display: grid;
+    gap: 5px;
+    margin: 0;
+    color: #4f5b67;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.program-import__setup-control {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 8px;
+}
+
+.program-import__setup-control > span {
+    min-width: 24px;
+    color: #4f5b67;
+    font-weight: 700;
+}
+
+.program-import__setup-error {
+    color: #b42318;
+    font-weight: 600;
+}
+
 .program-import__review-header,
 .program-import__review-actions,
 .program-import__review-pagination,

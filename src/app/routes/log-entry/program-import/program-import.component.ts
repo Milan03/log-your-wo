@@ -7,9 +7,11 @@ import {
     ImportedProgramDay,
     ImportedProgramExercise,
     ImportedProgramWeek,
-    ProgramImportPreview
+    ProgramImportPreview,
+    WorkbookImportInput
 } from '../../../shared/models/imported-program.model';
 import { ProgramImportService } from '../../../shared/services/program-import.service';
+import { ProfileService } from '../../../shared/services/profile.service';
 import { SharedService } from '../../../shared/services/shared.service';
 import { TranslatorService } from '../../../core/translator/translator.service';
 
@@ -34,6 +36,8 @@ export class ProgramImportComponent implements OnInit, AfterViewInit, OnDestroy 
     public isImporting = false;
     public importError = '';
     public importPreview: ProgramImportPreview;
+    public importReviewStep: 'setup' | 'review' = 'review';
+    public setupError = '';
     public selectedReviewWeekIndex = 0;
     public completionColor = '#2fb379';
     public completionStyles: { [key: string]: string } = {};
@@ -65,7 +69,8 @@ export class ProgramImportComponent implements OnInit, AfterViewInit, OnDestroy 
         private _sharedService: SharedService,
         private _router: Router,
         private _activatedRoute: ActivatedRoute,
-        @Optional() private _translatorService?: TranslatorService
+        @Optional() private _translatorService?: TranslatorService,
+        @Optional() private _profileService?: ProfileService
     ) { }
 
     ngOnInit(): void {
@@ -158,6 +163,7 @@ export class ProgramImportComponent implements OnInit, AfterViewInit, OnDestroy 
                     || this.t('program-import.ImportError', undefined, 'That workbook could not be imported. Try another .xlsx file.');
             } else {
                 this.importPreview = preview;
+                this.initializeWorkbookSetup();
                 this.selectedReviewWeekIndex = 0;
             }
         } catch (error) {
@@ -184,11 +190,15 @@ export class ProgramImportComponent implements OnInit, AfterViewInit, OnDestroy 
                     ...day,
                     exercises: day.exercises
                         .filter(exercise => exercise.exerciseName.trim())
-                        .map(exercise => ({
-                            ...exercise,
-                            exerciseName: exercise.exerciseName.trim(),
-                            prescription: this.buildReviewedPrescription(exercise)
-                        }))
+                        .map(exercise => {
+                            const savedExercise = { ...exercise };
+                            delete savedExercise.workbookCalculation;
+                            return {
+                                ...savedExercise,
+                                exerciseName: exercise.exerciseName.trim(),
+                                prescription: this.buildReviewedPrescription(exercise)
+                            };
+                        })
                 })).filter(day => day.exercises.length > 0)
             })).filter(week => week.days.length > 0)
         };
@@ -204,14 +214,63 @@ export class ProgramImportComponent implements OnInit, AfterViewInit, OnDestroy 
 
         this._programImportService.saveProgram(program);
         this.importPreview = undefined;
+        this.importReviewStep = 'review';
+        this.setupError = '';
         this.selectedReviewWeekIndex = 0;
         this.importError = '';
     }
 
     public cancelImportReview(): void {
         this.importPreview = undefined;
+        this.importReviewStep = 'review';
+        this.setupError = '';
         this.selectedReviewWeekIndex = 0;
         this.importError = '';
+    }
+
+    public continueToImportReview(): void {
+        if (!this.importPreview?.setup || !this.workbookSetupValid) {
+            this.setupError = this.t(
+                'program-import.SetupValidation',
+                undefined,
+                'Enter a number greater than zero for each required max.'
+            );
+            return;
+        }
+
+        const values = this.importPreview.setup.inputs.reduce((result, input) => {
+            result[input.id] = Number(input.value);
+            return result;
+        }, {} as { [inputId: string]: number });
+        this.importPreview = this._programImportService.applyWorkbookInputs(this.importPreview, values);
+        this.importReviewStep = 'review';
+        this.setupError = '';
+
+        if (this._profileService && this.importPreview.setup.inputs.length) {
+            void this._profileService.saveTrainingMaxes(this.importPreview.setup.inputs.map(input => ({
+                id: this._profileService.findTrainingMax(input.exerciseName)?.id || input.id,
+                exerciseName: input.exerciseName,
+                value: Number(input.value)
+            }))).catch(() => undefined);
+        }
+    }
+
+    public editWorkbookMaxes(): void {
+        this.importReviewStep = 'setup';
+        this.setupError = '';
+    }
+
+    public get workbookSetupValid(): boolean {
+        return Boolean(this.importPreview?.setup)
+            && this.importPreview.setup.inputs.every(input => this.isWorkbookInputValid(input));
+    }
+
+    public isWorkbookInputValid(input: WorkbookImportInput): boolean {
+        return Number.isFinite(Number(input.value)) && Number(input.value) > 0;
+    }
+
+    public get workbookWeightUnit(): string {
+        return this._profileService?.profile.unitSystem === 'metric' ? 'kg' : 'lb';
     }
 
     public deleteReviewExercise(weekIndex: number, dayIndex: number, exerciseIndex: number): void {
@@ -245,6 +304,21 @@ export class ProgramImportComponent implements OnInit, AfterViewInit, OnDestroy 
         }
         return this.importPreview.program.weeks.reduce((total, week) =>
             total + week.days.reduce((dayTotal, day) => dayTotal + day.exercises.length, 0), 0);
+    }
+
+    private initializeWorkbookSetup(): void {
+        const setup = this.importPreview?.setup;
+        if (!setup) {
+            this.importReviewStep = 'review';
+            return;
+        }
+
+        setup.inputs.forEach(input => {
+            const savedMax = this._profileService?.findTrainingMax(input.exerciseName);
+            input.value = savedMax?.value ?? input.originalValue;
+        });
+        this.importReviewStep = 'setup';
+        this.setupError = '';
     }
 
     public selectWeek(week: ImportedProgramWeek): void {

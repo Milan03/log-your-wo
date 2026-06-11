@@ -32,6 +32,7 @@ export interface ImportedProgramExercise {
     rpe?: string;
     notes?: string;
     percentage1Rm?: string;
+    workbookCalculation?: WorkbookExerciseCalculation;
 }
 
 export interface ProgramImportPreview {
@@ -40,6 +41,37 @@ export interface ProgramImportPreview {
     strategy: string;
     warnings: string[];
     lowConfidence: boolean;
+    setup?: WorkbookImportSetup;
+}
+
+export interface WorkbookImportSetup {
+    instructions: string[];
+    inputs: WorkbookImportInput[];
+    unknownFormulaCount: number;
+}
+
+export interface WorkbookImportInput {
+    id: string;
+    sheetName: string;
+    address: string;
+    label: string;
+    exerciseName: string;
+    originalValue?: number;
+    value?: number;
+}
+
+export interface WorkbookExerciseCalculation {
+    address: string;
+    formula: string;
+    output: 'weight' | 'prescription';
+    segments: WorkbookFormulaSegment[];
+}
+
+export interface WorkbookFormulaSegment {
+    literal?: string;
+    inputId?: string;
+    multiplier?: number;
+    decimals?: number;
 }
 
 export interface ImportedWorkoutState {

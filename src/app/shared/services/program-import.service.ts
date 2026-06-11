@@ -155,6 +155,14 @@ export class ProgramImportService {
         return parser.parse(data, file.name);
     }
 
+    public applyWorkbookInputs(
+        preview: ProgramImportPreview,
+        values: { [inputId: string]: number }
+    ): ProgramImportPreview {
+        const parser = this.workbookParser || new ProgramWorkbookParserService();
+        return parser.applyInputs(preview, values);
+    }
+
     public getProgram(): ImportedProgram {
         const program = this.readJson<ImportedProgram>(this.programStorageKey(), undefined);
 
@@ -180,16 +188,17 @@ export class ProgramImportService {
     }
 
     public saveProgram(program: ImportedProgram): void {
-        this.deletedProgramIds.delete(program.id);
-        this.removePendingProgramDelete(program.id);
+        const savedProgram = this.normalizeProgram(program);
+        this.deletedProgramIds.delete(savedProgram.id);
+        this.removePendingProgramDelete(savedProgram.id);
         this.saveProgramList([
-            program,
-            ...this.getPrograms().filter(currentProgram => currentProgram.id !== program.id)
+            savedProgram,
+            ...this.getPrograms().filter(currentProgram => currentProgram.id !== savedProgram.id)
         ]);
-        this.writeActiveProgram(program);
-        this.programSource.next(program);
-        this.persistPrograms([program]);
-        this.persistPreferences({ activeProgramId: program.id });
+        this.writeActiveProgram(savedProgram);
+        this.programSource.next(savedProgram);
+        this.persistPrograms([savedProgram]);
+        this.persistPreferences({ activeProgramId: savedProgram.id });
     }
 
     public setActiveProgram(programId: string): ImportedProgram {
@@ -871,7 +880,11 @@ export class ProgramImportService {
                 ...week,
                 days: (week.days || []).map(day => ({
                     ...day,
-                    exercises: this.combineCompoundExerciseNames(day.exercises || [])
+                    exercises: this.combineCompoundExerciseNames(day.exercises || []).map(exercise => {
+                        const normalizedExercise = { ...exercise };
+                        delete normalizedExercise.workbookCalculation;
+                        return normalizedExercise;
+                    })
                 }))
             }))
         };
