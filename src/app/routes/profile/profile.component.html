@@ -186,6 +186,54 @@
                 </div>
             </section>
 
+            <section class="profile-card" aria-labelledby="training-maxes-heading">
+                <div class="profile-card__heading">
+                    <em class="fas fa-dumbbell" aria-hidden="true"></em>
+                    <div>
+                        <h2 id="training-maxes-heading">{{ 'profile.TrainingMaxesTitle' | translate }}</h2>
+                        <p>{{ 'profile.TrainingMaxesDescription' | translate }}</p>
+                    </div>
+                </div>
+
+                <div class="profile-maxes" formArrayName="trainingMaxes">
+                    <div *ngFor="let trainingMax of trainingMaxes.controls; let index = index"
+                        class="profile-max"
+                        [formGroupName]="index">
+                        <label class="sr-only" [for]="'profile-max-name-' + index">
+                            {{ 'profile.ExerciseName' | translate }}
+                        </label>
+                        <input [id]="'profile-max-name-' + index" class="form-control"
+                            formControlName="exerciseName"
+                            [placeholder]="'profile.ExerciseNamePlaceholder' | translate">
+                        <label class="sr-only" [for]="'profile-max-value-' + index">
+                            {{ 'profile.BestLift' | translate }}
+                        </label>
+                        <div class="input-group">
+                            <input [id]="'profile-max-value-' + index" class="form-control" type="number"
+                                min="0.1" max="5000" formControlName="value"
+                                [placeholder]="'profile.BestLift' | translate">
+                            <span class="input-group-text">
+                                {{ form.get('unitSystem').value === 'metric' ? 'kg' : 'lb' }}
+                            </span>
+                        </div>
+                        <button class="btn btn-outline-danger profile-max__remove" type="button"
+                            [attr.aria-label]="'profile.RemoveTrainingMax' | translate"
+                            (click)="removeTrainingMax(index)">
+                            <em class="fa fa-trash" aria-hidden="true"></em>
+                        </button>
+                    </div>
+
+                    <p *ngIf="!trainingMaxes.length" class="profile-maxes__empty">
+                        {{ 'profile.NoTrainingMaxes' | translate }}
+                    </p>
+                    <button class="btn btn-outline-secondary profile-maxes__add" type="button"
+                        (click)="addTrainingMax()">
+                        <em class="fa fa-plus" aria-hidden="true"></em>
+                        {{ 'profile.AddTrainingMax' | translate }}
+                    </button>
+                </div>
+            </section>
+
             <section class="profile-card" aria-labelledby="appearance-heading">
                 <div class="profile-card__heading">
                     <em [class]="darkMode ? 'fas fa-moon' : 'fas fa-sun'" aria-hidden="true"></em>

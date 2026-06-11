@@ -1,7 +1,7 @@
 import { Injectable, OnDestroy, Optional } from '@angular/core';
 import { BehaviorSubject, Subscription } from 'rxjs';
 
-import { createDefaultProfile, PreferredLanguage, UserProfile } from '../models/profile.model';
+import { createDefaultProfile, PreferredLanguage, TrainingMax, UserProfile } from '../models/profile.model';
 import { ThemesService } from '../../core/themes/themes.service';
 import { TranslatorService } from '../../core/translator/translator.service';
 import { SupabaseDataService } from './supabase-data.service';
@@ -97,6 +97,7 @@ export class ProfileService implements OnDestroy {
             ...createDefaultProfile(),
             ...profile,
             preferredTraining: profile.preferredTraining || [],
+            trainingMaxes: this.normalizeTrainingMaxes(profile.trainingMaxes),
             preferredLanguage: this.normalizeLanguage(profile.preferredLanguage),
             updatedAt: new Date().toISOString()
         };
@@ -129,6 +130,20 @@ export class ProfileService implements OnDestroy {
         }
 
         return 'Guest';
+    }
+
+    public findTrainingMax(exerciseName: string): TrainingMax | undefined {
+        const requestedName = this.normalizeExerciseKey(exerciseName);
+        return this.profile.trainingMaxes.find(trainingMax =>
+            this.normalizeExerciseKey(trainingMax.exerciseName) === requestedName
+        );
+    }
+
+    public saveTrainingMaxes(trainingMaxes: TrainingMax[]): Promise<void> {
+        return this.saveProfile({
+            ...this.profile,
+            trainingMaxes: this.mergeTrainingMaxes(this.profile.trainingMaxes, trainingMaxes)
+        });
     }
 
     private storageKey(userId = this.activeUserId): string {
@@ -168,6 +183,7 @@ export class ProfileService implements OnDestroy {
             ...createDefaultProfile(),
             ...profile,
             preferredTraining: profile.preferredTraining || [],
+            trainingMaxes: this.normalizeTrainingMaxes(profile.trainingMaxes),
             darkMode: typeof profile.darkMode === 'boolean'
                 ? profile.darkMode
                 : this.readStoredDarkMode(),
@@ -236,6 +252,62 @@ export class ProfileService implements OnDestroy {
         return language === 'fr-ca' || language === 'en-ca'
             ? language
             : this.readStoredLanguage();
+    }
+
+    private normalizeTrainingMaxes(trainingMaxes: TrainingMax[]): TrainingMax[] {
+        const byExercise = new Map<string, TrainingMax>();
+        (trainingMaxes || []).forEach(trainingMax => {
+            const exerciseName = String(trainingMax?.exerciseName || '').replace(/\s+/g, ' ').trim();
+            const value = Number(trainingMax?.value);
+            if (!exerciseName || !Number.isFinite(value) || value <= 0) {
+                return;
+            }
+            byExercise.set(this.normalizeExerciseKey(exerciseName), {
+                id: trainingMax.id || this.createTrainingMaxId(exerciseName),
+                exerciseName,
+                value,
+                updatedAt: trainingMax.updatedAt || undefined
+            });
+        });
+        return Array.from(byExercise.values());
+    }
+
+    private mergeTrainingMaxes(current: TrainingMax[], updates: TrainingMax[]): TrainingMax[] {
+        const byExercise = new Map(this.normalizeTrainingMaxes(current).map(trainingMax => [
+            this.normalizeExerciseKey(trainingMax.exerciseName),
+            trainingMax
+        ]));
+        this.normalizeTrainingMaxes(updates).forEach(trainingMax => {
+            const key = this.normalizeExerciseKey(trainingMax.exerciseName);
+            const existing = byExercise.get(key);
+            byExercise.set(key, {
+                ...existing,
+                ...trainingMax,
+                id: existing?.id || trainingMax.id,
+                updatedAt: new Date().toISOString()
+            });
+        });
+        return Array.from(byExercise.values());
+    }
+
+    private normalizeExerciseKey(exerciseName: string): string {
+        const normalized = String(exerciseName || '')
+            .toLowerCase()
+            .replace(/&/g, ' and ')
+            .replace(/[^a-z0-9]+/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+        const aliases: Record<string, string> = {
+            'c and j': 'clean and jerk',
+            'clean jerk': 'clean and jerk',
+            'back squat': 'squat',
+            'squat back': 'squat'
+        };
+        return aliases[normalized] || normalized;
+    }
+
+    private createTrainingMaxId(exerciseName: string): string {
+        return `max-${this.normalizeExerciseKey(exerciseName).replace(/\s+/g, '-')}`;
     }
 
     private readStoredLanguage(): PreferredLanguage {

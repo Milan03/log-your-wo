@@ -205,6 +205,31 @@
     color: #6c757d;
 }
 
+.profile-maxes {
+    display: grid;
+    gap: 10px;
+}
+
+.profile-max {
+    display: grid;
+    grid-template-columns: minmax(180px, 1fr) minmax(150px, 220px) auto;
+    gap: 10px;
+    align-items: center;
+}
+
+.profile-max__remove {
+    min-width: 42px;
+}
+
+.profile-maxes__empty {
+    margin: 0;
+    color: #6c757d;
+}
+
+.profile-maxes__add {
+    justify-self: start;
+}
+
 .profile-actions {
     display: flex;
     align-items: center;
@@ -247,5 +272,19 @@
 
     .profile-form-grid__wide {
         grid-column: auto;
+    }
+
+    .profile-max {
+        grid-template-columns: minmax(0, 1fr) minmax(120px, 0.75fr) auto;
+    }
+}
+
+@media (max-width: 480px) {
+    .profile-max {
+        grid-template-columns: 1fr auto;
+    }
+
+    .profile-max > .form-control {
+        grid-column: 1 / -1;
     }
 }

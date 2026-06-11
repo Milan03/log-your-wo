@@ -1,10 +1,16 @@
 import { Component, OnDestroy, OnInit, Optional } from '@angular/core';
-import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, Validators } from '@angular/forms';
+import { AbstractControl, FormArray, FormBuilder, FormGroup, ValidationErrors, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 
 import { AuthService } from '../../core/auth/auth.service';
-import { createDefaultProfile, PreferredLanguage, UnitSystem, UserProfile } from '../../shared/models/profile.model';
+import {
+    createDefaultProfile,
+    PreferredLanguage,
+    TrainingMax,
+    UnitSystem,
+    UserProfile
+} from '../../shared/models/profile.model';
 import { ProfileService } from '../../shared/services/profile.service';
 import { SharedService } from '../../shared/services/shared.service';
 import { ThemesService } from '../../core/themes/themes.service';
@@ -51,6 +57,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     private formSub: Subscription;
     private currentUnitSystem: UnitSystem = 'imperial';
     private loadedProfile: UserProfile;
+    private readonly formBuilder: FormBuilder;
 
     constructor(
         formBuilder: FormBuilder,
@@ -61,6 +68,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
         private themes: ThemesService,
         @Optional() private translator?: TranslatorService
     ) {
+        this.formBuilder = formBuilder;
         this.form = formBuilder.group({
             firstName: ['', Validators.maxLength(50)],
             lastName: ['', Validators.maxLength(50)],
@@ -75,6 +83,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
             fitnessGoal: [''],
             experienceLevel: [''],
             workoutsPerWeek: [3, [Validators.min(1), Validators.max(14)]],
+            trainingMaxes: formBuilder.array([]),
             emailUpdates: [false]
         });
     }
@@ -128,6 +137,17 @@ export class ProfileComponent implements OnInit, OnDestroy {
             await this.profileService.saveProfile({
                 ...createDefaultProfile(),
                 ...this.form.value,
+                trainingMaxes: this.trainingMaxes.controls
+                    .map(control => {
+                        const trainingMax = control.value as TrainingMax;
+                        return {
+                            id: trainingMax.id,
+                            exerciseName: trainingMax.exerciseName,
+                            value: trainingMax.value,
+                            ...(trainingMax.updatedAt ? { updatedAt: trainingMax.updatedAt } : {})
+                        };
+                    })
+                    .filter(trainingMax => trainingMax.exerciseName?.trim() && Number(trainingMax.value) > 0),
                 preferredTraining: this.preferredTraining,
                 darkMode: this.darkMode
             });
@@ -149,11 +169,35 @@ export class ProfileComponent implements OnInit, OnDestroy {
         const toMetric = unitSystem === 'metric';
         const height = this.form.get('height').value;
         const bodyWeight = this.form.get('bodyWeight').value;
+        const trainingMaxes = this.trainingMaxes.controls.map(control => ({
+            ...control.value,
+            value: this.convertMeasurement(control.value.value, toMetric ? 1 / 2.2046226218 : 2.2046226218)
+        }));
         this.form.patchValue({
             height: this.convertMeasurement(height, toMetric ? 2.54 : 1 / 2.54),
-            bodyWeight: this.convertMeasurement(bodyWeight, toMetric ? 1 / 2.2046226218 : 2.2046226218)
+            bodyWeight: this.convertMeasurement(bodyWeight, toMetric ? 1 / 2.2046226218 : 2.2046226218),
+            trainingMaxes
         });
         this.currentUnitSystem = unitSystem;
+    }
+
+    public get trainingMaxes(): FormArray {
+        return this.form.get('trainingMaxes') as FormArray;
+    }
+
+    public addTrainingMax(trainingMax?: Partial<TrainingMax>): void {
+        this.trainingMaxes.push(this.formBuilder.group({
+            id: [trainingMax?.id || this.createTrainingMaxId()],
+            exerciseName: [trainingMax?.exerciseName || '', Validators.maxLength(80)],
+            value: [trainingMax?.value, [Validators.min(0.1), Validators.max(5000)]],
+            updatedAt: [trainingMax?.updatedAt]
+        }));
+        this.saved = false;
+    }
+
+    public removeTrainingMax(index: number): void {
+        this.trainingMaxes.removeAt(index);
+        this.saved = false;
     }
 
     public changeUnitSystemFromEvent(event: Event): void {
@@ -205,7 +249,22 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
         this.loadedProfile = loadedProfile;
         this.currentUnitSystem = loadedProfile.unitSystem;
-        this.form.patchValue(loadedProfile, { emitEvent: false });
+        const {
+            trainingMaxes,
+            ...profileValues
+        } = loadedProfile;
+        this.form.patchValue({
+            ...profileValues
+        }, { emitEvent: false });
+        this.trainingMaxes.clear({ emitEvent: false });
+        (trainingMaxes || []).forEach(trainingMax => {
+            this.trainingMaxes.push(this.formBuilder.group({
+                id: [trainingMax.id],
+                exerciseName: [trainingMax.exerciseName, Validators.maxLength(80)],
+                value: [trainingMax.value, [Validators.min(0.1), Validators.max(5000)]],
+                updatedAt: [trainingMax.updatedAt]
+            }), { emitEvent: false });
+        });
         this.preferredTraining = profile && profile.preferredTraining
             ? [...profile.preferredTraining]
             : [];
@@ -247,5 +306,9 @@ export class ProfileComponent implements OnInit, OnDestroy {
     private localDateValue(date: Date): string {
         const offset = date.getTimezoneOffset() * 60000;
         return new Date(date.getTime() - offset).toISOString().slice(0, 10);
+    }
+
+    private createTrainingMaxId(): string {
+        return `max-${Date.now()}-${Math.random().toString(36).slice(2)}`;
     }
 }
