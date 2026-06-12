@@ -4,6 +4,7 @@ export interface ImportedProgram {
     id: string;
     name: string;
     importedAt: string;
+    weightMeasure?: WeightMeasure;
     weeks: ImportedProgramWeek[];
 }
 
@@ -27,6 +28,76 @@ export interface ImportedProgramExercise {
     weight?: string;
     reps?: string;
     sets?: string;
+    rest?: string;
+    tempo?: string;
+    rpe?: string;
+    notes?: string;
+    percentage1Rm?: string;
+    workbookCalculations?: WorkbookExerciseCalculation[];
+    /** Compatibility with previews created before multiple calculations were supported. */
+    workbookCalculation?: WorkbookExerciseCalculation;
+}
+
+export interface ProgramImportPreview {
+    program?: ImportedProgram;
+    confidence: number;
+    strategy: string;
+    warnings: string[];
+    warningDetails?: ProgramImportWarning[];
+    lowConfidence: boolean;
+    setup?: WorkbookImportSetup;
+}
+
+export type ProgramImportWarningCode =
+    | 'workbook-unreadable'
+    | 'workbook-empty'
+    | 'workbook-too-complex'
+    | 'no-workout-rows'
+    | 'low-confidence'
+    | 'unknown-formulas';
+
+export interface ProgramImportWarning {
+    code: ProgramImportWarningCode;
+    count?: number;
+}
+
+export interface WorkbookImportSetup {
+    instructions: string[];
+    inputs: WorkbookImportInput[];
+    unknownFormulaCount: number;
+}
+
+export interface WorkbookImportInput {
+    id: string;
+    sheetName: string;
+    address: string;
+    label: string;
+    exerciseName: string;
+    originalValue?: number;
+    value?: number;
+}
+
+export interface WorkbookExerciseCalculation {
+    address: string;
+    formula: string;
+    output:
+        | 'sets'
+        | 'reps'
+        | 'weight'
+        | 'rest'
+        | 'tempo'
+        | 'rpe'
+        | 'percentage1Rm'
+        | 'notes'
+        | 'prescription';
+    segments: WorkbookFormulaSegment[];
+}
+
+export interface WorkbookFormulaSegment {
+    literal?: string;
+    inputId?: string;
+    multiplier?: number;
+    decimals?: number;
 }
 
 export interface ImportedWorkoutState {

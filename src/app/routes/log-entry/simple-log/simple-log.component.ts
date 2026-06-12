@@ -1126,7 +1126,9 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
                 this.currentLog.startDatim = startedAt;
             }
         }
-        const sourceWeightMeasure = state?.weightMeasure || 'lbs';
+        const sourceWeightMeasure = state?.weightMeasure
+            || this._programImportService.getProgram()?.weightMeasure
+            || 'lbs';
         const exercises = state
             ? this.hydrateExercises(state.exercises)
             : this._programImportService.createExercisesForDay(this.importedDay);

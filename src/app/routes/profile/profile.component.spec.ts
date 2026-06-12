@@ -24,6 +24,11 @@ describe('ProfileComponent', () => {
 
     it('converts existing measurements when the unit system changes', () => {
         const component = createComponent();
+        component.addTrainingMax({
+            id: 'squat',
+            exerciseName: 'Squat',
+            value: 220
+        });
         component.form.patchValue({
             height: 70.9,
             bodyWeight: 200,
@@ -34,6 +39,7 @@ describe('ProfileComponent', () => {
 
         expect(component.form.get('height').value).toBe(180.1);
         expect(component.form.get('bodyWeight').value).toBe(90.7);
+        expect(component.trainingMaxes.at(0).value.value).toBe(100);
     });
 
     it('rejects a future birth date', () => {
@@ -66,6 +72,47 @@ describe('ProfileComponent', () => {
         expect(profileService.saveProfile).toHaveBeenCalledWith(
             jasmine.objectContaining({ darkMode: true })
         );
+    });
+
+    it('includes concise training max rows when saving the profile', async () => {
+        const component = createComponent();
+        const profileService = (component as any).profileService;
+        profileService.saveProfile.and.resolveTo();
+        component.addTrainingMax({
+            id: 'snatch',
+            exerciseName: 'Snatch',
+            value: 100
+        });
+        component.addTrainingMax();
+
+        await component.save();
+
+        expect(profileService.saveProfile).toHaveBeenCalledWith(jasmine.objectContaining({
+            trainingMaxes: [jasmine.objectContaining({
+                id: 'snatch',
+                exerciseName: 'Snatch',
+                value: 100
+            })]
+        }));
+    });
+
+    it('loads and removes saved training maxes', () => {
+        const component = createComponent();
+        (component as any).loadProfile({
+            ...createDefaultProfile(),
+            trainingMaxes: [{
+                id: 'front-squat',
+                exerciseName: 'Front Squat',
+                value: 140
+            }]
+        });
+
+        expect(component.trainingMaxes.length).toBe(1);
+        expect(component.trainingMaxes.at(0).value.exerciseName).toBe('Front Squat');
+
+        component.removeTrainingMax(0);
+
+        expect(component.trainingMaxes.length).toBe(0);
     });
 
     it('keeps unsaved form edits when only dark mode is persisted', () => {

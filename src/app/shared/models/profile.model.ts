@@ -2,6 +2,13 @@ export type UnitSystem = 'imperial' | 'metric';
 export type ExperienceLevel = '' | 'beginner' | 'intermediate' | 'advanced' | 'competitive';
 export type PreferredLanguage = 'en-ca' | 'fr-ca';
 
+export interface TrainingMax {
+    id: string;
+    exerciseName: string;
+    value: number;
+    updatedAt?: string;
+}
+
 export interface UserProfile {
     firstName: string;
     lastName: string;
@@ -16,6 +23,7 @@ export interface UserProfile {
     experienceLevel: ExperienceLevel;
     workoutsPerWeek: number;
     preferredTraining: string[];
+    trainingMaxes: TrainingMax[];
     emailUpdates: boolean;
     darkMode: boolean;
     preferredLanguage: PreferredLanguage;
@@ -37,6 +45,7 @@ export function createDefaultProfile(): UserProfile {
         experienceLevel: '',
         workoutsPerWeek: 3,
         preferredTraining: [],
+        trainingMaxes: [],
         emailUpdates: false,
         darkMode: false,
         preferredLanguage: 'en-ca',

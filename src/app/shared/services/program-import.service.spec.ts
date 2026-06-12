@@ -81,6 +81,21 @@ describe('ProgramImportService', () => {
             .toBeRejectedWithError('No recognizable workout weeks were found in this workbook.');
     });
 
+    it('does not bypass required workbook setup through the direct import API', async () => {
+        const workbook = XLSX.utils.book_new();
+        const worksheet = XLSX.utils.aoa_to_sheet([
+            ['Training max', 100],
+            [],
+            ['Week', 'Day', 'Exercise', 'Weight', 'Sets', 'Reps'],
+            ['1', 'Day 1', 'Squat', 80, '5', '3']
+        ]);
+        setFormula(worksheet, 'D4', 80, 'B1*0.8');
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Program');
+
+        await expectAsync(service.importWorkbook(workbookToFile(workbook, 'setup.xlsx')))
+            .toBeRejectedWithError('This workbook requires training maxes to be confirmed before it can be saved.');
+    });
+
     it('rejects oversized workbook files before parsing them', async () => {
         const file = new File([], 'large.xlsx');
         Object.defineProperty(file, 'size', { value: 10 * 1024 * 1024 + 1 });
@@ -600,6 +615,20 @@ function workbookToFile(workbook: XLSX.WorkBook, fileName: string): File {
     return new File([data], fileName, {
         type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     });
+}
+
+function setFormula(
+    worksheet: XLSX.WorkSheet,
+    address: string,
+    value: string | number,
+    formula: string
+): void {
+    worksheet[address] = {
+        t: typeof value === 'number' ? 'n' : 's',
+        v: value,
+        w: String(value),
+        f: formula
+    };
 }
 
 function createProgram(id = 'program-1', name = 'Program'): ImportedProgram {

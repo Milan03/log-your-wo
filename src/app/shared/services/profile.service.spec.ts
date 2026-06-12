@@ -18,6 +18,52 @@ describe('ProfileService', () => {
         expect(JSON.parse(localStorage.getItem('logYourWo.profile')).username).toBe('milanlifts');
     });
 
+    it('stores and finds reusable training maxes by common exercise aliases', async () => {
+        const service = new ProfileService();
+
+        await service.saveTrainingMaxes([{
+            id: 'clean-jerk',
+            exerciseName: 'Clean & Jerk',
+            value: 120
+        }]);
+
+        expect(service.findTrainingMax('C&J')).toEqual(jasmine.objectContaining({
+            exerciseName: 'Clean & Jerk',
+            value: 120
+        }));
+        expect(JSON.parse(localStorage.getItem('logYourWo.profile')).trainingMaxes.length).toBe(1);
+    });
+
+    it('updates an existing training max instead of duplicating its alias', async () => {
+        const service = new ProfileService();
+        await service.saveTrainingMaxes([{
+            id: 'clean-jerk',
+            exerciseName: 'Clean & Jerk',
+            value: 120
+        }]);
+
+        await service.saveTrainingMaxes([{
+            id: 'new-id',
+            exerciseName: 'Clean Jerk',
+            value: 125
+        }]);
+
+        expect(service.profile.trainingMaxes.length).toBe(1);
+        expect(service.profile.trainingMaxes[0].value).toBe(125);
+        expect(service.profile.trainingMaxes[0].id).toBe('clean-jerk');
+    });
+
+    it('normalizes older profiles without training maxes', () => {
+        localStorage.setItem('logYourWo.profile', JSON.stringify({
+            ...profileWith({ firstName: 'Older' }),
+            trainingMaxes: undefined
+        }));
+
+        const service = new ProfileService();
+
+        expect(service.profile.trainingMaxes).toEqual([]);
+    });
+
     it('migrates a guest profile when an account has no profile yet', async () => {
         const cloud = jasmine.createSpyObj<SupabaseDataService>(
             'SupabaseDataService',
@@ -259,6 +305,7 @@ function profileWith(values: Partial<UserProfile>): UserProfile {
         experienceLevel: '',
         workoutsPerWeek: 3,
         preferredTraining: [],
+        trainingMaxes: [],
         emailUpdates: false,
         darkMode: false,
         preferredLanguage: 'en-ca',

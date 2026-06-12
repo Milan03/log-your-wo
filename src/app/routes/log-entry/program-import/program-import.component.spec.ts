@@ -162,6 +162,254 @@ describe('ProgramImportComponent', () => {
         expect(component.completionStyles['--completion-color']).toBe('#2f80ed');
     });
 
+    it('does not save a parsed program until the review is confirmed', async () => {
+        const draft = createProgram();
+        draft.id = 'draft-program';
+        draft.name = 'Draft Program';
+        spyOn(programImportService, 'previewWorkbook').and.resolveTo({
+            program: draft,
+            confidence: 0.8,
+            strategy: 'generic-header-table',
+            warnings: [],
+            lowConfidence: false
+        });
+        const input = document.createElement('input');
+        const file = new File(['workbook'], 'draft.xlsx');
+        Object.defineProperty(input, 'files', { value: [file] });
+
+        await component.onFileSelected({ target: input } as unknown as Event);
+
+        expect(component.importPreview.program.id).toBe('draft-program');
+        expect(programImportService.getPrograms().some(program => program.id === 'draft-program')).toBeFalse();
+
+        component.confirmImport();
+
+        expect(programImportService.getPrograms().some(program => program.id === 'draft-program')).toBeTrue();
+        expect(component.importPreview).toBeUndefined();
+    });
+
+    it('applies review edits and removes bad rows before saving', () => {
+        const draft = createProgram();
+        draft.id = 'reviewed-program';
+        draft.weeks[0].days[0].exercises.push({
+            id: 'bad-row',
+            exerciseName: 'Bad Row',
+            prescription: ''
+        });
+        component.importPreview = {
+            program: draft,
+            confidence: 0.5,
+            strategy: 'vertical-week-day-sections',
+            warnings: ['Review rows'],
+            lowConfidence: true
+        };
+        const exercise = draft.weeks[0].days[0].exercises[0];
+        exercise.sets = '4';
+        exercise.reps = '5';
+        exercise.rest = '2 min';
+
+        component.deleteReviewExercise(0, 0, 1);
+        component.confirmImport();
+
+        const saved = programImportService.getProgram();
+        expect(saved.id).toBe('reviewed-program');
+        expect(saved.weeks[0].days[0].exercises.length).toBe(1);
+        expect(saved.weeks[0].days[0].exercises[0].prescription).toBe('4 x 5 | Rest: 2 min');
+    });
+
+    it('keeps percentage prescriptions aligned when saving the review', () => {
+        const draft = createProgram();
+        const exercise = draft.weeks[0].days[0].exercises[0];
+        exercise.sets = '3';
+        exercise.reps = '1';
+        exercise.weight = '90%';
+        exercise.percentage1Rm = '90%';
+        component.importPreview = {
+            program: draft,
+            confidence: 0.98,
+            strategy: 'horizontal-day-columns',
+            warnings: [],
+            lowConfidence: false
+        };
+
+        component.confirmImport();
+
+        expect(programImportService.getProgram().weeks[0].days[0].exercises[0].prescription)
+            .toBe('3 x 1 @ 90%');
+    });
+
+    it('moves through import review one week at a time', () => {
+        component.importPreview = {
+            program: createProgram(),
+            confidence: 0.9,
+            strategy: 'legacy-fixed-layout',
+            warnings: [],
+            lowConfidence: false
+        };
+
+        expect(component.selectedReviewWeek.name).toBe('Week 1');
+
+        component.nextReviewWeek();
+
+        expect(component.selectedReviewWeekIndex).toBe(1);
+        expect(component.selectedReviewWeek.name).toBe('Week 2');
+
+        component.nextReviewWeek();
+        expect(component.selectedReviewWeekIndex).toBe(1);
+
+        component.previousReviewWeek();
+        expect(component.selectedReviewWeekIndex).toBe(0);
+    });
+
+    it('resets review pagination when the review is cancelled', () => {
+        component.importPreview = {
+            program: createProgram(),
+            confidence: 0.9,
+            strategy: 'legacy-fixed-layout',
+            warnings: [],
+            lowConfidence: false
+        };
+        component.selectReviewWeek(1);
+
+        component.cancelImportReview();
+
+        expect(component.selectedReviewWeekIndex).toBe(0);
+        expect(component.importPreview).toBeUndefined();
+    });
+
+    it('prefills saved maxes, recalculates before review, and removes calculation metadata when saved', async () => {
+        const draft = createProgram();
+        const exercise = draft.weeks[0].days[0].exercises[0];
+        exercise.sets = '3';
+        exercise.reps = '1';
+        exercise.weight = '90';
+        exercise.workbookCalculation = {
+            address: 'B18',
+            formula: 'B2*0.9',
+            output: 'weight',
+            segments: [{
+                inputId: 'Program!B2',
+                multiplier: 0.9
+            }]
+        };
+        const preview = {
+            program: draft,
+            confidence: 0.98,
+            strategy: 'horizontal-day-columns',
+            warnings: [],
+            lowConfidence: false,
+            setup: {
+                instructions: ['Use a current max.'],
+                inputs: [{
+                    id: 'Program!B2',
+                    sheetName: 'Program',
+                    address: 'B2',
+                    label: 'Snatch',
+                    exerciseName: 'Snatch',
+                    originalValue: 100,
+                    value: 100
+                }],
+                unknownFormulaCount: 0
+            }
+        };
+        const profileService = {
+            profile: { unitSystem: 'metric' },
+            findTrainingMax: jasmine.createSpy('findTrainingMax').and.returnValue({
+                id: 'saved-snatch',
+                exerciseName: 'Snatch',
+                value: 120
+            }),
+            saveTrainingMaxes: jasmine.createSpy('saveTrainingMaxes').and.resolveTo()
+        };
+        (component as any)._profileService = profileService;
+        spyOn(programImportService, 'previewWorkbook').and.resolveTo(preview);
+        const input = document.createElement('input');
+        Object.defineProperty(input, 'files', {
+            value: [new File(['workbook'], 'calculated.xlsx')]
+        });
+
+        await component.onFileSelected({ target: input } as unknown as Event);
+
+        expect(component.importReviewStep).toBe('setup');
+        expect(component.importPreview.setup.inputs[0].value).toBe(120);
+        expect(component.workbookWeightUnit).toBe('kg');
+
+        component.continueToImportReview();
+
+        expect(component.importReviewStep).toBe('review');
+        expect(exercise.weight).toBe('108');
+        expect(exercise.prescription).toBe('108 x 1 x 3');
+        expect(profileService.saveTrainingMaxes).not.toHaveBeenCalled();
+        expect(component.importPreview.program.weightMeasure).toBe('kg');
+
+        component.editWorkbookMaxes();
+        expect(component.importReviewStep).toBe('setup');
+        component.continueToImportReview();
+        await component.confirmImport();
+
+        expect(programImportService.getProgram().weeks[0].days[0].exercises[0].workbookCalculation)
+            .toBeUndefined();
+        expect(programImportService.getProgram().weeks[0].days[0].exercises[0].workbookCalculations)
+            .toBeUndefined();
+        expect(programImportService.getProgram().weightMeasure).toBe('kg');
+        expect(profileService.saveTrainingMaxes).toHaveBeenCalledWith([
+            jasmine.objectContaining({
+                id: 'saved-snatch',
+                exerciseName: 'Snatch',
+                value: 120
+            })
+        ]);
+    });
+
+    it('does not save workbook maxes when the import review is cancelled', () => {
+        const profileService = {
+            profile: { unitSystem: 'metric' },
+            findTrainingMax: jasmine.createSpy('findTrainingMax'),
+            saveTrainingMaxes: jasmine.createSpy('saveTrainingMaxes').and.resolveTo()
+        };
+        (component as any)._profileService = profileService;
+        component.importPreview = {
+            program: createProgram(),
+            confidence: 0.9,
+            strategy: 'generic-header-table',
+            warnings: [],
+            lowConfidence: false,
+            setup: {
+                instructions: [],
+                inputs: [{
+                    id: 'Program!B1',
+                    sheetName: 'Program',
+                    address: 'B1',
+                    label: 'Squat',
+                    exerciseName: 'Squat',
+                    originalValue: 100,
+                    value: 125
+                }],
+                unknownFormulaCount: 0
+            }
+        };
+
+        component.continueToImportReview();
+        component.cancelImportReview();
+
+        expect(profileService.saveTrainingMaxes).not.toHaveBeenCalled();
+    });
+
+    it('normalizes workbook max controls to half-unit increments', () => {
+        const input = {
+            id: 'Program!B1',
+            sheetName: 'Program',
+            address: 'B1',
+            label: 'Squat',
+            exerciseName: 'Squat',
+            value: 99.8
+        };
+
+        component.normalizeWorkbookInput(input);
+
+        expect(input.value).toBe(100);
+    });
+
     it('falls back safely when returned week and day IDs are invalid', () => {
         routeParams.next(convertToParamMap({
             programId: 'program-1',
