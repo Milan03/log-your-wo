@@ -362,6 +362,12 @@
     background-color: #334e68 !important;
 }
 
+.program-import__review-nav-button:focus-visible,
+.program-import__review-week-tab:focus-visible {
+    outline: 3px solid rgba(35, 151, 198, 0.45);
+    outline-offset: 2px;
+}
+
 .program-import__review-nav-button:disabled {
     color: #6c757d !important;
     border-color: #c5cdd5 !important;
@@ -740,6 +746,39 @@
 
     .program-import__library-item {
         flex-basis: 230px;
+    }
+
+    .program-import__review-header,
+    .program-import__review-pagination {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .program-import__review-nav-button {
+        width: 100%;
+    }
+
+    .program-import__review-week-tabs {
+        width: 100%;
+    }
+
+    .program-import__review-row {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        min-width: 0;
+        padding: 12px;
+        border: 1px solid #e5e9ed;
+        border-radius: 6px;
+    }
+
+    .program-import__review-row label:first-child,
+    .program-import__review-notes {
+        grid-column: 1 / -1;
+    }
+
+    .program-import__review-delete {
+        grid-column: 2;
+        justify-self: end;
+        min-width: 44px;
     }
 }
 

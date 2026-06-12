@@ -140,6 +140,9 @@ export class ProgramImportService {
         if (!preview.program || !preview.program.weeks.length) {
             throw new Error('No recognizable workout weeks were found in this workbook.');
         }
+        if (preview.setup?.inputs.length) {
+            throw new Error('This workbook requires training maxes to be confirmed before it can be saved.');
+        }
 
         this.saveProgram(preview.program);
         return preview.program;
@@ -883,6 +886,7 @@ export class ProgramImportService {
                     exercises: this.combineCompoundExerciseNames(day.exercises || []).map(exercise => {
                         const normalizedExercise = { ...exercise };
                         delete normalizedExercise.workbookCalculation;
+                        delete normalizedExercise.workbookCalculations;
                         return normalizedExercise;
                     })
                 }))

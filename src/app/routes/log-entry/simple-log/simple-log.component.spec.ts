@@ -471,6 +471,30 @@ describe('SimpleLogComponent', () => {
     expect(component.currentLog.exercises[0].weight).toBe(52.2);
   });
 
+  it('keeps calculated metric program weights in kilograms on first open', () => {
+    const profileService = TestBed.inject(ProfileService);
+    void profileService.saveProfile({
+      ...profileService.profile,
+      unitSystem: 'metric'
+    });
+    fixture.destroy();
+    fixture = TestBed.createComponent(SimpleLogComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+    const program = createProgram();
+    program.weightMeasure = 'kg';
+    program.weeks[0].days[0].exercises[0].weight = '108';
+    programImportService.saveProgram(program);
+
+    routeParams.next(convertToParamMap({
+      weekId: 'week-1',
+      dayId: 'week-1-day-1'
+    }));
+
+    expect(component.currentLog.exercises[0].weight).toBe('108');
+    expect(programImportService.getWorkoutState('week-1', 'week-1-day-1')).toBeUndefined();
+  });
+
   it('converts saved simple-log measurements to the profile units and persists the result', () => {
     const log = new SimpleLog();
     const strength = createExercise('Clean', false);

@@ -39,7 +39,7 @@ describe('ProfileComponent', () => {
 
         expect(component.form.get('height').value).toBe(180.1);
         expect(component.form.get('bodyWeight').value).toBe(90.7);
-        expect(component.trainingMaxes.at(0).value.value).toBe(99.8);
+        expect(component.trainingMaxes.at(0).value.value).toBe(100);
     });
 
     it('rejects a future birth date', () => {

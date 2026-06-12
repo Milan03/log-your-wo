@@ -339,6 +339,19 @@ describe('ProgramImportComponent', () => {
         expect(component.importReviewStep).toBe('review');
         expect(exercise.weight).toBe('108');
         expect(exercise.prescription).toBe('108 x 1 x 3');
+        expect(profileService.saveTrainingMaxes).not.toHaveBeenCalled();
+        expect(component.importPreview.program.weightMeasure).toBe('kg');
+
+        component.editWorkbookMaxes();
+        expect(component.importReviewStep).toBe('setup');
+        component.continueToImportReview();
+        await component.confirmImport();
+
+        expect(programImportService.getProgram().weeks[0].days[0].exercises[0].workbookCalculation)
+            .toBeUndefined();
+        expect(programImportService.getProgram().weeks[0].days[0].exercises[0].workbookCalculations)
+            .toBeUndefined();
+        expect(programImportService.getProgram().weightMeasure).toBe('kg');
         expect(profileService.saveTrainingMaxes).toHaveBeenCalledWith([
             jasmine.objectContaining({
                 id: 'saved-snatch',
@@ -346,14 +359,55 @@ describe('ProgramImportComponent', () => {
                 value: 120
             })
         ]);
+    });
 
-        component.editWorkbookMaxes();
-        expect(component.importReviewStep).toBe('setup');
+    it('does not save workbook maxes when the import review is cancelled', () => {
+        const profileService = {
+            profile: { unitSystem: 'metric' },
+            findTrainingMax: jasmine.createSpy('findTrainingMax'),
+            saveTrainingMaxes: jasmine.createSpy('saveTrainingMaxes').and.resolveTo()
+        };
+        (component as any)._profileService = profileService;
+        component.importPreview = {
+            program: createProgram(),
+            confidence: 0.9,
+            strategy: 'generic-header-table',
+            warnings: [],
+            lowConfidence: false,
+            setup: {
+                instructions: [],
+                inputs: [{
+                    id: 'Program!B1',
+                    sheetName: 'Program',
+                    address: 'B1',
+                    label: 'Squat',
+                    exerciseName: 'Squat',
+                    originalValue: 100,
+                    value: 125
+                }],
+                unknownFormulaCount: 0
+            }
+        };
+
         component.continueToImportReview();
-        component.confirmImport();
+        component.cancelImportReview();
 
-        expect(programImportService.getProgram().weeks[0].days[0].exercises[0].workbookCalculation)
-            .toBeUndefined();
+        expect(profileService.saveTrainingMaxes).not.toHaveBeenCalled();
+    });
+
+    it('normalizes workbook max controls to half-unit increments', () => {
+        const input = {
+            id: 'Program!B1',
+            sheetName: 'Program',
+            address: 'B1',
+            label: 'Squat',
+            exerciseName: 'Squat',
+            value: 99.8
+        };
+
+        component.normalizeWorkbookInput(input);
+
+        expect(input.value).toBe(100);
     });
 
     it('falls back safely when returned week and day IDs are invalid', () => {

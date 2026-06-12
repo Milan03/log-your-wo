@@ -4,6 +4,7 @@ export interface ImportedProgram {
     id: string;
     name: string;
     importedAt: string;
+    weightMeasure?: WeightMeasure;
     weeks: ImportedProgramWeek[];
 }
 
@@ -32,6 +33,8 @@ export interface ImportedProgramExercise {
     rpe?: string;
     notes?: string;
     percentage1Rm?: string;
+    workbookCalculations?: WorkbookExerciseCalculation[];
+    /** Compatibility with previews created before multiple calculations were supported. */
     workbookCalculation?: WorkbookExerciseCalculation;
 }
 
@@ -40,8 +43,22 @@ export interface ProgramImportPreview {
     confidence: number;
     strategy: string;
     warnings: string[];
+    warningDetails?: ProgramImportWarning[];
     lowConfidence: boolean;
     setup?: WorkbookImportSetup;
+}
+
+export type ProgramImportWarningCode =
+    | 'workbook-unreadable'
+    | 'workbook-empty'
+    | 'workbook-too-complex'
+    | 'no-workout-rows'
+    | 'low-confidence'
+    | 'unknown-formulas';
+
+export interface ProgramImportWarning {
+    code: ProgramImportWarningCode;
+    count?: number;
 }
 
 export interface WorkbookImportSetup {
@@ -63,7 +80,16 @@ export interface WorkbookImportInput {
 export interface WorkbookExerciseCalculation {
     address: string;
     formula: string;
-    output: 'weight' | 'prescription';
+    output:
+        | 'sets'
+        | 'reps'
+        | 'weight'
+        | 'rest'
+        | 'tempo'
+        | 'rpe'
+        | 'percentage1Rm'
+        | 'notes'
+        | 'prescription';
     segments: WorkbookFormulaSegment[];
 }
 

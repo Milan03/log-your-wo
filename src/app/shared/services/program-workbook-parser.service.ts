@@ -6,6 +6,8 @@ import {
     ImportedProgramDay,
     ImportedProgramExercise,
     ImportedProgramWeek,
+    ProgramImportWarning,
+    ProgramImportWarningCode,
     ProgramImportPreview,
     WorkbookExerciseCalculation,
     WorkbookFormulaSegment,
@@ -46,30 +48,64 @@ interface HeaderMap {
     notes?: number;
 }
 
+type CalculationOutput = WorkbookExerciseCalculation['output'];
+
+interface FormulaSource {
+    cell: NormalizedCell;
+    output: CalculationOutput;
+}
+
+class WorkbookComplexityError extends Error { }
+
 @Injectable({
     providedIn: 'root'
 })
 export class ProgramWorkbookParserService {
     private readonly lowConfidenceThreshold = 0.55;
+    private readonly maximumSheets = 25;
+    private readonly maximumRowsPerSheet = 5000;
+    private readonly maximumColumnsPerSheet = 256;
+    private readonly maximumCellsPerSheet = 250000;
+    private readonly maximumMergedCellsPerSheet = 50000;
     private inputByReference = new Map<string, WorkbookImportInput>();
     private unknownFormulaAddresses = new Set<string>();
+    private sheetNames = new Map<string, string>();
 
     public parse(data: ArrayBuffer, fileName: string): ProgramImportPreview {
         let workbook: XLSX.WorkBook;
 
         try {
-            workbook = XLSX.read(data, { type: 'array', cellDates: false });
+            workbook = this.readWorkbook(data);
         } catch {
-            return this.emptyPreview('The workbook could not be read.');
+            return this.emptyPreview('The workbook could not be read.', 'workbook-unreadable');
         }
 
-        const sheets = workbook.SheetNames
-            .map(name => this.normalizeSheet(name, workbook.Sheets[name]))
-            .filter(sheet => sheet.rows.length > 0);
+        if (workbook.SheetNames.length > this.maximumSheets) {
+            return this.emptyPreview(
+                'The workbook is too large or complex to import safely.',
+                'workbook-too-complex'
+            );
+        }
+
+        let sheets: NormalizedSheet[];
+        try {
+            sheets = workbook.SheetNames
+                .map(name => this.normalizeSheet(name, workbook.Sheets[name]))
+                .filter(sheet => sheet.rows.length > 0);
+        } catch (error) {
+            if (error instanceof WorkbookComplexityError) {
+                return this.emptyPreview(error.message, 'workbook-too-complex');
+            }
+            return this.emptyPreview('The workbook could not be read.', 'workbook-unreadable');
+        }
         if (!sheets.length) {
-            return this.emptyPreview('The workbook does not contain any non-empty sheets.');
+            return this.emptyPreview(
+                'The workbook does not contain any non-empty sheets.',
+                'workbook-empty'
+            );
         }
 
+        this.sheetNames = new Map(sheets.map(sheet => [sheet.name.toLowerCase(), sheet.name]));
         const setup = this.detectSetup(sheets);
         this.inputByReference = new Map(setup.inputs.map(input => [input.id, input]));
         this.unknownFormulaAddresses.clear();
@@ -87,7 +123,10 @@ export class ProgramWorkbookParserService {
         const best = results[0];
 
         if (!best) {
-            return this.emptyPreview('No workout rows were detected. Check that the sheet includes exercise names and prescriptions.');
+            return this.emptyPreview(
+                'No workout rows were detected. Check that the sheet includes exercise names and prescriptions.',
+                'no-workout-rows'
+            );
         }
 
         const confidence = Math.max(0, Math.min(1, best.confidence));
@@ -102,11 +141,18 @@ export class ProgramWorkbookParserService {
         const warnings = lowConfidence
             ? ['This workbook layout was only partially recognized. Review and clean up the detected rows before saving.']
             : [];
+        const warningDetails: ProgramImportWarning[] = lowConfidence
+            ? [{ code: 'low-confidence' }]
+            : [];
         if (setup.unknownFormulaCount) {
             warnings.push(
                 `${setup.unknownFormulaCount} workbook formula`
                 + `${setup.unknownFormulaCount === 1 ? '' : 's'} could not be recalculated and will use Excel's saved values.`
             );
+            warningDetails.push({
+                code: 'unknown-formulas',
+                count: setup.unknownFormulaCount
+            });
         }
 
         return {
@@ -115,8 +161,17 @@ export class ProgramWorkbookParserService {
             strategy: best.strategy,
             lowConfidence,
             warnings,
+            warningDetails,
             setup: setup.inputs.length || setup.instructions.length ? setup : undefined
         };
+    }
+
+    private readWorkbook(data: ArrayBuffer): XLSX.WorkBook {
+        return XLSX.read(data, {
+            type: 'array',
+            cellDates: false,
+            sheetRows: this.maximumRowsPerSheet + 1
+        });
     }
 
     public applyInputs(
@@ -135,23 +190,30 @@ export class ProgramWorkbookParserService {
         });
         const inputValues = new Map(preview.setup.inputs.map(input => [input.id, input.value]));
         preview.program.weeks.forEach(week => week.days.forEach(day => day.exercises.forEach(exercise => {
-            const calculation = exercise.workbookCalculation;
-            if (!calculation) {
+            const calculations = this.exerciseCalculations(exercise);
+            if (!calculations.length) {
                 return;
             }
-            const calculated = this.evaluateCalculation(calculation, inputValues);
-            if (calculated === undefined) {
-                return;
-            }
-            if (calculation.output === 'weight') {
-                exercise.weight = calculated;
-                exercise.percentage1Rm = undefined;
+            calculations.forEach(calculation => {
+                const calculated = this.evaluateCalculation(calculation, inputValues);
+                if (calculated === undefined) {
+                    return;
+                }
+                if (calculation.output !== 'prescription') {
+                    exercise[calculation.output] = calculated;
+                    if (calculation.output === 'weight') {
+                        exercise.percentage1Rm = undefined;
+                    }
+                    return;
+                }
+                const detected = this.parsePrescription(calculated, true);
+                exercise.prescription = calculated;
+                this.clearCalculatedFields(exercise);
+                Object.assign(exercise, detected);
+            });
+            if (!calculations.some(calculation => calculation.output === 'prescription')) {
                 exercise.prescription = this.buildPrescription(exercise);
-                return;
             }
-            const detected = this.parsePrescription(calculated, true);
-            exercise.prescription = calculated;
-            Object.assign(exercise, detected);
         })));
         return preview;
     }
@@ -162,8 +224,28 @@ export class ProgramWorkbookParserService {
         }
 
         const range = XLSX.utils.decode_range(worksheet['!ref']);
+        const rowCount = range.e.r - range.s.r + 1;
+        const columnCount = range.e.c - range.s.c + 1;
+        const cellCount = rowCount * columnCount;
+        if (
+            rowCount > this.maximumRowsPerSheet
+            || columnCount > this.maximumColumnsPerSheet
+            || cellCount > this.maximumCellsPerSheet
+        ) {
+            throw new WorkbookComplexityError(
+                `The "${name}" sheet is too large or has an invalid used range.`
+            );
+        }
+
         const mergedCells = new Map<string, XLSX.CellObject>();
+        let mergedCellCount = 0;
         (worksheet['!merges'] || []).forEach(merge => {
+            mergedCellCount += (merge.e.r - merge.s.r + 1) * (merge.e.c - merge.s.c + 1);
+            if (mergedCellCount > this.maximumMergedCellsPerSheet) {
+                throw new WorkbookComplexityError(
+                    `The "${name}" sheet contains too many merged cells to import safely.`
+                );
+            }
             const value = worksheet[XLSX.utils.encode_cell(merge.s)];
             for (let row = merge.s.r; row <= merge.e.r; row++) {
                 for (let column = merge.s.c; column <= merge.e.c; column++) {
@@ -264,7 +346,10 @@ export class ProgramWorkbookParserService {
                                 {},
                                 `week-${weekNumber}-day-${dayIndex + 1}-exercise-${rowIndex}`,
                                 true,
-                                sheet.cells[rowIndex]?.[section.prescriptionColumn],
+                                this.formulaSources(
+                                    sheet.cells[rowIndex]?.[section.prescriptionColumn],
+                                    'prescription'
+                                ),
                                 sheet.name
                             ));
                         }
@@ -333,7 +418,13 @@ export class ProgramWorkbookParserService {
                     exerciseName,
                     details,
                     {},
-                    `${currentDay.id}-exercise-${rowIndex}`
+                    `${currentDay.id}-exercise-${rowIndex}`,
+                    false,
+                    this.firstFormulaSources(
+                        sheet.cells[rowIndex]?.slice(firstColumn + 1),
+                        'prescription'
+                    ),
+                    sheet.name
                 ));
             });
         });
@@ -401,7 +492,13 @@ export class ProgramWorkbookParserService {
                             exerciseName,
                             details,
                             {},
-                            `week-${weekNumber}-day-${dayIndex + 1}-exercise-${exerciseRow}`
+                            `week-${weekNumber}-day-${dayIndex + 1}-exercise-${exerciseRow}`,
+                            false,
+                            this.firstFormulaSources(
+                                sheet.cells[exerciseRow]?.slice(entry.column + 1, endColumn),
+                                'prescription'
+                            ),
+                            sheet.name
                         ));
                     }
 
@@ -528,7 +625,9 @@ export class ProgramWorkbookParserService {
             return this.isExerciseRow(exerciseName, weights)
                 ? [{
                     ...this.createExercise(exerciseName, this.buildSetPrescription(fields), fields, idPrefix),
-                    workbookCalculation: percentageRuns[0]?.calculation
+                    workbookCalculations: percentageRuns[0]?.calculation
+                        ? [percentageRuns[0].calculation]
+                        : undefined
                 }]
                 : [];
         }
@@ -549,7 +648,7 @@ export class ProgramWorkbookParserService {
                 fields,
                 `${idPrefix}-${index + 1}`
                 ),
-                workbookCalculation: run?.calculation
+                workbookCalculations: run?.calculation ? [run.calculation] : undefined
             };
         });
     }
@@ -611,7 +710,7 @@ export class ProgramWorkbookParserService {
                         fields,
                         `${day.id}-exercise-${rowIndex}`,
                         false,
-                        this.formulaCellFromColumns(sheet, rowIndex, map),
+                        this.formulaSourcesFromColumns(sheet, rowIndex, map),
                         sheet.name
                     ));
                 }
@@ -691,24 +790,50 @@ export class ProgramWorkbookParserService {
         };
     }
 
-    private formulaCellFromColumns(
+    private formulaSourcesFromColumns(
         sheet: NormalizedSheet,
         rowIndex: number,
         map: HeaderMap
-    ): NormalizedCell | undefined {
-        const columns = [
-            map.weight,
-            map.percentage1Rm,
-            map.sets,
-            map.reps,
-            map.rest,
-            map.tempo,
-            map.rpe,
-            map.notes
-        ].filter(column => column !== undefined);
+    ): FormulaSource[] {
+        const columns: Array<{ column: number | undefined, output: CalculationOutput }> = [
+            { column: map.weight, output: 'weight' },
+            { column: map.percentage1Rm, output: 'percentage1Rm' },
+            { column: map.sets, output: 'sets' },
+            { column: map.reps, output: 'reps' },
+            { column: map.rest, output: 'rest' },
+            { column: map.tempo, output: 'tempo' },
+            { column: map.rpe, output: 'rpe' },
+            { column: map.notes, output: 'notes' }
+        ];
         return columns
-            .map(column => sheet.cells[rowIndex]?.[column])
-            .find(cell => cell?.formula);
+            .filter(candidate =>
+                candidate.column !== undefined
+                && sheet.cells[rowIndex]?.[candidate.column]?.formula
+            )
+            .map(source => this.formulaSource(sheet.cells[rowIndex][source.column], source.output))
+            .filter((source): source is FormulaSource => Boolean(source));
+    }
+
+    private formulaSource(
+        cell: NormalizedCell,
+        output: CalculationOutput
+    ): FormulaSource | undefined {
+        return cell?.formula ? { cell, output } : undefined;
+    }
+
+    private formulaSources(
+        cell: NormalizedCell,
+        output: CalculationOutput
+    ): FormulaSource[] {
+        const source = this.formulaSource(cell, output);
+        return source ? [source] : [];
+    }
+
+    private firstFormulaSources(
+        cells: NormalizedCell[],
+        output: CalculationOutput
+    ): FormulaSource[] {
+        return this.formulaSources(cells?.find(cell => cell?.formula), output);
     }
 
     private createExercise(
@@ -717,7 +842,7 @@ export class ProgramWorkbookParserService {
         fields: Partial<ImportedProgramExercise>,
         id: string,
         legacyLayout = false,
-        sourceCell?: NormalizedCell,
+        formulaSources: FormulaSource[] = [],
         sheetName?: string
     ): ImportedProgramExercise {
         const detected = this.parsePrescription(prescription, legacyLayout);
@@ -727,10 +852,20 @@ export class ProgramWorkbookParserService {
             prescription: this.normalizeText(prescription) || this.buildPrescription(fields),
             ...detected,
             ...this.withoutEmptyFields(fields),
-            workbookCalculation: sourceCell && sheetName
-                ? this.calculationFromCell(sourceCell, sheetName, 'prescription')
+            workbookCalculations: sheetName
+                ? this.calculationsFromSources(formulaSources, sheetName)
                 : undefined
         };
+    }
+
+    private calculationsFromSources(
+        sources: FormulaSource[],
+        sheetName: string
+    ): WorkbookExerciseCalculation[] | undefined {
+        const calculations = sources
+            .map(source => this.calculationFromCell(source.cell, sheetName, source.output))
+            .filter((calculation): calculation is WorkbookExerciseCalculation => Boolean(calculation));
+        return calculations.length ? calculations : undefined;
     }
 
     private parsePrescription(value: string, legacyLayout: boolean): Partial<ImportedProgramExercise> {
@@ -791,10 +926,11 @@ export class ProgramWorkbookParserService {
             const signature = week.days
                 .map(day => day.exercises.map(exercise => `${exercise.exerciseName}:${exercise.prescription}`).join(';'))
                 .join('|');
-            if (!signature || seen.has(signature)) {
+            const signatureKey = `${week.weekNumber}:${signature}`;
+            if (!signature || seen.has(signatureKey)) {
                 return;
             }
-            seen.add(signature);
+            seen.add(signatureKey);
             const weekNumber = Number.isFinite(week.weekNumber) ? week.weekNumber : weekIndex + 1;
             result.push({
                 ...week,
@@ -871,9 +1007,8 @@ export class ProgramWorkbookParserService {
             if (!cell.formula) {
                 return;
             }
-            this.formulaReferences(cell.formula).forEach(address => {
-                referencedCells.add(this.inputId(sheet.name, address));
-            });
+            this.formulaReferenceIds(cell.formula, sheet.name)
+                .forEach(id => referencedCells.add(id));
         })));
 
         const inputs: WorkbookImportInput[] = [];
@@ -937,7 +1072,7 @@ export class ProgramWorkbookParserService {
     private calculationFromCell(
         cell: NormalizedCell,
         sheetName: string,
-        output: 'weight' | 'prescription'
+        output: CalculationOutput
     ): WorkbookExerciseCalculation | undefined {
         if (!cell?.formula) {
             return undefined;
@@ -972,8 +1107,8 @@ export class ProgramWorkbookParserService {
             }
         }
 
-        const referencesInput = this.formulaReferences(formula)
-            .some(address => this.inputByReference.has(this.inputId(sheetName, address)));
+        const referencesInput = this.formulaReferenceIds(formula, sheetName)
+            .some(id => this.inputByReference.has(id));
         if (referencesInput) {
             this.unknownFormulaAddresses.add(`${sheetName}!${cell.address}`);
         }
@@ -981,12 +1116,20 @@ export class ProgramWorkbookParserService {
     }
 
     private directFormulaSegment(formula: string, sheetName: string): WorkbookFormulaSegment | undefined {
-        const expression = formula.replace(/[()]/g, '').replace(/\$/g, '').replace(/\s+/g, '');
-        const referenceFirst = expression.match(/^([A-Z]+\d+)\*(-?\d+(?:\.\d+)?)$/i);
-        const multiplierFirst = expression.match(/^(-?\d+(?:\.\d+)?)\*([A-Z]+\d+)$/i);
-        const address = referenceFirst?.[1] || multiplierFirst?.[2];
-        const multiplier = Number(referenceFirst?.[2] || multiplierFirst?.[1]);
-        const inputId = address ? this.inputId(sheetName, address) : '';
+        const expression = formula.replace(/[()]/g, '').replace(/\s+/g, '');
+        const referencePattern = `(?:(?:'((?:[^']|'')+)'|([A-Za-z0-9_]+))!)?\\$?([A-Z]{1,3})\\$?(\\d+)`;
+        const referenceFirst = expression.match(
+            new RegExp(`^(${referencePattern})\\*(-?\\d+(?:\\.\\d+)?)$`, 'i')
+        );
+        const multiplierFirst = expression.match(
+            new RegExp(`^(-?\\d+(?:\\.\\d+)?)\\*(${referencePattern})$`, 'i')
+        );
+        const reference = referenceFirst?.[1] || multiplierFirst?.[2];
+        const multiplier = Number(
+            referenceFirst?.[referenceFirst.length - 1]
+            || multiplierFirst?.[1]
+        );
+        const inputId = reference ? this.formulaReferenceId(reference, sheetName) : '';
 
         return inputId && this.inputByReference.has(inputId) && Number.isFinite(multiplier)
             ? { inputId, multiplier }
@@ -1058,9 +1201,49 @@ export class ProgramWorkbookParserService {
         return this.normalizeText(result);
     }
 
-    private formulaReferences(formula: string): string[] {
-        return Array.from(formula.matchAll(/\$?([A-Z]+)\$?(\d+)/gi))
-            .map(match => `${match[1].toUpperCase()}${match[2]}`);
+    private formulaReferenceIds(formula: string, currentSheetName: string): string[] {
+        const expression = this.withoutFormulaStringLiterals(formula);
+        const references = expression.matchAll(
+            /(?:(?:'((?:[^']|'')+)'|([A-Za-z0-9_]+))!)?\$?([A-Z]{1,3})\$?(\d+)/gi
+        );
+        return Array.from(references).map(match => {
+            const referencedSheet = (match[1] || match[2] || currentSheetName).replace(/''/g, "'");
+            const sheetName = this.sheetNames.get(referencedSheet.toLowerCase()) || referencedSheet;
+            return this.inputId(sheetName, `${match[3]}${match[4]}`);
+        });
+    }
+
+    private formulaReferenceId(reference: string, currentSheetName: string): string {
+        const match = reference.match(
+            /^(?:(?:'((?:[^']|'')+)'|([A-Za-z0-9_]+))!)?\$?([A-Z]{1,3})\$?(\d+)$/i
+        );
+        if (!match) {
+            return '';
+        }
+        const referencedSheet = (match[1] || match[2] || currentSheetName).replace(/''/g, "'");
+        const sheetName = this.sheetNames.get(referencedSheet.toLowerCase()) || referencedSheet;
+        return this.inputId(sheetName, `${match[3]}${match[4]}`);
+    }
+
+    private withoutFormulaStringLiterals(formula: string): string {
+        let result = '';
+        let quoted = false;
+
+        for (let index = 0; index < formula.length; index++) {
+            const character = formula[index];
+            if (character === '"') {
+                if (quoted && formula[index + 1] === '"') {
+                    index++;
+                    continue;
+                }
+                quoted = !quoted;
+                continue;
+            }
+            if (!quoted) {
+                result += character;
+            }
+        }
+        return result;
     }
 
     private inputExerciseName(label: string): string {
@@ -1130,11 +1313,44 @@ export class ProgramWorkbookParserService {
         };
     }
 
-    private emptyPreview(message: string): ProgramImportPreview {
+    private clearCalculatedFields(exercise: ImportedProgramExercise): void {
+        exercise.sets = undefined;
+        exercise.reps = undefined;
+        exercise.weight = undefined;
+        exercise.rest = undefined;
+        exercise.tempo = undefined;
+        exercise.rpe = undefined;
+        exercise.percentage1Rm = undefined;
+        exercise.notes = undefined;
+    }
+
+    private exerciseCalculations(
+        exercise: ImportedProgramExercise
+    ): WorkbookExerciseCalculation[] {
+        const calculations = [
+            ...(exercise.workbookCalculations || []),
+            ...(exercise.workbookCalculation ? [exercise.workbookCalculation] : [])
+        ];
+        const seen = new Set<string>();
+        return calculations.filter(calculation => {
+            const key = `${calculation.address}:${calculation.output}:${calculation.formula}`;
+            if (seen.has(key)) {
+                return false;
+            }
+            seen.add(key);
+            return true;
+        });
+    }
+
+    private emptyPreview(
+        message: string,
+        warningCode: ProgramImportWarningCode
+    ): ProgramImportPreview {
         return {
             confidence: 0,
             strategy: 'none',
             warnings: [message],
+            warningDetails: [{ code: warningCode }],
             lowConfidence: true
         };
     }

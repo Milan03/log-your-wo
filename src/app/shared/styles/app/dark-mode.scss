@@ -512,6 +512,11 @@ html.app-dark-mode {
         background-color: #8edcff !important;
     }
 
+    .program-import__review-nav-button:focus-visible,
+    .program-import__review-week-tab:focus-visible {
+        outline-color: #8edcff;
+    }
+
     .program-import__review-nav-button:disabled {
         color: #a8b6c5 !important;
         border-color: #536579 !important;

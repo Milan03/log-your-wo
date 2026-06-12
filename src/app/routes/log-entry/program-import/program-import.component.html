@@ -67,7 +67,7 @@
         </div>
 
         <mat-progress-bar *ngIf="isImporting" mode="indeterminate"></mat-progress-bar>
-        <div *ngIf="importError" class="alert alert-danger">{{ importError }}</div>
+        <div *ngIf="importError" class="alert alert-danger" role="alert" aria-live="assertive">{{ importError }}</div>
 
         <section *ngIf="importPreview?.program" class="program-import__review">
             <div *ngIf="importReviewStep === 'setup'" class="program-import__setup">
@@ -87,23 +87,30 @@
                 </div>
 
                 <div *ngIf="importPreview.setup?.inputs?.length" class="program-import__setup-inputs">
-                    <label *ngFor="let input of importPreview.setup.inputs" class="program-import__setup-input">
+                    <label *ngFor="let input of importPreview.setup.inputs; let inputIndex = index"
+                        class="program-import__setup-input"
+                        [for]="'workbook-max-' + inputIndex">
                         <span>{{ input.label }}</span>
                         <span class="program-import__setup-control">
-                            <input class="form-control" type="number" min="1" step="1"
+                            <input [id]="'workbook-max-' + inputIndex"
+                                class="form-control" type="number" min="0.5" step="0.5"
                                 [(ngModel)]="input.value"
                                 [class.is-invalid]="!isWorkbookInputValid(input)"
                                 [attr.aria-invalid]="!isWorkbookInputValid(input)"
-                                (ngModelChange)="setupError = ''">
+                                [attr.aria-describedby]="!isWorkbookInputValid(input) ? 'workbook-max-error-' + inputIndex : null"
+                                (ngModelChange)="setupError = ''"
+                                (blur)="normalizeWorkbookInput(input)">
                             <span>{{ workbookWeightUnit }}</span>
                         </span>
-                        <small *ngIf="!isWorkbookInputValid(input)" class="program-import__setup-error">
+                        <small *ngIf="!isWorkbookInputValid(input)"
+                            [id]="'workbook-max-error-' + inputIndex"
+                            class="program-import__setup-error">
                             {{ 'program-import.MaxMustBePositive' | translate }}
                         </small>
                     </label>
                 </div>
 
-                <div *ngIf="setupError" class="alert alert-danger">{{ setupError }}</div>
+                <div *ngIf="setupError" class="alert alert-danger" role="alert" aria-live="assertive">{{ setupError }}</div>
 
                 <div class="program-import__review-actions">
                     <button class="btn btn-outline-secondary" type="button" (click)="cancelImportReview()">
@@ -133,8 +140,8 @@
                 </span>
             </div>
 
-            <div *ngIf="importPreview.warnings.length" class="alert alert-warning">
-                <div *ngFor="let warning of importPreview.warnings">{{ warning }}</div>
+            <div *ngIf="importWarnings.length" class="alert alert-warning" role="status" aria-live="polite">
+                <div *ngFor="let warning of importWarnings">{{ warning }}</div>
             </div>
 
             <div class="program-import__review-actions program-import__review-actions--top">

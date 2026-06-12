@@ -171,7 +171,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
         const bodyWeight = this.form.get('bodyWeight').value;
         const trainingMaxes = this.trainingMaxes.controls.map(control => ({
             ...control.value,
-            value: this.convertMeasurement(control.value.value, toMetric ? 1 / 2.2046226218 : 2.2046226218)
+            value: this.convertTrainingMax(control.value.value, toMetric ? 1 / 2.2046226218 : 2.2046226218)
         }));
         this.form.patchValue({
             height: this.convertMeasurement(height, toMetric ? 2.54 : 1 / 2.54),
@@ -189,7 +189,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
         this.trainingMaxes.push(this.formBuilder.group({
             id: [trainingMax?.id || this.createTrainingMaxId()],
             exerciseName: [trainingMax?.exerciseName || '', Validators.maxLength(80)],
-            value: [trainingMax?.value, [Validators.min(1), Validators.max(5000)]],
+            value: [trainingMax?.value, [Validators.min(0.5), Validators.max(5000)]],
             updatedAt: [trainingMax?.updatedAt]
         }));
         this.saved = false;
@@ -261,7 +261,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
             this.trainingMaxes.push(this.formBuilder.group({
                 id: [trainingMax.id],
                 exerciseName: [trainingMax.exerciseName, Validators.maxLength(80)],
-                value: [trainingMax.value, [Validators.min(1), Validators.max(5000)]],
+                value: [trainingMax.value, [Validators.min(0.5), Validators.max(5000)]],
                 updatedAt: [trainingMax.updatedAt]
             }), { emitEvent: false });
         });
@@ -291,6 +291,12 @@ export class ProfileComponent implements OnInit, OnDestroy {
         return value === undefined || value === null || value === 0
             ? value
             : Math.round(value * multiplier * 10) / 10;
+    }
+
+    private convertTrainingMax(value: number | undefined, multiplier: number): number | undefined {
+        return value === undefined || value === null || value === 0
+            ? value
+            : Math.round(value * multiplier * 2) / 2;
     }
 
     private notFutureDate = (control: AbstractControl): ValidationErrors | null => {

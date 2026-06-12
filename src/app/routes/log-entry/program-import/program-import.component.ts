@@ -7,9 +7,12 @@ import {
     ImportedProgramDay,
     ImportedProgramExercise,
     ImportedProgramWeek,
+    ProgramImportWarning,
     ProgramImportPreview,
     WorkbookImportInput
 } from '../../../shared/models/imported-program.model';
+import { TrainingMax } from '../../../shared/models/profile.model';
+import { WeightMeasure } from '../../../shared/models/simple-log.model';
 import { ProgramImportService } from '../../../shared/services/program-import.service';
 import { ProfileService } from '../../../shared/services/profile.service';
 import { SharedService } from '../../../shared/services/shared.service';
@@ -63,6 +66,7 @@ export class ProgramImportComponent implements OnInit, AfterViewInit, OnDestroy 
     private pendingFocusWeekId: string;
     private pendingFocusDayId: string;
     private selectedProgramId: string;
+    private pendingTrainingMaxes: TrainingMax[] = [];
 
     constructor(
         private _programImportService: ProgramImportService,
@@ -155,11 +159,14 @@ export class ProgramImportComponent implements OnInit, AfterViewInit, OnDestroy 
 
         this.isImporting = true;
         this.importError = '';
+        this.pendingTrainingMaxes = [];
 
         try {
             const preview = await this._programImportService.previewWorkbook(file);
             if (!preview.program) {
-                this.importError = preview.warnings[0]
+                this.importError = preview.warningDetails?.[0]
+                    ? this.formatImportWarning(preview.warningDetails[0])
+                    : preview.warnings[0]
                     || this.t('program-import.ImportError', undefined, 'That workbook could not be imported. Try another .xlsx file.');
             } else {
                 this.importPreview = preview;
@@ -169,7 +176,7 @@ export class ProgramImportComponent implements OnInit, AfterViewInit, OnDestroy 
         } catch (error) {
             const message = error instanceof Error ? error.message : '';
             this.importError = /10 MB/.test(message)
-                ? message
+                ? this.t('program-import.WorkbookTooLarge', undefined, 'Workbook files must be 10 MB or smaller.')
                 : this.t('program-import.ImportError', undefined, 'That workbook could not be imported. Try another .xlsx file.');
         } finally {
             this.isImporting = false;
@@ -177,7 +184,7 @@ export class ProgramImportComponent implements OnInit, AfterViewInit, OnDestroy 
         }
     }
 
-    public confirmImport(): void {
+    public async confirmImport(): Promise<void> {
         if (!this.importPreview?.program) {
             return;
         }
@@ -193,6 +200,7 @@ export class ProgramImportComponent implements OnInit, AfterViewInit, OnDestroy 
                         .map(exercise => {
                             const savedExercise = { ...exercise };
                             delete savedExercise.workbookCalculation;
+                            delete savedExercise.workbookCalculations;
                             return {
                                 ...savedExercise,
                                 exerciseName: exercise.exerciseName.trim(),
@@ -213,11 +221,25 @@ export class ProgramImportComponent implements OnInit, AfterViewInit, OnDestroy 
         }
 
         this._programImportService.saveProgram(program);
+        const trainingMaxes = this.pendingTrainingMaxes;
         this.importPreview = undefined;
         this.importReviewStep = 'review';
         this.setupError = '';
         this.selectedReviewWeekIndex = 0;
         this.importError = '';
+        this.pendingTrainingMaxes = [];
+
+        if (this._profileService && trainingMaxes.length) {
+            try {
+                await this._profileService.saveTrainingMaxes(trainingMaxes);
+            } catch {
+                this.importError = this.t(
+                    'program-import.MaxSyncError',
+                    undefined,
+                    'The program was saved, but the training maxes could not be synchronized.'
+                );
+            }
+        }
     }
 
     public cancelImportReview(): void {
@@ -226,6 +248,7 @@ export class ProgramImportComponent implements OnInit, AfterViewInit, OnDestroy 
         this.setupError = '';
         this.selectedReviewWeekIndex = 0;
         this.importError = '';
+        this.pendingTrainingMaxes = [];
     }
 
     public continueToImportReview(): void {
@@ -243,15 +266,16 @@ export class ProgramImportComponent implements OnInit, AfterViewInit, OnDestroy 
             return result;
         }, {} as { [inputId: string]: number });
         this.importPreview = this._programImportService.applyWorkbookInputs(this.importPreview, values);
+        this.importPreview.program.weightMeasure = this.workbookWeightMeasure;
         this.importReviewStep = 'review';
         this.setupError = '';
 
         if (this._profileService && this.importPreview.setup.inputs.length) {
-            void this._profileService.saveTrainingMaxes(this.importPreview.setup.inputs.map(input => ({
+            this.pendingTrainingMaxes = this.importPreview.setup.inputs.map(input => ({
                 id: this._profileService.findTrainingMax(input.exerciseName)?.id || input.id,
                 exerciseName: input.exerciseName,
                 value: Number(input.value)
-            }))).catch(() => undefined);
+            }));
         }
     }
 
@@ -267,6 +291,13 @@ export class ProgramImportComponent implements OnInit, AfterViewInit, OnDestroy 
 
     public isWorkbookInputValid(input: WorkbookImportInput): boolean {
         return Number.isFinite(Number(input.value)) && Number(input.value) > 0;
+    }
+
+    public normalizeWorkbookInput(input: WorkbookImportInput): void {
+        const value = Number(input.value);
+        if (Number.isFinite(value) && value > 0) {
+            input.value = this.roundTrainingMax(value);
+        }
     }
 
     public get workbookWeightUnit(): string {
@@ -306,6 +337,15 @@ export class ProgramImportComponent implements OnInit, AfterViewInit, OnDestroy 
             total + week.days.reduce((dayTotal, day) => dayTotal + day.exercises.length, 0), 0);
     }
 
+    public get importWarnings(): string[] {
+        if (!this.importPreview) {
+            return [];
+        }
+        return this.importPreview.warningDetails?.length
+            ? this.importPreview.warningDetails.map(warning => this.formatImportWarning(warning))
+            : this.importPreview.warnings;
+    }
+
     private initializeWorkbookSetup(): void {
         const setup = this.importPreview?.setup;
         if (!setup) {
@@ -315,8 +355,12 @@ export class ProgramImportComponent implements OnInit, AfterViewInit, OnDestroy 
 
         setup.inputs.forEach(input => {
             const savedMax = this._profileService?.findTrainingMax(input.exerciseName);
-            input.value = savedMax?.value ?? input.originalValue;
+            const value = savedMax?.value ?? input.originalValue;
+            input.value = Number.isFinite(Number(value))
+                ? this.roundTrainingMax(Number(value))
+                : value;
         });
+        this.importPreview.program.weightMeasure = this.workbookWeightMeasure;
         this.importReviewStep = 'setup';
         this.setupError = '';
     }
@@ -637,6 +681,45 @@ export class ProgramImportComponent implements OnInit, AfterViewInit, OnDestroy 
         if (exercise.rpe) parts.push(`RPE: ${exercise.rpe}`);
         if (exercise.notes) parts.push(`Notes: ${exercise.notes}`);
         return parts.join(' | ') || exercise.prescription || '';
+    }
+
+    private get workbookWeightMeasure(): WeightMeasure {
+        return this._profileService?.profile.unitSystem === 'metric' ? 'kg' : 'lbs';
+    }
+
+    private roundTrainingMax(value: number): number {
+        return Math.round(value * 2) / 2;
+    }
+
+    private formatImportWarning(warning: ProgramImportWarning): string {
+        switch (warning.code) {
+            case 'workbook-unreadable':
+                return this.t('program-import.WorkbookUnreadable', undefined, 'The workbook could not be read.');
+            case 'workbook-empty':
+                return this.t('program-import.WorkbookEmpty', undefined, 'The workbook does not contain any non-empty sheets.');
+            case 'workbook-too-complex':
+                return this.t('program-import.WorkbookTooComplex', undefined, 'The workbook is too large or complex to import safely.');
+            case 'no-workout-rows':
+                return this.t(
+                    'program-import.NoWorkoutRows',
+                    undefined,
+                    'No workout rows were detected. Check that the sheet includes exercise names and prescriptions.'
+                );
+            case 'low-confidence':
+                return this.t(
+                    'program-import.LowConfidence',
+                    undefined,
+                    'This workbook layout was only partially recognized. Review and clean up the detected rows before saving.'
+                );
+            case 'unknown-formulas':
+                return this.t(
+                    warning.count === 1
+                        ? 'program-import.UnknownFormula'
+                        : 'program-import.UnknownFormulas',
+                    { count: warning.count || 0 },
+                    `${warning.count || 0} workbook formulas could not be recalculated and will use Excel's saved values.`
+                );
+        }
     }
 
     private t(key: string, params?: object, fallback?: string): string {

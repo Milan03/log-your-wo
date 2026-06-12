@@ -157,12 +157,124 @@ describe('ProgramWorkbookParserService', () => {
         expect(preview.program.weeks[0].days[0].exercises[0].prescription).toBe('100 kg x 5 x 5');
     });
 
+    it('recalculates the actual generic-table formula field instead of leaving a stale value', () => {
+        const worksheet = XLSX.utils.aoa_to_sheet([
+            ['Training max', 100],
+            [],
+            ['Week', 'Day', 'Exercise', 'Weight', 'Sets', 'Reps'],
+            ['1', 'Day 1', 'Squat', 80, '5', '3']
+        ]);
+        setFormula(worksheet, 'D4', 80, 'B1*0.8');
+
+        const preview = parseWorksheet(parser, worksheet);
+        parser.applyInputs(preview, { 'Program!B1': 200 });
+        const exercise = preview.program.weeks[0].days[0].exercises[0];
+
+        expect(exercise.workbookCalculations[0].output).toBe('weight');
+        expect(exercise.weight).toBe('160');
+        expect(exercise.prescription).toBe('160 x 3 x 5');
+    });
+
+    it('recalculates multiple formula-driven fields in one generic row', () => {
+        const worksheet = XLSX.utils.aoa_to_sheet([
+            ['Training max', 100],
+            [],
+            ['Week', 'Day', 'Exercise', 'Weight', 'Sets', 'Reps'],
+            ['1', 'Day 1', 'Squat', 80, '5', 5]
+        ]);
+        setFormula(worksheet, 'D4', 80, 'B1*0.8');
+        setFormula(worksheet, 'F4', 5, 'B1*0.05');
+
+        const preview = parseWorksheet(parser, worksheet);
+        parser.applyInputs(preview, { 'Program!B1': 200 });
+        const exercise = preview.program.weeks[0].days[0].exercises[0];
+
+        expect(exercise.workbookCalculations.map(calculation => calculation.output))
+            .toEqual(['weight', 'reps']);
+        expect(exercise).toEqual(jasmine.objectContaining({
+            weight: '160',
+            reps: '10',
+            prescription: '160 x 10 x 5'
+        }));
+    });
+
+    it('detects and recalculates inputs referenced from another worksheet', () => {
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet([
+            ['Squat training max', 100]
+        ]), 'Inputs');
+        const programSheet = XLSX.utils.aoa_to_sheet([
+            ['Week', 'Day', 'Exercise', 'Weight', 'Sets', 'Reps'],
+            ['1', 'Day 1', 'Squat', 80, '5', '3']
+        ]);
+        setFormula(programSheet, 'D2', 80, 'Inputs!B1*0.8');
+        XLSX.utils.book_append_sheet(workbook, programSheet, 'Program');
+
+        const preview = parseWorkbook(parser, workbook);
+        parser.applyInputs(preview, { 'Inputs!B1': 150 });
+
+        expect(preview.setup.inputs[0]).toEqual(jasmine.objectContaining({
+            id: 'Inputs!B1',
+            exerciseName: 'Squat training max'
+        }));
+        expect(preview.program.weeks[0].days[0].exercises[0])
+            .toEqual(jasmine.objectContaining({ weight: '120', prescription: '120 x 3 x 5' }));
+    });
+
+    it('carries formula calculations through vertical section rows', () => {
+        const worksheet = XLSX.utils.aoa_to_sheet([
+            ['Squat', 100],
+            ['Week 1'],
+            ['Day 1'],
+            ['Back Squat', 80]
+        ]);
+        setFormula(worksheet, 'B4', 80, 'B1*0.8');
+
+        const preview = parseWorksheet(parser, worksheet);
+        parser.applyInputs(preview, { 'Program!B1': 125 });
+
+        expect(preview.strategy).toBe('vertical-week-day-sections');
+        expect(preview.program.weeks[0].days[0].exercises[0].prescription).toBe('100');
+    });
+
+    it('preserves identical workout weeks when their week numbers differ', () => {
+        const preview = parseRows(parser, [
+            ['Week 1'],
+            ['Day 1'],
+            ['Squat', '5 x 5'],
+            ['Week 2'],
+            ['Day 1'],
+            ['Squat', '5 x 5']
+        ]);
+
+        expect(preview.program.weeks.map(week => week.weekNumber)).toEqual([1, 2]);
+    });
+
     it('returns a safe low-confidence fallback for empty or invalid workbooks', () => {
         const preview = parseRows(parser, [['Notes'], ['Nothing to import']]);
 
         expect(preview.program).toBeUndefined();
         expect(preview.lowConfidence).toBeTrue();
         expect(preview.warnings.length).toBeGreaterThan(0);
+    });
+
+    it('rejects deceptive worksheet ranges before expanding them', () => {
+        spyOn<any>(parser, 'readWorkbook').and.returnValue({
+            SheetNames: ['Program'],
+            Sheets: {
+                Program: {
+                    A1: { t: 's', v: 'Week 1' },
+                    '!ref': 'A1:XFD1048576'
+                }
+            }
+        } as XLSX.WorkBook);
+
+        const preview = parser.parse(new ArrayBuffer(0), 'hostile.xlsx');
+
+        expect(preview.program).toBeUndefined();
+        expect(preview.warningDetails).toEqual([
+            jasmine.objectContaining({ code: 'workbook-too-complex' })
+        ]);
     });
 
     it('shows salvageable rows for manual cleanup when confidence is low', () => {
@@ -225,7 +337,7 @@ describe('ProgramWorkbookParserService', () => {
 
         expect(preview.setup.inputs.map(input => input.exerciseName)).toEqual(['Snatch', 'Clean & Jerk']);
         expect(preview.setup.instructions).toContain('* Percentages are based on each exercise max');
-        expect(preview.program.weeks[0].days[0].exercises[0].workbookCalculation)
+        expect(preview.program.weeks[0].days[0].exercises[0].workbookCalculations[0])
             .toEqual(jasmine.objectContaining({ address: 'B18', formula: 'B2*0.9', output: 'weight' }));
 
         parser.applyInputs(preview, {
