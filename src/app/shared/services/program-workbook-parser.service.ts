@@ -14,25 +14,13 @@ import {
     WorkbookImportInput,
     WorkbookImportSetup
 } from '../models/imported-program.model';
-
-interface NormalizedCell {
-    address: string;
-    formula?: string;
-    value?: unknown;
-    text: string;
-}
-
-interface NormalizedSheet {
-    name: string;
-    rows: string[][];
-    cells: NormalizedCell[][];
-}
-
-interface ParserResult {
-    strategy: string;
-    confidence: number;
-    weeks: ImportedProgramWeek[];
-}
+import { parseHatchSquatWorkbook } from './program-workbook-parsers/hatch-squat-workbook.parser';
+import { parsePendlayWorkbook } from './program-workbook-parsers/pendlay-workbook.parser';
+import {
+    NormalizedWorkbookCell as NormalizedCell,
+    NormalizedWorkbookSheet as NormalizedSheet,
+    WorkbookParserResult as ParserResult
+} from './program-workbook-parsers/program-workbook-parser.types';
 
 interface HeaderMap {
     exercise: number;
@@ -110,6 +98,11 @@ export class ProgramWorkbookParserService {
         this.inputByReference = new Map(setup.inputs.map(input => [input.id, input]));
         this.unknownFormulaAddresses.clear();
         const results = [
+            parseHatchSquatWorkbook(sheets),
+            parsePendlayWorkbook(
+                sheets,
+                (cell, sheetName) => this.calculationFromCell(cell, sheetName, 'weight')
+            ),
             this.parseLegacy(sheets),
             this.parseVerticalSections(sheets),
             this.parseHorizontalDays(sheets),
@@ -137,13 +130,15 @@ export class ProgramWorkbookParserService {
             weeks: this.finalizeWeeks(best.weeks)
         };
         const lowConfidence = confidence < this.lowConfidenceThreshold;
+        if (lowConfidence) {
+            return this.rejectedLowConfidencePreview(confidence);
+        }
+        if (best.formulasFullyHandled) {
+            this.unknownFormulaAddresses.clear();
+        }
         setup.unknownFormulaCount = this.unknownFormulaAddresses.size;
-        const warnings = lowConfidence
-            ? ['This workbook layout was only partially recognized. Review and clean up the detected rows before saving.']
-            : [];
-        const warningDetails: ProgramImportWarning[] = lowConfidence
-            ? [{ code: 'low-confidence' }]
-            : [];
+        const warnings: string[] = [];
+        const warningDetails: ProgramImportWarning[] = [];
         if (setup.unknownFormulaCount) {
             warnings.push(
                 `${setup.unknownFormulaCount} workbook formula`
@@ -159,7 +154,7 @@ export class ProgramWorkbookParserService {
             program,
             confidence,
             strategy: best.strategy,
-            lowConfidence,
+            lowConfidence: false,
             warnings,
             warningDetails,
             setup: setup.inputs.length || setup.instructions.length ? setup : undefined
@@ -1019,6 +1014,7 @@ export class ProgramWorkbookParserService {
                 !referencedCells.has(id)
                 || cell.formula
                 || !Number.isFinite(numericValue)
+                || /%$/.test(cell.text)
             ) {
                 return;
             }
@@ -1026,8 +1022,28 @@ export class ProgramWorkbookParserService {
             const labelCell = row
                 .slice(0, column)
                 .reverse()
-                .find(candidate => candidate.text && !candidate.formula);
-            const label = this.normalizeText(labelCell?.text)
+                .find(candidate =>
+                    candidate.text
+                    && !candidate.formula
+                    && !Number.isFinite(Number(candidate.text))
+                );
+            const sameColumnHeader = sheets.length
+                ? sheet.cells
+                    .slice(0, sheet.cells.indexOf(row))
+                    .reverse()
+                    .map(candidateRow => candidateRow[column])
+                    .find(candidate =>
+                        candidate?.text
+                        && !candidate.formula
+                        && !/^1\s*rm$/i.test(candidate.text)
+                    )
+                : undefined;
+            const inlineLabel = this.normalizeText(labelCell?.text).replace(/[:：]\s*$/, '');
+            const label = (
+                /^1\s*rm$/i.test(inlineLabel)
+                    ? this.normalizeText(sameColumnHeader?.text)
+                    : inlineLabel
+            )
                 .replace(/[:：]\s*$/, '')
                 || cell.address;
             inputs.push({
@@ -1351,6 +1367,19 @@ export class ProgramWorkbookParserService {
             strategy: 'none',
             warnings: [message],
             warningDetails: [{ code: warningCode }],
+            lowConfidence: true
+        };
+    }
+
+    private rejectedLowConfidencePreview(confidence: number): ProgramImportPreview {
+        return {
+            confidence,
+            strategy: 'none',
+            warnings: [
+                'This workbook layout could not be recognized reliably. '
+                + 'Please email the workbook to milansobat03@gmail.com so support can be added.'
+            ],
+            warningDetails: [{ code: 'low-confidence' }],
             lowConfidence: true
         };
     }

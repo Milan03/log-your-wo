@@ -495,6 +495,27 @@ html.app-dark-mode {
         background-color: #1d3042;
     }
 
+    .program-import__week--active,
+    .program-import__week--active.program-import__week--complete {
+        color: #8edcff !important;
+        border-color: #8edcff !important;
+        background: #1d3042 !important;
+        box-shadow: inset 0 -3px 0 #8edcff !important;
+        font-weight: 700;
+    }
+
+    .program-import__week:hover:not(.program-import__week--active),
+    .program-import__week:focus-visible:not(.program-import__week--active) {
+        color: #f8fafc !important;
+        border-color: #8fa2b8 !important;
+        background-color: #26384b !important;
+    }
+
+    .program-import__week:focus-visible {
+        outline: 3px solid #8edcff;
+        outline-offset: 3px;
+    }
+
     .program-import__review-nav-button,
     .program-import__review-nav-button:hover,
     .program-import__review-nav-button:focus,
@@ -525,6 +546,26 @@ html.app-dark-mode {
 
     .program-import__review-actions--top {
         border-color: var(--dark-border);
+    }
+
+    .program-import__review-actions .btn-outline-secondary,
+    .program-import__review-actions .btn-outline-secondary:active {
+        color: #f8fafc !important;
+        border-color: #8fa2b8 !important;
+        background-color: #26384b !important;
+    }
+
+    .program-import__review-actions .btn-outline-secondary:hover,
+    .program-import__review-actions .btn-outline-secondary:focus {
+        color: #07131f !important;
+        border-color: #8edcff !important;
+        background-color: #8edcff !important;
+    }
+
+    .program-import__review-actions .btn-outline-secondary:focus-visible {
+        outline: 3px solid #8edcff;
+        outline-offset: 2px;
+        box-shadow: none !important;
     }
 
     .log-mobile-group__row:hover {

@@ -371,7 +371,7 @@
         "WorkbookEmpty": "The workbook does not contain any non-empty sheets.",
         "WorkbookTooComplex": "The workbook is too large or complex to import safely.",
         "NoWorkoutRows": "No workout rows were detected. Check that the sheet includes exercise names and prescriptions.",
-        "LowConfidence": "This workbook layout was only partially recognized. Review and clean up the detected rows before saving.",
+        "LowConfidence": "This workbook layout could not be recognized reliably. Please email the workbook to milansobat03@gmail.com so support can be added.",
         "UnknownFormula": "1 workbook formula could not be recalculated and will use Excel's saved value.",
         "UnknownFormulas": "{{count}} workbook formulas could not be recalculated and will use Excel's saved values.",
         "MaxSyncError": "The program was saved, but the training maxes could not be synchronized.",

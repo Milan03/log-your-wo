@@ -138,6 +138,12 @@ export class ProgramImportService {
     public async importWorkbook(file: File): Promise<ImportedProgram> {
         const preview = await this.previewWorkbook(file);
         if (!preview.program || !preview.program.weeks.length) {
+            if (
+                preview.warningDetails?.some(warning => warning.code === 'low-confidence')
+                && preview.warnings[0]
+            ) {
+                throw new Error(preview.warnings[0]);
+            }
             throw new Error('No recognizable workout weeks were found in this workbook.');
         }
         if (preview.setup?.inputs.length) {

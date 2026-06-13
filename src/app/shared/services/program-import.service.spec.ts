@@ -81,6 +81,19 @@ describe('ProgramImportService', () => {
             .toBeRejectedWithError('No recognizable workout weeks were found in this workbook.');
     });
 
+    it('returns the support contact when a workbook is rejected with low confidence', async () => {
+        const file = createWorkbookFile([
+            ['Back Squat', '5 x 5'],
+            ['Bench Press', '4 x 8']
+        ]);
+
+        await expectAsync(service.importWorkbook(file))
+            .toBeRejectedWithError(
+                'This workbook layout could not be recognized reliably. '
+                + 'Please email the workbook to milansobat03@gmail.com so support can be added.'
+            );
+    });
+
     it('does not bypass required workbook setup through the direct import API', async () => {
         const workbook = XLSX.utils.book_new();
         const worksheet = XLSX.utils.aoa_to_sheet([
