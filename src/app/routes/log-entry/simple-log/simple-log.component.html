@@ -34,7 +34,7 @@
               }
             </div>
             <div class="simple-log-calendar__grid">
-              @for (day of calendarDays; track day) {
+              @for (day of calendarDays; track day.dateValue) {
                 <button
                   type="button"
                   class="simple-log-calendar__day"
@@ -51,7 +51,7 @@
           </div>
           @if (getSelectedDateLogs().length) {
             <div class="simple-log-library__list">
-              @for (log of getSelectedDateLogs(); track log) {
+              @for (log of getSelectedDateLogs(); track log.id) {
                 <div
                   class="simple-log-library__item"
                   [class.simple-log-library__item--active]="currentLog?.logId?.toString() === log.id">
@@ -219,7 +219,7 @@
           <!-- START Exercise Grid START -->
           @if (currentLog.exercises.length > 0) {
             <div class="log-mobile-list log-mobile-list--strength">
-              @for (group of getStrengthExerciseGroups(); track group) {
+              @for (group of getStrengthExerciseGroups(); track group.exercises[0].exerciseId) {
                 <div class="log-mobile-card log-mobile-card--group">
                   <div class="log-mobile-card__header">
                     <div>
@@ -234,7 +234,7 @@
                     <button type="button" class="icon add-icon" [attr.aria-label]="'log-entry.AddAnotherSet' | translate" (click)="addRow(group.exercises[group.exercises.length - 1])">+</button>
                   </div>
                   <div class="log-mobile-group">
-                    @for (exercise of group.exercises; track exercise; let rowIndex = $index) {
+                    @for (exercise of group.exercises; track exercise.exerciseId; let rowIndex = $index) {
                       <div
                         class="log-mobile-group__row"
                         [class.completed-row]="exercise.completed"
@@ -276,7 +276,7 @@
           <!-- START Cardio Exercise Grid START -->
           @if (currentLog.cardioExercises.length > 0) {
             <div class="log-mobile-list log-mobile-list--cardio">
-              @for (group of getCardioExerciseGroups(); track group) {
+              @for (group of getCardioExerciseGroups(); track group.exercises[0].exerciseId) {
                 <div class="log-mobile-card log-mobile-card--group log-mobile-card--cardio-group">
                   <div class="log-mobile-card__header">
                     <div>
@@ -292,7 +292,7 @@
                     (click)="addRow(group.exercises[group.exercises.length - 1])">+</button>
                   </div>
                   <div class="log-mobile-group log-mobile-group--cardio">
-                    @for (exercise of group.exercises; track exercise; let rowIndex = $index) {
+                    @for (exercise of group.exercises; track exercise.exerciseId; let rowIndex = $index) {
                       <div
                         class="log-mobile-group__row log-mobile-group__row--cardio"
                         [class.completed-row]="exercise.completed"

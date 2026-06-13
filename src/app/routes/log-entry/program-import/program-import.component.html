@@ -23,7 +23,7 @@
     </div>
     @if (programCards.length) {
       <div class="program-import__library-list">
-        @for (card of programCards; track card) {
+        @for (card of programCards; track card.program.id) {
           <div
             class="program-import__library-item"
             [class.program-import__library-item--active]="program && program.id === card.program.id">
