@@ -18,6 +18,14 @@ import { environment } from './environments/environment';
 
 if (environment.production) {
     enableProdMode();
+} else if ('serviceWorker' in navigator) {
+    // A production worker previously registered on localhost can serve stale
+    // development chunks even though registration is disabled in dev mode.
+    navigator.serviceWorker.getRegistrations()
+        .then(registrations => Promise.all(registrations.map(registration => registration.unregister())))
+        .then(() => 'caches' in window ? caches.keys() : [])
+        .then(cacheNames => Promise.all(cacheNames.map(cacheName => caches.delete(cacheName))))
+        .catch(() => undefined);
 }
 
 let p = platformBrowserDynamic().bootstrapModule(AppModule, {
