@@ -1,6 +1,6 @@
-import { Component, OnDestroy, OnInit, Optional } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit, Optional } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
-import { Subscription } from 'rxjs';
 
 import { AppInstallDevice, AppInstallService } from '../core/app-install/app-install.service';
 import { AuthService } from '../core/auth/auth.service';
@@ -11,13 +11,12 @@ import { AuthService } from '../core/auth/auth.service';
     templateUrl: './layout.component.html',
     styleUrls: ['./layout.component.scss']
 })
-export class LayoutComponent implements OnInit, OnDestroy {
+export class LayoutComponent implements OnInit {
     public signedIn = false;
     public showGuestNotice = false;
     public showInstallNotice = false;
     public installDevice: AppInstallDevice | null = null;
-    private sessionSub: Subscription;
-    private installNoticeSub: Subscription;
+    private readonly destroyRef = inject(DestroyRef);
 
     constructor(
         @Optional() private auth?: AuthService,
@@ -27,26 +26,17 @@ export class LayoutComponent implements OnInit, OnDestroy {
 
     ngOnInit() {
         if (this.auth) {
-            this.sessionSub = this.auth.session$.subscribe(session => {
+            this.auth.session$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(session => {
                 this.signedIn = !!session;
                 this.showGuestNotice = !session && localStorage.getItem('logYourWo.guestNoticeDismissed') !== 'true';
             });
         }
 
         if (this.appInstall) {
-            this.installNoticeSub = this.appInstall.notice$.subscribe(notice => {
+            this.appInstall.notice$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(notice => {
                 this.showInstallNotice = notice.visible;
                 this.installDevice = notice.device;
             });
-        }
-    }
-
-    ngOnDestroy(): void {
-        if (this.sessionSub) {
-            this.sessionSub.unsubscribe();
-        }
-        if (this.installNoticeSub) {
-            this.installNoticeSub.unsubscribe();
         }
     }
 

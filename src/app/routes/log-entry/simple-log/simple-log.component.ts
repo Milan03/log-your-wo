@@ -1,8 +1,8 @@
-import { Component, OnDestroy, OnInit, Optional } from '@angular/core';
+import { Component, DestroyRef, inject, OnDestroy, OnInit, Optional } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subscription } from 'rxjs';
 
 import { ExerciseDialogComponent } from '../exercise-dialog/exercise-dialog.component';
 import { EmailDialogComponent } from '../email-dialog/email-dialog.component';
@@ -77,13 +77,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     public weightMeasure: WeightMeasure = 'lbs';
     public distanceMeasure: DistanceMeasure = 'km';
 
-    private langSub: Subscription;
-    private sbToggleSub: Subscription;
-    private measureToggleSub: Subscription;
-    private openDialogSub: Subscription;
-    private exerciseTitleSub: Subscription;
-    private routeSub: Subscription;
-    private simpleLogsSub: Subscription;
+    private readonly destroyRef = inject(DestroyRef);
     private elapsedTimerId: ReturnType<typeof setInterval>;
     private strengthGroupSource: Exercise[];
     private strengthGroups: ExerciseGroup[] = [];
@@ -154,20 +148,6 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
 
     ngOnDestroy(): void {
         this.pauseActiveWorkoutForNavigation();
-        if (this.langSub)
-            this.langSub.unsubscribe();
-        if (this.sbToggleSub)
-            this.sbToggleSub.unsubscribe();
-        if (this.measureToggleSub)
-            this.measureToggleSub.unsubscribe();
-        if (this.openDialogSub)
-            this.openDialogSub.unsubscribe();
-        if (this.exerciseTitleSub)
-            this.exerciseTitleSub.unsubscribe();
-        if (this.routeSub)
-            this.routeSub.unsubscribe();
-        if (this.simpleLogsSub)
-            this.simpleLogsSub.unsubscribe();
         this.stopElapsedTimer();
     }
 
@@ -970,7 +950,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
      * Inter component communication Subscriptions
      */
     private subToLanguageChange(): void {
-        this.langSub = this._translatorService.languageChangeEmitted$.subscribe(
+        this._translatorService.languageChangeEmitted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(
             data => {
                 this.currentLanguage = data;
                 if (this.currentLanguage == FormValues.ENCode) {
@@ -984,7 +964,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     }
 
     private subToSidebarToggleChange(): void {
-        this.sbToggleSub = this._sharedService.sidebarToggleEmitted$.subscribe(
+        this._sharedService.sidebarToggleEmitted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(
             data => {
                 this.sbIsCollapsed = data;
             }
@@ -992,7 +972,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     }
 
     private subToMeasureToggleChange(): void {
-        this.measureToggleSub = this._sharedService.measureToggleSource$.subscribe(
+        this._sharedService.measureToggleSource$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(
             data => {
                 if (data === 'lbs' || data === 'kg') {
                     if (data !== this.weightMeasure) {
@@ -1012,7 +992,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     }
 
     private subToOpenDialogStream(): void {
-        this.openDialogSub = this._sharedService.openExerciseDialogEmitted$.subscribe(
+        this._sharedService.openExerciseDialogEmitted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(
             data => {
                 if (data) {
                     if (data === 'strength') {
@@ -1026,7 +1006,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     }
 
     private subToExerciseTitleStream(): void {
-        this.exerciseTitleSub = this._sharedService.exerciseTitleEmitted$.subscribe(
+        this._sharedService.exerciseTitleEmitted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(
           data => {
             this.currentLog.title = data;
             this.saveCurrentWorkoutState();
@@ -1035,14 +1015,14 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     }
 
     private subToSimpleLogs(): void {
-        this.simpleLogsSub = this._simpleLogService.logs$.subscribe(logs => {
+        this._simpleLogService.logs$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(logs => {
             this.savedLogs = logs;
             this.refreshCalendar();
         });
     }
 
     private subToRouteParams(): void {
-        this.routeSub = this._activatedRoute.queryParamMap.subscribe(params => {
+        this._activatedRoute.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
             const weekId = params.get('weekId');
             const dayId = params.get('dayId');
             const programId = params.get('programId');

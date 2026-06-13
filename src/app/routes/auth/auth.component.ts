@@ -1,7 +1,7 @@
-import { Component, OnDestroy, OnInit, Optional } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit, Optional } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subscription } from 'rxjs';
 
 import { AuthService } from '../../core/auth/auth.service';
 import { TranslatorService } from '../../core/translator/translator.service';
@@ -12,7 +12,7 @@ import { TranslatorService } from '../../core/translator/translator.service';
     templateUrl: './auth.component.html',
     styleUrls: ['./auth.component.scss']
 })
-export class AuthComponent implements OnInit, OnDestroy {
+export class AuthComponent implements OnInit {
     public form: FormGroup;
     public mode: 'login' | 'register' = 'login';
     public busy = false;
@@ -20,7 +20,7 @@ export class AuthComponent implements OnInit, OnDestroy {
     public errorMessage = '';
     public successMessage = '';
 
-    private sessionSub: Subscription;
+    private readonly destroyRef = inject(DestroyRef);
     private returnUrl = '/home';
 
     constructor(
@@ -42,19 +42,13 @@ export class AuthComponent implements OnInit, OnDestroy {
         if (this.callbackPending) {
             this.returnUrl = this.safeReturnUrl(sessionStorage.getItem('logYourWo.authReturnUrl'));
         }
-        this.sessionSub = this.auth.session$.subscribe(session => {
+        this.auth.session$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(session => {
             if (session) {
                 sessionStorage.removeItem('logYourWo.authReturnUrl');
                 void this.router.navigateByUrl(this.returnUrl);
             }
         });
         void this.redirectAuthenticatedUser();
-    }
-
-    public ngOnDestroy(): void {
-        if (this.sessionSub) {
-            this.sessionSub.unsubscribe();
-        }
     }
 
     public setMode(mode: 'login' | 'register'): void {

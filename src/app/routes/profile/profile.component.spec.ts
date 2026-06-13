@@ -1,3 +1,4 @@
+import { TestBed } from '@angular/core/testing';
 import { FormBuilder } from '@angular/forms';
 
 import { createDefaultProfile } from '../../shared/models/profile.model';
@@ -9,7 +10,7 @@ describe('ProfileComponent', () => {
         themes = jasmine.createSpyObj('ThemesService', ['isDarkMode', 'setDarkMode']),
         translator?: jasmine.SpyObj<TranslatorService>
     ): ProfileComponent {
-        return new ProfileComponent(
+        return TestBed.runInInjectionContext(() => new ProfileComponent(
             new FormBuilder(),
             jasmine.createSpyObj('AuthService', [], { session$: { subscribe: () => undefined } }),
             jasmine.createSpyObj('ProfileService', ['saveProfile'], {
@@ -19,7 +20,7 @@ describe('ProfileComponent', () => {
             jasmine.createSpyObj('Router', ['navigate']),
             themes,
             translator
-        );
+        ));
     }
 
     it('converts existing measurements when the unit system changes', () => {

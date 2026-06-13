@@ -1,8 +1,9 @@
-import { Component, ElementRef, Inject, ViewChild } from '@angular/core';
+import { Component, DestroyRef, ElementRef, Inject, inject, ViewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
-import { Observable, Subscription, map, startWith } from 'rxjs';
+import { Observable, map, startWith } from 'rxjs';
 
 import { Exercise, Intensity } from '../../../shared/models/exercise.model';
 import { ExerciseDialogData } from 'src/app/shared/interfaces/exercise-dialog-data';
@@ -61,9 +62,7 @@ export class ExerciseDialogComponent {
 
     public filteredExercises: Observable<LocalizedExerciseOption[]>;
     public filteredCardioExercises: Observable<LocalizedExerciseOption[]>;
-    private langSub: Subscription;
-    private exerciseSub: Subscription;
-    private cardioExerciseSub: Subscription;
+    private readonly destroyRef = inject(DestroyRef);
     private exerciseNames: string[] = [];
     private cardioExerciseNames: string[] = [];
 
@@ -104,15 +103,6 @@ export class ExerciseDialogComponent {
         this.subToLanguageChange();
         this.subToExerciseDirectoryService();
         this.subToCardioExerciseDirectoryService();
-    }
-
-    ngOnDestroy(): void {
-        if (this.langSub)
-            this.langSub.unsubscribe();
-        if (this.exerciseSub)
-            this.exerciseSub.unsubscribe();
-        if (this.cardioExerciseSub)
-            this.cardioExerciseSub.unsubscribe();
     }
 
     submitForm($ev) {
@@ -162,7 +152,7 @@ export class ExerciseDialogComponent {
     * Track the language currently chosen by the user.
     */
     private subToLanguageChange(): void {
-        this.langSub = this._translatorService.languageChangeEmitted$.subscribe(
+        this._translatorService.languageChangeEmitted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(
             data => {
                 this.currentLanguage = data;
                 if (this.currentLanguage == FormValues.ENCode) {
@@ -176,7 +166,7 @@ export class ExerciseDialogComponent {
     }
 
     private subToExerciseDirectoryService(): void {
-        this.exerciseSub = this._exerciseDirectoryService.getExercises().subscribe({
+        this._exerciseDirectoryService.getExercises().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: (data) => {
                 this.exerciseNames = data.exercises.map(exercise => exercise.name);
                 this.updateLocalizedExerciseLists();
@@ -192,7 +182,7 @@ export class ExerciseDialogComponent {
     }
 
     private subToCardioExerciseDirectoryService(): void {
-        this.cardioExerciseSub = this._exerciseDirectoryService.getCardioExercises().subscribe({
+        this._exerciseDirectoryService.getCardioExercises().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: (data) => {
                 this.cardioExerciseNames = data.exercises.map(exercise => exercise.name);
                 this.updateLocalizedExerciseLists();

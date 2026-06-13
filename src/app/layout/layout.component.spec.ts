@@ -5,7 +5,7 @@ import { LayoutComponent } from './layout.component';
 
 describe('Component: Layout', () => {
   it('should create an instance', () => {
-    let component = new LayoutComponent();
+    let component = TestBed.runInInjectionContext(() => new LayoutComponent());
     expect(component).toBeTruthy();
   });
 });

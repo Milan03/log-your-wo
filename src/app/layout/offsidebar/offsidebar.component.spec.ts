@@ -45,19 +45,19 @@ describe('Component: Offsidebar', () => {
 
     it('should create an instance', waitForAsync(inject([SettingsService, ThemesService, TranslatorService, MockElementRef],
         (settingsService, themesService, translatorService, mockElementRef) => {
-            let component = new OffsidebarComponent(settingsService, themesService, translatorService, mockElementRef);
+            let component = TestBed.runInInjectionContext(() => new OffsidebarComponent(settingsService, themesService, translatorService, mockElementRef));
             expect(component).toBeTruthy();
         })));
 
     it('updates the shared dark mode preference', inject(
         [SettingsService, ThemesService, TranslatorService, MockElementRef],
         (settingsService, themesService, translatorService, mockElementRef) => {
-            const component = new OffsidebarComponent(
+            const component = TestBed.runInInjectionContext(() => new OffsidebarComponent(
                 settingsService,
                 themesService,
                 translatorService,
                 mockElementRef
-            );
+            ));
             spyOn(themesService, 'setDarkMode');
 
             component.setDarkMode(true);
@@ -69,12 +69,12 @@ describe('Component: Offsidebar', () => {
     it('switches the shared language preference', inject(
         [SettingsService, ThemesService, TranslatorService, MockElementRef],
         (settingsService, themesService, translatorService, mockElementRef) => {
-            const component = new OffsidebarComponent(
+            const component = TestBed.runInInjectionContext(() => new OffsidebarComponent(
                 settingsService,
                 themesService,
                 translatorService,
                 mockElementRef
-            );
+            ));
             spyOn(translatorService, 'useLanguage').and.resolveTo();
 
             component.setLang('fr-ca');

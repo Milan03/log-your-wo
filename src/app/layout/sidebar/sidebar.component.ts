@@ -1,11 +1,11 @@
-import { Component, OnInit, Injector, OnDestroy, Optional } from '@angular/core';
+import { Component, OnInit, Injector, OnDestroy, Optional, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 declare var $: any;
 
 import { MenuService } from '../../core/menu/menu.service';
 import { SettingsService } from '../../core/settings/settings.service';
 import { AuthService } from '../../core/auth/auth.service';
-import { Subscription } from 'rxjs';
 
 @Component({
     selector: 'app-sidebar',
@@ -20,8 +20,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
     sbclickEvent = 'click.sidebar-toggle';
     $doc: any = null;
     signedIn = false;
-    private sessionSub: Subscription;
-    private routerSub: Subscription;
+    private readonly destroyRef = inject(DestroyRef);
 
     constructor(
         public menu: MenuService,
@@ -32,7 +31,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
         this.menuItems = menu.getMenu();
         if (this.auth) {
-            this.sessionSub = this.auth.session$.subscribe(session => {
+            this.auth.session$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(session => {
                 this.signedIn = !!session;
             });
         }
@@ -43,7 +42,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
         this.router = this.injector.get(Router);
 
-        this.routerSub = this.router.events.subscribe(() => {
+        this.router.events.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
             // close any submenu opened when route changes
             this.removeFloatingNav();
             // scroll view to top
@@ -68,10 +67,6 @@ export class SidebarComponent implements OnInit, OnDestroy {
     ngOnDestroy() {
         if (this.$doc)
             this.$doc.off(this.sbclickEvent);
-        if (this.sessionSub)
-            this.sessionSub.unsubscribe();
-        if (this.routerSub)
-            this.routerSub.unsubscribe();
         $(document).off('click.sidebar-floating');
         this.removeFloatingNav();
     }
