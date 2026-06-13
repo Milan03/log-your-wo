@@ -1,6 +1,10 @@
 import { Component } from '@angular/core';
-import { UntypedFormGroup, UntypedFormBuilder, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef } from '@angular/material/dialog';
+
+interface EmailForm {
+    emailAddress: FormControl<string | null>;
+}
 
 @Component({
   selector: 'app-email-dialog',
@@ -9,12 +13,12 @@ import { MatDialogRef } from '@angular/material/dialog';
     styleUrls: ['./email-dialog.component.scss']
 })
 export class EmailDialogComponent {
-    public emailForm: UntypedFormGroup;
+    public emailForm: FormGroup<EmailForm>;
 
     constructor(
         public _dialogRef: MatDialogRef<EmailDialogComponent>,
-        private _formBuilder: UntypedFormBuilder
-    ) { 
+        private _formBuilder: FormBuilder
+    ) {
         this.emailForm = this._formBuilder.group({
             'emailAddress': ['', Validators.compose([Validators.required, Validators.email])]
         });

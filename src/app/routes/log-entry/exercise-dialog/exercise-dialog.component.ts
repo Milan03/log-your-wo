@@ -1,10 +1,10 @@
 import { Component, ElementRef, Inject, ViewChild } from '@angular/core';
-import { UntypedFormGroup, UntypedFormBuilder, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { Observable, Subscription, map, startWith } from 'rxjs';
 
-import { Exercise } from '../../../shared/models/exercise.model';
+import { Exercise, Intensity } from '../../../shared/models/exercise.model';
 import { ExerciseDialogData } from 'src/app/shared/interfaces/exercise-dialog-data';
 import { SharedService } from '../../../shared/services/shared.service';
 import { TranslatorService } from '../../../core/translator/translator.service';
@@ -21,6 +21,18 @@ interface LocalizedExerciseOption {
     searchText: string;
 }
 
+interface ExerciseForm {
+    exerciseName: FormControl<string | null>;
+    weight: FormControl<string | number | null>;
+    reps: FormControl<string | number | null>;
+    sets: FormControl<string | number | null>;
+    durationHours: FormControl<number | null>;
+    durationMinutes: FormControl<number | null>;
+    durationSeconds: FormControl<number | null>;
+    distance: FormControl<string | number | null>;
+    intensity: FormControl<Intensity | null>;
+}
+
 @Component({
     selector: 'exercise-dialog',
     standalone: false,
@@ -35,7 +47,7 @@ export class ExerciseDialogComponent {
     @ViewChild('weight') weightInput: ElementRef;
     @ViewChild('distance') distanceInput: ElementRef;
 
-    public exerciseLogForm: UntypedFormGroup;
+    public exerciseLogForm: FormGroup<ExerciseForm>;
     private currentLanguage: string;
     public currentExercise: Exercise;
     public selectedWeightChip: string = 'lbs';
@@ -57,23 +69,23 @@ export class ExerciseDialogComponent {
 
     constructor(
         @Inject(MAT_DIALOG_DATA) public _exerciseDialogData: ExerciseDialogData,
-        private _formBuilder: UntypedFormBuilder,
+        private _formBuilder: FormBuilder,
         public _dialogRef: MatDialogRef<ExerciseDialogComponent>,
         private _sharedService: SharedService,
         private _translatorService: TranslatorService,
         private _exerciseDirectoryService: ExerciseDirectoryService,
         private _exerciseNameLocalizer: ExerciseNameLocalizerService
     ) {
-        this.exerciseLogForm = this._formBuilder.group({
-            'exerciseName': ['', Validators.compose([Validators.required, Validators.maxLength(50)])],
-            'weight': ['', Validators.maxLength(15)],
-            'reps': ['', Validators.compose([Validators.pattern(/^\d+(?:[-+]\d+)?$/), Validators.maxLength(15)])],
-            'sets': ['', Validators.compose([Validators.pattern(/^\d+(?:[-+]\d+)?$/), Validators.maxLength(15)])],
-            'durationHours': [0, Validators.compose([Validators.min(0), Validators.max(99)])],
-            'durationMinutes': [0, Validators.compose([Validators.min(0), Validators.max(59)])],
-            'durationSeconds': [0, Validators.compose([Validators.min(0), Validators.max(59)])],
-            'distance': ['', Validators.maxLength(15)],
-            'intensity': ['']
+        this.exerciseLogForm = this._formBuilder.group<ExerciseForm>({
+            exerciseName: new FormControl('', Validators.compose([Validators.required, Validators.maxLength(50)])),
+            weight: new FormControl<string | number | null>('', Validators.maxLength(15)),
+            reps: new FormControl<string | number | null>('', Validators.compose([Validators.pattern(/^\d+(?:[-+]\d+)?$/), Validators.maxLength(15)])),
+            sets: new FormControl<string | number | null>('', Validators.compose([Validators.pattern(/^\d+(?:[-+]\d+)?$/), Validators.maxLength(15)])),
+            durationHours: new FormControl(0, Validators.compose([Validators.min(0), Validators.max(99)])),
+            durationMinutes: new FormControl(0, Validators.compose([Validators.min(0), Validators.max(59)])),
+            durationSeconds: new FormControl(0, Validators.compose([Validators.min(0), Validators.max(59)])),
+            distance: new FormControl<string | number | null>('', Validators.maxLength(15)),
+            intensity: new FormControl<Intensity | null>(null)
         });
         this.currentExercise = _exerciseDialogData.exercise ? Object.assign(new Exercise(), _exerciseDialogData.exercise) : new Exercise();
         this.currentExercise.exerciseType = _exerciseDialogData.exerciseType;
@@ -109,17 +121,18 @@ export class ExerciseDialogComponent {
             this.exerciseLogForm.controls[c].markAsTouched();
         }
         if (this.exerciseLogForm.valid) {
-            this.currentExercise.exerciseName = this.exerciseLogForm.get('exerciseName').value;
-            this.currentExercise.weight = this.exerciseLogForm.get('weight').value;
-            this.currentExercise.sets = this.exerciseLogForm.get('sets').value;
-            this.currentExercise.reps = this.exerciseLogForm.get('reps').value;
-            this.currentExercise.distance = this.exerciseLogForm.get('distance').value;
+            const controls = this.exerciseLogForm.controls;
+            this.currentExercise.exerciseName = controls.exerciseName.value ?? undefined;
+            this.currentExercise.weight = controls.weight.value ?? undefined;
+            this.currentExercise.sets = controls.sets.value ?? undefined;
+            this.currentExercise.reps = controls.reps.value ?? undefined;
+            this.currentExercise.distance = controls.distance.value ?? undefined;
             this.currentExercise.duration = moment.duration({
-                hours: Number(this.exerciseLogForm.get('durationHours').value) || 0,
-                minutes: Number(this.exerciseLogForm.get('durationMinutes').value) || 0,
-                seconds: Number(this.exerciseLogForm.get('durationSeconds').value) || 0
+                hours: Number(controls.durationHours.value) || 0,
+                minutes: Number(controls.durationMinutes.value) || 0,
+                seconds: Number(controls.durationSeconds.value) || 0
             });
-            this.currentExercise.intensity = this.exerciseLogForm.get('intensity').value;
+            this.currentExercise.intensity = controls.intensity.value ?? undefined;
             this._dialogRef.close(this.currentExercise);
         }
     }

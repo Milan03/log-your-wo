@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit, Optional } from '@angular/core';
-import { UntypedFormGroup, UntypedFormBuilder, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -37,6 +37,10 @@ import * as moment from 'moment';
 
 const swal = require('sweetalert');
 
+interface SimpleLogForm {
+    title: FormControl<string | null>;
+}
+
 interface ExerciseGroup {
     exerciseName: string;
     exercises: Exercise[];
@@ -58,7 +62,7 @@ interface CalendarDay {
     styleUrls: ['./simple-log.component.scss']
 })
 export class SimpleLogComponent implements OnInit, OnDestroy {
-    public simpleLogForm: UntypedFormGroup;
+    public simpleLogForm: FormGroup<SimpleLogForm>;
     private currentLanguage: string;
     public currentLog: SimpleLog;
     private currentPDF: string;
@@ -107,7 +111,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     public calendarWeekdays: string[] = [];
 
     constructor(
-        private _formBuilder: UntypedFormBuilder,
+        private _formBuilder: FormBuilder,
         private _sharedService: SharedService,
         private _translatorService: TranslatorService,
         private _dialog: MatDialog,
