@@ -1,6 +1,6 @@
 import { Injectable, Optional } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-import * as moment from 'moment';
+import { Duration } from 'luxon';
 
 import { Exercise } from '../models/exercise.model';
 import {
@@ -163,7 +163,7 @@ export class SimpleLogService {
     private hydrateExercises(exercises: PersistedExercise[]): Exercise[] {
         return (exercises || []).map(exercise => {
             const hydrated = Object.assign(new Exercise(), exercise);
-            hydrated.duration = moment.duration(this.durationMilliseconds(exercise.duration));
+            hydrated.duration = Duration.fromMillis(this.durationMilliseconds(exercise.duration));
             return hydrated;
         });
     }
@@ -224,12 +224,12 @@ export class SimpleLogService {
     }
 
     private durationMilliseconds(duration: unknown): number {
-        if (duration && typeof (duration as moment.Duration).asMilliseconds === 'function') {
-            return (duration as moment.Duration).asMilliseconds();
+        if (Duration.isDuration(duration)) {
+            return duration.toMillis();
         }
 
         if (typeof duration === 'string') {
-            const milliseconds = moment.duration(duration).asMilliseconds();
+            const milliseconds = Duration.fromISO(duration).toMillis();
             return Number.isFinite(milliseconds) ? milliseconds : 0;
         }
 

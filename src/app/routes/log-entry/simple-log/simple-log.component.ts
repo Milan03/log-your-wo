@@ -33,7 +33,7 @@ import {
 
 import { LogTypes, FormValues } from '../../../shared/common/common.constants';
 
-import * as moment from 'moment';
+import { Duration } from 'luxon';
 
 const swal = require('sweetalert');
 
@@ -771,7 +771,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     }
 
     public getDurationDisplay(exercise: Exercise): string {
-        return exercise.duration && exercise.duration.asMilliseconds() > 0
+        return exercise.duration && exercise.duration.toMillis() > 0
             ? this.formatDuration(exercise.duration)
             : 'N/A';
     }
@@ -793,10 +793,11 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         }, []);
     }
 
-    private formatDuration(duration: moment.Duration): string {
-        const hours = Math.floor(duration.asHours());
-        const minutes = duration.minutes();
-        const seconds = duration.seconds();
+    private formatDuration(duration: Duration): string {
+        const durationParts = duration.shiftTo('hours', 'minutes', 'seconds');
+        const hours = Math.floor(durationParts.hours);
+        const minutes = Math.floor(durationParts.minutes);
+        const seconds = Math.floor(durationParts.seconds);
         const parts = [];
 
         if (hours) {
@@ -1139,18 +1140,18 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     private hydrateExercises(exercises: PersistedExercise[]): Exercise[] {
         return exercises.map(exercise => {
             const hydratedExercise = Object.assign(new Exercise(), exercise);
-            hydratedExercise.duration = moment.duration(this.durationMilliseconds(exercise.duration));
+            hydratedExercise.duration = Duration.fromMillis(this.durationMilliseconds(exercise.duration));
             return hydratedExercise;
         });
     }
 
     private durationMilliseconds(duration: unknown): number {
-        if (duration && typeof (duration as moment.Duration).asMilliseconds === 'function') {
-            return (duration as moment.Duration).asMilliseconds();
+        if (Duration.isDuration(duration)) {
+            return duration.toMillis();
         }
 
         if (typeof duration === 'string') {
-            const milliseconds = moment.duration(duration).asMilliseconds();
+            const milliseconds = Duration.fromISO(duration).toMillis();
             return Number.isFinite(milliseconds) ? milliseconds : 0;
         }
 

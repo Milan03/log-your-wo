@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import * as moment from 'moment';
+import { Duration } from 'luxon';
 
 import { Exercise } from '../models/exercise.model';
 import { SavedSimpleLog, SimpleLog } from '../models/simple-log.model';
@@ -196,12 +196,12 @@ describe('SimpleLogService', () => {
     it('hydrates ISO duration strings saved by older browser records', () => {
         const log = savedLog('duration-log');
         const exercise = new Exercise();
-        exercise.duration = 'PT12M30S' as unknown as moment.Duration;
+        exercise.duration = 'PT12M30S' as unknown as Duration;
         log.cardioExercises = [exercise];
 
         const hydrated = service.hydrateLog(log);
 
-        expect(hydrated.cardioExercises[0].duration.asMilliseconds()).toBe(750000);
+        expect(hydrated.cardioExercises[0].duration.toMillis()).toBe(750000);
     });
 });
 

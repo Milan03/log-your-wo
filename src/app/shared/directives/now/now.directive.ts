@@ -1,5 +1,5 @@
 import { OnInit, OnDestroy, Directive, Input, ElementRef } from '@angular/core';
-import moment = require('moment');
+import { DateTime } from 'luxon';
 
 @Directive({
     selector: '[now]'
@@ -17,7 +17,7 @@ export class NowDirective implements OnInit, OnDestroy {
     }
 
     updateTime() {
-        let dt = moment().format(this.format);
+        let dt = DateTime.now().toFormat(this.format);
         this.element.nativeElement.innerHTML = dt;
     }
 

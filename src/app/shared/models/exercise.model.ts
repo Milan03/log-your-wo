@@ -1,5 +1,5 @@
 import { Guid } from 'guid-typescript';
-import * as moment from 'moment';
+import { Duration } from 'luxon';
 
 export class Exercise {
     constructor(
@@ -10,7 +10,7 @@ export class Exercise {
         public sets?: number | string,
         public reps?: number | string,
         public weight?: number | string,
-        public duration?: moment.Duration,
+        public duration?: Duration,
         public distance?: number | string, // in kilometers
         public intensity?: Intensity,
         public completed?: boolean,
@@ -18,7 +18,7 @@ export class Exercise {
         public prescription?: string
     ) {
         this.exerciseId = Guid.create();
-        this.duration = moment.duration();
+        this.duration = Duration.fromMillis(0);
         this.completed = false;
     }
 }

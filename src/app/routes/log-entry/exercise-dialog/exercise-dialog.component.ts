@@ -14,7 +14,7 @@ import { ExerciseNameLocalizerService } from '../../../shared/services/exercise-
 
 import { FormValues } from '../../../shared/common/common.constants';
 
-import * as moment from 'moment';
+import { Duration } from 'luxon';
 
 interface LocalizedExerciseOption {
     name: string;
@@ -97,7 +97,7 @@ export class ExerciseDialogComponent {
     }
 
     ngOnInit(): void {
-        this.currentExercise.duration = this.currentExercise.duration || moment.duration();
+        this.currentExercise.duration = this.currentExercise.duration || Duration.fromMillis(0);
         this.populateForm();
         this.currentLanguage = FormValues.ENCode;
         this.subToLanguageChange();
@@ -117,7 +117,7 @@ export class ExerciseDialogComponent {
             this.currentExercise.sets = controls.sets.value ?? undefined;
             this.currentExercise.reps = controls.reps.value ?? undefined;
             this.currentExercise.distance = controls.distance.value ?? undefined;
-            this.currentExercise.duration = moment.duration({
+            this.currentExercise.duration = Duration.fromObject({
                 hours: Number(controls.durationHours.value) || 0,
                 minutes: Number(controls.durationMinutes.value) || 0,
                 seconds: Number(controls.durationSeconds.value) || 0
@@ -276,6 +276,8 @@ export class ExerciseDialogComponent {
     }
 
     private populateForm(): void {
+        const durationParts = (this.currentExercise.duration || Duration.fromMillis(0))
+            .shiftTo('hours', 'minutes', 'seconds');
         this.exerciseLogForm.patchValue({
             exerciseName: this.currentExercise.exerciseName || '',
             weight: this.currentExercise.weight,
@@ -283,9 +285,9 @@ export class ExerciseDialogComponent {
             reps: this.currentExercise.reps,
             distance: this.currentExercise.distance,
             intensity: this.currentExercise.intensity,
-            durationHours: Math.floor(this.currentExercise.duration.asHours()),
-            durationMinutes: this.currentExercise.duration.minutes(),
-            durationSeconds: this.currentExercise.duration.seconds()
+            durationHours: Math.floor(durationParts.hours),
+            durationMinutes: Math.floor(durationParts.minutes),
+            durationSeconds: Math.floor(durationParts.seconds)
         });
     }
 

@@ -35,7 +35,6 @@
                 "guid-typescript",
                 "html2canvas",
                 "jspdf",
-                "moment",
                 "raf",
                 "rgbcolor",
                 "sweetalert"

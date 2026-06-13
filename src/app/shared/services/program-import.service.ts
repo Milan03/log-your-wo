@@ -1,6 +1,6 @@
 import { Injectable, Optional } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-import * as moment from 'moment';
+import { Duration } from 'luxon';
 
 import { Exercise } from '../models/exercise.model';
 import {
@@ -349,12 +349,12 @@ export class ProgramImportService {
     }
 
     private getDurationMilliseconds(duration: unknown): number {
-        if (duration && typeof (duration as moment.Duration).asMilliseconds === 'function') {
-            return (duration as moment.Duration).asMilliseconds();
+        if (Duration.isDuration(duration)) {
+            return duration.toMillis();
         }
 
         if (typeof duration === 'string') {
-            const milliseconds = moment.duration(duration).asMilliseconds();
+            const milliseconds = Duration.fromISO(duration).toMillis();
             return Number.isFinite(milliseconds) ? milliseconds : 0;
         }
 
