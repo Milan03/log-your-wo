@@ -709,7 +709,8 @@ export class ProgramImportComponent implements OnInit, AfterViewInit, OnDestroy 
                 return this.t(
                     'program-import.LowConfidence',
                     undefined,
-                    'This workbook layout was only partially recognized. Review and clean up the detected rows before saving.'
+                    'This workbook layout could not be recognized reliably. '
+                    + 'Please email the workbook to milansobat03@gmail.com so support can be added.'
                 );
             case 'unknown-formulas':
                 return this.t(

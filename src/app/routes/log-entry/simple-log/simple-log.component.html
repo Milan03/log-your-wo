@@ -287,10 +287,12 @@
             <button *ngIf="!workoutCompletedAt" class="btn btn-outline-secondary" type="button" (click)="unselectAllExercises()">
                 {{ 'log-entry.UnselectAll' | translate }}
             </button>
-            <button *ngIf="!workoutPausedAt && !workoutCompletedAt" class="btn btn-danger" type="button" (click)="pauseWorkout()">
+            <button *ngIf="workoutStartedAt && !workoutPausedAt && !workoutCompletedAt"
+                class="btn btn-danger imported-log-actions__pause" type="button" (click)="pauseWorkout()">
                 {{ 'log-entry.PauseWorkout' | translate }}
             </button>
-            <button *ngIf="workoutPausedAt" class="btn btn-success" type="button" (click)="resumeWorkout()">
+            <button *ngIf="workoutPausedAt && !workoutCompletedAt"
+                class="btn btn-success imported-log-actions__resume" type="button" (click)="resumeWorkout()">
                 {{ 'log-entry.ResumeWorkout' | translate }}
             </button>
             <button *ngIf="workoutStartedAt && !workoutCompletedAt" class="btn btn-outline-danger" type="button" (click)="resetWorkout()">

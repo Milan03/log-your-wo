@@ -596,6 +596,30 @@ describe('SimpleLogComponent', () => {
     expect(saveState).not.toHaveBeenCalled();
   });
 
+  it('shows lower workout timer actions only for their active timer state', () => {
+    programImportService.saveProgram(createProgram());
+    routeParams.next(convertToParamMap({
+      weekId: 'week-1',
+      dayId: 'week-1-day-1'
+    }));
+    fixture.changeDetectorRef.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.imported-log-actions__pause')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.imported-log-actions__resume')).toBeNull();
+
+    component.startWorkout();
+    fixture.changeDetectorRef.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.imported-log-actions__pause')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('.imported-log-actions__resume')).toBeNull();
+
+    component.pauseWorkout();
+    fixture.changeDetectorRef.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.imported-log-actions__pause')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.imported-log-actions__resume')).not.toBeNull();
+  });
+
   it('navigates back to the imported week', () => {
     programImportService.saveProgram(createProgram());
     routeParams.next(convertToParamMap({

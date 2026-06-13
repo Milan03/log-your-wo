@@ -277,15 +277,134 @@ describe('ProgramWorkbookParserService', () => {
         ]);
     });
 
-    it('shows salvageable rows for manual cleanup when confidence is low', () => {
+    it('rejects salvageable rows when confidence is too low', () => {
         const preview = parseRows(parser, [
             ['Back Squat', '5 x 5'],
             ['Bench Press', '4 x 8']
         ]);
 
-        expect(preview.program.weeks[0].days[0].exercises.length).toBe(2);
+        expect(preview.program).toBeUndefined();
         expect(preview.lowConfidence).toBeTrue();
         expect(preview.confidence).toBe(0.35);
+        expect(preview.warningDetails).toEqual([{ code: 'low-confidence' }]);
+        expect(preview.warnings[0]).toContain('milansobat03@gmail.com');
+    });
+
+    it('parses the Hatch squat cycle as paired back and front squat prescriptions', () => {
+        const worksheet = XLSX.utils.aoa_to_sheet([
+            ['Hatch Squat Program - HatchSquat.com'],
+            ['', 'BackSquat', 'FrontSquat'],
+            ['1RM', 100, 120],
+            ['Week 1', 'back sqt', '', '', 'front sqt'],
+            ['Day 1', 'sets/reps', '%', 'wt used', 'sets/reps', '%', 'wt used'],
+            ['', '1*10', '60%', 60, '1*5', '60%', 72],
+            ['', '1x8', '70%', 70, '1x5', '70%', 84],
+            ['Day 2', '1*10', '60%', 60, '1*5', '60%', 72],
+            ['Week 2'],
+            ['Day 1', '1*8', '65%', 65, '1*5', '70%', 84]
+        ]);
+        setFormula(worksheet, 'D6', 60, 'C6*$B$3');
+        setFormula(worksheet, 'G6', 72, 'F6*$C$3');
+        setFormula(worksheet, 'D7', 70, 'C7*$B$3');
+        setFormula(worksheet, 'G7', 84, 'F7*$C$3');
+        setFormula(worksheet, 'D8', 60, 'C8*$B$3');
+        setFormula(worksheet, 'G8', 72, 'F8*$C$3');
+        setFormula(worksheet, 'D10', 65, 'C10*$B$3');
+        setFormula(worksheet, 'G10', 84, 'F10*$C$3');
+
+        const preview = parseWorksheet(parser, worksheet);
+        const exercises = preview.program.weeks[0].days[0].exercises;
+
+        expect(preview.strategy).toBe('hatch-squat-cycle');
+        expect(exercises.map(exercise => exercise.exerciseName))
+            .toEqual(['Back Squat', 'Back Squat', 'Front Squat', 'Front Squat']);
+        expect(exercises.map(exercise => exercise.reps))
+            .toEqual(['10', '8', '5', '5']);
+        expect(exercises[0]).toEqual(jasmine.objectContaining({
+            sets: '1',
+            reps: '10',
+            percentage1Rm: '60%',
+            weight: '60'
+        }));
+        expect(preview.setup.inputs.map(input => input.label)).toEqual(['BackSquat', 'FrontSquat']);
+        expect(preview.warnings).toEqual([]);
+
+        parser.applyInputs(preview, {
+            'Program!B3': 200,
+            'Program!C3': 150
+        });
+        expect(exercises[0].weight).toBe('120');
+        expect(exercises[1].weight).toBe('140');
+        expect(exercises[2].weight).toBe('90');
+    });
+
+    it('parses Pendlay programs split across week worksheets', () => {
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet([
+            ['', 'Enter Lifts Here:'],
+            ['Best set of 5 Back Squat', 100],
+            ['Snatch 1RM', 80]
+        ]), 'Intro');
+        for (let week = 1; week <= 8; week++) {
+            const worksheet = XLSX.utils.aoa_to_sheet([
+                ['Monday, May 4th', '', 'Set 1', 'Set 2', 'Set 3'],
+                ['Snatch (3 singles; EMOM)', '', 60, 60, 60],
+                ['Back Squat (3x5reps)', '', 80, 80, 80],
+                ['Tuesday, May 5th', '', 'Set 1'],
+                ['Snatch (Heavy Single)', '', 72]
+            ]);
+            setFormula(worksheet, 'C2', 60, '0.75*Intro!B3');
+            setFormula(worksheet, 'D2', 60, '0.75*Intro!B3');
+            setFormula(worksheet, 'E2', 60, '0.75*Intro!B3');
+            setFormula(worksheet, 'C3', 80, '0.8*Intro!B2');
+            setFormula(worksheet, 'D3', 80, '0.8*Intro!B2');
+            setFormula(worksheet, 'E3', 80, '0.8*Intro!B2');
+            setFormula(worksheet, 'C5', 72, '0.9*Intro!B3');
+            XLSX.utils.book_append_sheet(workbook, worksheet, `Week ${week}`);
+        }
+
+        const preview = parseWorkbook(parser, workbook);
+
+        expect(preview.strategy).toBe('pendlay-week-sheets');
+        expect(preview.confidence).toBe(0.99);
+        expect(preview.program.weeks.length).toBe(8);
+        expect(preview.program.weeks[0].days.length).toBe(2);
+        expect(preview.program.weeks[0].days.map(day => day.name))
+            .toEqual(['Day 01', 'Day 02']);
+        expect(preview.program.weeks[0].days[0].exercises[0]).toEqual(jasmine.objectContaining({
+            exerciseName: 'Snatch',
+            sets: '3',
+            reps: '1',
+            weight: '60'
+        }));
+
+        parser.applyInputs(preview, {
+            'Intro!B2': 150,
+            'Intro!B3': 100
+        });
+        expect(preview.program.weeks[0].days[0].exercises[0].weight).toBe('75');
+        expect(preview.program.weeks[0].days[0].exercises[1].weight).toBe('120');
+    });
+
+    it('uses a Pendlay day-header scheme when an exercise row only contains a calculated weight', () => {
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet([
+            ['', 'Enter Lifts Here:'],
+            ['Best set of 5 Back Squat', 100]
+        ]), 'Intro');
+        for (let week = 1; week <= 8; week++) {
+            const worksheet = XLSX.utils.aoa_to_sheet([
+                ['Saturday, May 2nd', '', '1x5'],
+                ['Squat', '', 90]
+            ]);
+            setFormula(worksheet, 'C2', 90, '0.9*Intro!B2');
+            XLSX.utils.book_append_sheet(workbook, worksheet, `Week ${week}`);
+        }
+
+        const preview = parseWorkbook(parser, workbook);
+
+        expect(preview.program.weeks[0].days[0].exercises[0])
+            .toEqual(jasmine.objectContaining({ sets: '1', reps: '5', weight: '90' }));
     });
 
     it('detects notes, RPE, rest, tempo, and percentage of 1RM', () => {
