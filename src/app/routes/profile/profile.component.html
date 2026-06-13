@@ -208,7 +208,7 @@
                   </div>
 
                   <div class="profile-maxes" formArrayName="trainingMaxes">
-                    @for (trainingMax of trainingMaxes.controls; track trainingMax; let index = $index) {
+                    @for (trainingMax of trainingMaxes.controls; track trainingMax.value.id; let index = $index) {
                       <div
                         class="profile-max"
                         [formGroupName]="index">
