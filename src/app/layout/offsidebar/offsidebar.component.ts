@@ -20,12 +20,12 @@ export class OffsidebarComponent implements OnInit, OnDestroy {
         return this.themes.isDarkMode();
     }
 
-    constructor(
-        public _settings: SettingsService,
-        public themes: ThemesService,
-        public translator: TranslatorService,
-        public elem: ElementRef
-    ) {
+    public _settings = inject(SettingsService);
+    public themes = inject(ThemesService);
+    public translator = inject(TranslatorService);
+    public elem = inject(ElementRef);
+
+    constructor() {
         this.selectedLanguage = this.translator.language;
     }
 

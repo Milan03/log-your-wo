@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef } from '@angular/material/dialog';
 
@@ -13,16 +13,12 @@ interface EmailForm {
     styleUrls: ['./email-dialog.component.scss']
 })
 export class EmailDialogComponent {
-    public emailForm: FormGroup<EmailForm>;
+    public _dialogRef = inject(MatDialogRef) as MatDialogRef<EmailDialogComponent>;
+    private _formBuilder = inject(FormBuilder);
 
-    constructor(
-        public _dialogRef: MatDialogRef<EmailDialogComponent>,
-        private _formBuilder: FormBuilder
-    ) {
-        this.emailForm = this._formBuilder.group({
-            'emailAddress': ['', Validators.compose([Validators.required, Validators.email])]
-        });
-    }
+    public emailForm: FormGroup<EmailForm> = this._formBuilder.group({
+        'emailAddress': ['', Validators.compose([Validators.required, Validators.email])]
+    });
     
     submitForm($ev, value: any) {
         $ev.preventDefault();

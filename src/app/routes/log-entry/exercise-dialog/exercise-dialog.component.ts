@@ -1,4 +1,4 @@
-import { Component, DestroyRef, ElementRef, Inject, inject, ViewChild } from '@angular/core';
+import { Component, DestroyRef, ElementRef, inject, ViewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
@@ -66,15 +66,15 @@ export class ExerciseDialogComponent {
     private exerciseNames: string[] = [];
     private cardioExerciseNames: string[] = [];
 
-    constructor(
-        @Inject(MAT_DIALOG_DATA) public _exerciseDialogData: ExerciseDialogData,
-        private _formBuilder: FormBuilder,
-        public _dialogRef: MatDialogRef<ExerciseDialogComponent>,
-        private _sharedService: SharedService,
-        private _translatorService: TranslatorService,
-        private _exerciseDirectoryService: ExerciseDirectoryService,
-        private _exerciseNameLocalizer: ExerciseNameLocalizerService
-    ) {
+    public _exerciseDialogData = inject<ExerciseDialogData>(MAT_DIALOG_DATA);
+    private _formBuilder = inject(FormBuilder);
+    public _dialogRef = inject(MatDialogRef) as MatDialogRef<ExerciseDialogComponent>;
+    private _sharedService = inject(SharedService);
+    private _translatorService = inject(TranslatorService);
+    private _exerciseDirectoryService = inject(ExerciseDirectoryService);
+    private _exerciseNameLocalizer = inject(ExerciseNameLocalizerService);
+
+    constructor() {
         this.exerciseLogForm = this._formBuilder.group<ExerciseForm>({
             exerciseName: new FormControl('', Validators.compose([Validators.required, Validators.maxLength(50)])),
             weight: new FormControl<string | number | null>('', Validators.maxLength(15)),
@@ -86,10 +86,10 @@ export class ExerciseDialogComponent {
             distance: new FormControl<string | number | null>('', Validators.maxLength(15)),
             intensity: new FormControl<Intensity | null>(null)
         });
-        this.currentExercise = _exerciseDialogData.exercise ? Object.assign(new Exercise(), _exerciseDialogData.exercise) : new Exercise();
-        this.currentExercise.exerciseType = _exerciseDialogData.exerciseType;
-        this.currentExercise.exerciseName = _exerciseDialogData.exerciseName || this.currentExercise.exerciseName;
-        this.setSelectedChip(_exerciseDialogData.measure);
+        this.currentExercise = this._exerciseDialogData.exercise ? Object.assign(new Exercise(), this._exerciseDialogData.exercise) : new Exercise();
+        this.currentExercise.exerciseType = this._exerciseDialogData.exerciseType;
+        this.currentExercise.exerciseName = this._exerciseDialogData.exerciseName || this.currentExercise.exerciseName;
+        this.setSelectedChip(this._exerciseDialogData.measure);
     }
 
     ngAfterViewInit() {

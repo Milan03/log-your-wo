@@ -48,16 +48,7 @@ describe('Component: Header', () => {
         inject(
             [MenuService, UserblockService, SettingsService, Injector, Router, SharedService, TranslatorService, ThemesService],
             (menuService, userblockService, settingsService, injector, router, sharedService, translator, themes) => {
-                let component = TestBed.runInInjectionContext(() => new HeaderComponent(
-                    menuService,
-                    userblockService,
-                    settingsService,
-                    injector,
-                    router,
-                    sharedService,
-                    translator,
-                    themes
-                ));
+                let component = TestBed.runInInjectionContext(() => new HeaderComponent());
                 expect(component).toBeTruthy();
             }
         )
@@ -66,16 +57,7 @@ describe('Component: Header', () => {
     it('should expand on desktop, use compact labels on tablet, and use a full mobile drawer', inject(
         [MenuService, UserblockService, SettingsService, Injector, Router, SharedService, TranslatorService, ThemesService],
         (menuService, userblockService, settingsService, injector, router, sharedService, translator, themes) => {
-            const component = TestBed.runInInjectionContext(() => new HeaderComponent(
-                menuService,
-                userblockService,
-                settingsService,
-                injector,
-                router,
-                sharedService,
-                translator,
-                themes
-            ));
+            const component = TestBed.runInInjectionContext(() => new HeaderComponent());
 
             const widthSpy = spyOnProperty(window, 'innerWidth').and.returnValue(1200);
             component.syncSidebarForViewport();
@@ -96,16 +78,7 @@ describe('Component: Header', () => {
     it('toggles the shared dark mode preference', inject(
         [MenuService, UserblockService, SettingsService, Injector, Router, SharedService, TranslatorService, ThemesService],
         (menuService, userblockService, settingsService, injector, router, sharedService, translator, themes) => {
-            const component = TestBed.runInInjectionContext(() => new HeaderComponent(
-                menuService,
-                userblockService,
-                settingsService,
-                injector,
-                router,
-                sharedService,
-                translator,
-                themes
-            ));
+            const component = TestBed.runInInjectionContext(() => new HeaderComponent());
             spyOn(themes, 'toggleDarkMode');
 
             component.toggleDarkMode();

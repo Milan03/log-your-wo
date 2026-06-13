@@ -1,4 +1,4 @@
-import { Component, OnInit, Injector, OnDestroy, Optional, DestroyRef, inject } from '@angular/core';
+import { Component, OnInit, Injector, OnDestroy, DestroyRef, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 declare var $: any;
@@ -22,14 +22,14 @@ export class SidebarComponent implements OnInit, OnDestroy {
     signedIn = false;
     private readonly destroyRef = inject(DestroyRef);
 
-    constructor(
-        public menu: MenuService,
-        public settings: SettingsService,
-        public injector: Injector,
-        @Optional() private auth?: AuthService
-    ) {
+    public menu = inject(MenuService);
+    public settings = inject(SettingsService);
+    public injector = inject(Injector);
+    private auth = inject(AuthService, { optional: true });
 
-        this.menuItems = menu.getMenu();
+    constructor() {
+
+        this.menuItems = this.menu.getMenu();
         if (this.auth) {
             this.auth.session$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(session => {
                 this.signedIn = !!session;

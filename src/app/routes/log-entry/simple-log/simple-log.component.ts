@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, OnDestroy, OnInit, Optional } from '@angular/core';
+import { Component, DestroyRef, inject, OnDestroy, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
@@ -104,20 +104,20 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     public simpleLogTitleDraft = '';
     public calendarWeekdays: string[] = [];
 
-    constructor(
-        private _formBuilder: FormBuilder,
-        private _sharedService: SharedService,
-        private _translatorService: TranslatorService,
-        private _dialog: MatDialog,
-        private _emailService: EmailService,
-        private _googleAnalyticsService: GoogleAnalyticsService,
-        private _programImportService: ProgramImportService,
-        private _simpleLogService: SimpleLogService,
-        private _workoutPdfService: WorkoutPdfService,
-        private _activatedRoute: ActivatedRoute,
-        private _router: Router,
-        @Optional() private _profileService?: ProfileService
-    ) {
+    private _formBuilder = inject(FormBuilder);
+    private _sharedService = inject(SharedService);
+    private _translatorService = inject(TranslatorService);
+    private _dialog = inject(MatDialog);
+    private _emailService = inject(EmailService);
+    private _googleAnalyticsService = inject(GoogleAnalyticsService);
+    private _programImportService = inject(ProgramImportService);
+    private _simpleLogService = inject(SimpleLogService);
+    private _workoutPdfService = inject(WorkoutPdfService);
+    private _activatedRoute = inject(ActivatedRoute);
+    private _router = inject(Router);
+    private _profileService = inject(ProfileService, { optional: true });
+
+    constructor() {
         this.simpleLogForm = this._formBuilder.group({
             'title': ['', Validators.compose([Validators.maxLength(25)])]
         });

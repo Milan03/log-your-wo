@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, OnInit, Optional } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 
@@ -17,12 +17,9 @@ export class LayoutComponent implements OnInit {
     public showInstallNotice = false;
     public installDevice: AppInstallDevice | null = null;
     private readonly destroyRef = inject(DestroyRef);
-
-    constructor(
-        @Optional() private auth?: AuthService,
-        @Optional() private router?: Router,
-        @Optional() private appInstall?: AppInstallService
-    ) { }
+    private auth = inject(AuthService, { optional: true });
+    private router = inject(Router, { optional: true });
+    private appInstall = inject(AppInstallService, { optional: true });
 
     ngOnInit() {
         if (this.auth) {

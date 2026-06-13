@@ -35,6 +35,7 @@ describe('Component: Offsidebar', () => {
                 ThemesService,
                 TranslatorService,
                 MockElementRef,
+                { provide: ElementRef, useClass: MockElementRef },
                 {
                     provide: TRANSLATE_HTTP_LOADER_CONFIG,
                     useValue: {}
@@ -45,19 +46,14 @@ describe('Component: Offsidebar', () => {
 
     it('should create an instance', waitForAsync(inject([SettingsService, ThemesService, TranslatorService, MockElementRef],
         (settingsService, themesService, translatorService, mockElementRef) => {
-            let component = TestBed.runInInjectionContext(() => new OffsidebarComponent(settingsService, themesService, translatorService, mockElementRef));
+            let component = TestBed.runInInjectionContext(() => new OffsidebarComponent());
             expect(component).toBeTruthy();
         })));
 
     it('updates the shared dark mode preference', inject(
         [SettingsService, ThemesService, TranslatorService, MockElementRef],
         (settingsService, themesService, translatorService, mockElementRef) => {
-            const component = TestBed.runInInjectionContext(() => new OffsidebarComponent(
-                settingsService,
-                themesService,
-                translatorService,
-                mockElementRef
-            ));
+            const component = TestBed.runInInjectionContext(() => new OffsidebarComponent());
             spyOn(themesService, 'setDarkMode');
 
             component.setDarkMode(true);
@@ -69,12 +65,7 @@ describe('Component: Offsidebar', () => {
     it('switches the shared language preference', inject(
         [SettingsService, ThemesService, TranslatorService, MockElementRef],
         (settingsService, themesService, translatorService, mockElementRef) => {
-            const component = TestBed.runInInjectionContext(() => new OffsidebarComponent(
-                settingsService,
-                themesService,
-                translatorService,
-                mockElementRef
-            ));
+            const component = TestBed.runInInjectionContext(() => new OffsidebarComponent());
             spyOn(translatorService, 'useLanguage').and.resolveTo();
 
             component.setLang('fr-ca');

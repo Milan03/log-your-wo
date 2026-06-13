@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, Injector, Optional, HostListener, DestroyRef, inject } from '@angular/core';
+import { Component, OnInit, ViewChild, Injector, HostListener, DestroyRef, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router } from '@angular/router';
 import screenfull from 'screenfull';
@@ -40,22 +40,23 @@ export class HeaderComponent implements OnInit {
     private readonly destroyRef = inject(DestroyRef);
     private userEmail = '';
     private sidebarViewport = '';
-    constructor(
-        public menu: MenuService,
-        public userblockService: UserblockService,
-        public settings: SettingsService,
-        public injector: Injector,
-        private _router: Router,
-        private sharedService: SharedService,
-        private translatorService: TranslatorService,
-        private themesService: ThemesService,
-        @Optional() private authService?: AuthService,
-        @Optional() private userDataSync?: UserDataSyncService,
-        @Optional() private profileService?: ProfileService
-    ) {
+
+    public menu = inject(MenuService);
+    public userblockService = inject(UserblockService);
+    public settings = inject(SettingsService);
+    public injector = inject(Injector);
+    private _router = inject(Router);
+    private sharedService = inject(SharedService);
+    private translatorService = inject(TranslatorService);
+    private themesService = inject(ThemesService);
+    private authService = inject(AuthService, { optional: true });
+    private userDataSync = inject(UserDataSyncService, { optional: true });
+    private profileService = inject(ProfileService, { optional: true });
+
+    constructor() {
         this.currentLogType = undefined;
         this.logStartDatim = new Date();
-        this.menuItems = menu.getMenu().slice(0, 4); // for horizontal layout
+        this.menuItems = this.menu.getMenu().slice(0, 4); // for horizontal layout
         this.subToLogType();
         this.subToLogStartDatim();
         this.subToLanguageChange();
