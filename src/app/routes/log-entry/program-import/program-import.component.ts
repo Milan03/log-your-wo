@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, DestroyRef, ElementRef, inject, OnDestroy, OnInit, Optional, QueryList, ViewChildren } from '@angular/core';
+import { AfterViewInit, Component, DestroyRef, ElementRef, inject, OnDestroy, OnInit, QueryList, ViewChildren } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs';
@@ -63,14 +63,12 @@ export class ProgramImportComponent implements OnInit, AfterViewInit, OnDestroy 
     private selectedProgramId: string;
     private pendingTrainingMaxes: TrainingMax[] = [];
 
-    constructor(
-        private _programImportService: ProgramImportService,
-        private _sharedService: SharedService,
-        private _router: Router,
-        private _activatedRoute: ActivatedRoute,
-        @Optional() private _translatorService?: TranslatorService,
-        @Optional() private _profileService?: ProfileService
-    ) { }
+    private _programImportService = inject(ProgramImportService);
+    private _sharedService = inject(SharedService);
+    private _router = inject(Router);
+    private _activatedRoute = inject(ActivatedRoute);
+    private _translatorService = inject(TranslatorService, { optional: true });
+    private _profileService = inject(ProfileService, { optional: true });
 
     ngOnInit(): void {
         this._sharedService.emitLogType(undefined);

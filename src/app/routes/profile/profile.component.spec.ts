@@ -1,8 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 import { FormBuilder } from '@angular/forms';
+import { Router } from '@angular/router';
 
 import { createDefaultProfile } from '../../shared/models/profile.model';
 import { ProfileComponent } from './profile.component';
+import { AuthService } from '../../core/auth/auth.service';
+import { ProfileService } from '../../shared/services/profile.service';
+import { SharedService } from '../../shared/services/shared.service';
+import { ThemesService } from '../../core/themes/themes.service';
 import { TranslatorService } from '../../core/translator/translator.service';
 
 describe('ProfileComponent', () => {
@@ -10,17 +15,21 @@ describe('ProfileComponent', () => {
         themes = jasmine.createSpyObj('ThemesService', ['isDarkMode', 'setDarkMode']),
         translator?: jasmine.SpyObj<TranslatorService>
     ): ProfileComponent {
-        return TestBed.runInInjectionContext(() => new ProfileComponent(
-            new FormBuilder(),
-            jasmine.createSpyObj('AuthService', [], { session$: { subscribe: () => undefined } }),
-            jasmine.createSpyObj('ProfileService', ['saveProfile'], {
-                profile$: { subscribe: () => undefined }
-            }),
-            jasmine.createSpyObj('SharedService', ['emitLogType']),
-            jasmine.createSpyObj('Router', ['navigate']),
-            themes,
-            translator
-        ));
+        TestBed.configureTestingModule({
+            providers: [
+                FormBuilder,
+                { provide: AuthService, useValue: jasmine.createSpyObj('AuthService', [], { session$: { subscribe: () => undefined } }) },
+                {
+                    provide: ProfileService,
+                    useValue: jasmine.createSpyObj('ProfileService', ['saveProfile'], { profile$: { subscribe: () => undefined } })
+                },
+                { provide: SharedService, useValue: jasmine.createSpyObj('SharedService', ['emitLogType']) },
+                { provide: Router, useValue: jasmine.createSpyObj('Router', ['navigate']) },
+                { provide: ThemesService, useValue: themes },
+                { provide: TranslatorService, useValue: translator ?? null }
+            ]
+        });
+        return TestBed.runInInjectionContext(() => new ProfileComponent());
     }
 
     it('converts existing measurements when the unit system changes', () => {

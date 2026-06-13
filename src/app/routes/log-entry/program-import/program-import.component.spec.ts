@@ -24,12 +24,15 @@ describe('ProgramImportComponent', () => {
         });
         programImportService = new ProgramImportService();
         programImportService.saveProgram(createProgram());
-        component = TestBed.runInInjectionContext(() => new ProgramImportComponent(
-            programImportService,
-            new SharedService(),
-            router,
-            { queryParamMap: routeParams.asObservable() } as ActivatedRoute
-        ));
+        TestBed.configureTestingModule({
+            providers: [
+                { provide: ProgramImportService, useValue: programImportService },
+                { provide: SharedService, useValue: new SharedService() },
+                { provide: Router, useValue: router },
+                { provide: ActivatedRoute, useValue: { queryParamMap: routeParams.asObservable() } }
+            ]
+        });
+        component = TestBed.runInInjectionContext(() => new ProgramImportComponent());
         component.ngOnInit();
     });
 
@@ -51,12 +54,7 @@ describe('ProgramImportComponent', () => {
         programImportService.markDayComplete('week-1', 'week-1-day-1');
         component.ngOnDestroy();
 
-        component = TestBed.runInInjectionContext(() => new ProgramImportComponent(
-            programImportService,
-            new SharedService(),
-            router,
-            { queryParamMap: routeParams.asObservable() } as ActivatedRoute
-        ));
+        component = TestBed.runInInjectionContext(() => new ProgramImportComponent());
         component.ngOnInit();
 
         const focusState = component as unknown as {

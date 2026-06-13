@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, OnInit, Optional } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -23,14 +23,14 @@ export class AuthComponent implements OnInit {
     private readonly destroyRef = inject(DestroyRef);
     private returnUrl = '/home';
 
-    constructor(
-        formBuilder: FormBuilder,
-        private auth: AuthService,
-        private route: ActivatedRoute,
-        private router: Router,
-        @Optional() private translator?: TranslatorService
-    ) {
-        this.form = formBuilder.group({
+    private formBuilder = inject(FormBuilder);
+    private auth = inject(AuthService);
+    private route = inject(ActivatedRoute);
+    private router = inject(Router);
+    private translator = inject(TranslatorService, { optional: true });
+
+    constructor() {
+        this.form = this.formBuilder.group({
             email: ['', [Validators.required, Validators.email]],
             password: ['', Validators.required]
         });

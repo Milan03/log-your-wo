@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, OnInit, Optional } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AbstractControl, FormArray, FormBuilder, FormGroup, ValidationErrors, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -55,19 +55,17 @@ export class ProfileComponent implements OnInit {
     private readonly destroyRef = inject(DestroyRef);
     private currentUnitSystem: UnitSystem = 'imperial';
     private loadedProfile: UserProfile;
-    private readonly formBuilder: FormBuilder;
 
-    constructor(
-        formBuilder: FormBuilder,
-        private auth: AuthService,
-        private profileService: ProfileService,
-        private sharedService: SharedService,
-        private router: Router,
-        private themes: ThemesService,
-        @Optional() private translator?: TranslatorService
-    ) {
-        this.formBuilder = formBuilder;
-        this.form = formBuilder.group({
+    private readonly formBuilder = inject(FormBuilder);
+    private auth = inject(AuthService);
+    private profileService = inject(ProfileService);
+    private sharedService = inject(SharedService);
+    private router = inject(Router);
+    private themes = inject(ThemesService);
+    private translator = inject(TranslatorService, { optional: true });
+
+    constructor() {
+        this.form = this.formBuilder.group({
             firstName: ['', Validators.maxLength(50)],
             lastName: ['', Validators.maxLength(50)],
             username: ['', [Validators.maxLength(30), Validators.pattern(/^[a-zA-Z0-9_.-]*$/)]],
@@ -81,7 +79,7 @@ export class ProfileComponent implements OnInit {
             fitnessGoal: [''],
             experienceLevel: [''],
             workoutsPerWeek: [3, [Validators.min(1), Validators.max(14)]],
-            trainingMaxes: formBuilder.array([]),
+            trainingMaxes: this.formBuilder.array([]),
             emailUpdates: [false]
         });
     }
