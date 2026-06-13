@@ -1,4 +1,5 @@
-import { Component, OnInit, ViewChild, Injector, OnDestroy, Optional, HostListener } from '@angular/core';
+import { Component, OnInit, ViewChild, Injector, HostListener, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router } from '@angular/router';
 import screenfull from 'screenfull';
 
@@ -6,7 +7,7 @@ import { UserblockService } from '../sidebar/userblock/userblock.service';
 import { SettingsService } from '../../core/settings/settings.service';
 import { MenuService } from '../../core/menu/menu.service';
 import { SharedService } from '../../shared/services/shared.service';
-import { filter, Subscription } from 'rxjs';
+import { filter } from 'rxjs';
 import { FormValues, LogTypes } from 'src/app/shared/common/common.constants';
 import { TranslatorService } from 'src/app/core/translator/translator.service';
 import { AuthService } from '../../core/auth/auth.service';
@@ -20,7 +21,7 @@ import { ThemesService } from '../../core/themes/themes.service';
     templateUrl: './header.component.html',
     styleUrls: ['./header.component.scss']
 })
-export class HeaderComponent implements OnInit, OnDestroy {
+export class HeaderComponent implements OnInit {
     @ViewChild('fsbutton', { static: true }) fsbutton;  // the fullscreen button
 
     private currentLanguage: string;
@@ -36,47 +37,42 @@ export class HeaderComponent implements OnInit, OnDestroy {
     public accountLabel = 'Guest';
     public syncError = '';
 
-    private logTypeSub: Subscription;
-    private logStartDatimSub: Subscription;
-    private langSub: Subscription;
-    private routerSub: Subscription;
-    private sessionSub: Subscription;
-    private syncErrorSub: Subscription;
-    private profileSub: Subscription;
+    private readonly destroyRef = inject(DestroyRef);
     private userEmail = '';
     private sidebarViewport = '';
-    constructor(
-        public menu: MenuService,
-        public userblockService: UserblockService,
-        public settings: SettingsService,
-        public injector: Injector,
-        private _router: Router,
-        private sharedService: SharedService,
-        private translatorService: TranslatorService,
-        private themesService: ThemesService,
-        @Optional() private authService?: AuthService,
-        @Optional() private userDataSync?: UserDataSyncService,
-        @Optional() private profileService?: ProfileService
-    ) {
+
+    public menu = inject(MenuService);
+    public userblockService = inject(UserblockService);
+    public settings = inject(SettingsService);
+    public injector = inject(Injector);
+    private _router = inject(Router);
+    private sharedService = inject(SharedService);
+    private translatorService = inject(TranslatorService);
+    private themesService = inject(ThemesService);
+    private authService = inject(AuthService, { optional: true });
+    private userDataSync = inject(UserDataSyncService, { optional: true });
+    private profileService = inject(ProfileService, { optional: true });
+
+    constructor() {
         this.currentLogType = undefined;
         this.logStartDatim = new Date();
-        this.menuItems = menu.getMenu().slice(0, 4); // for horizontal layout
+        this.menuItems = this.menu.getMenu().slice(0, 4); // for horizontal layout
         this.subToLogType();
         this.subToLogStartDatim();
         this.subToLanguageChange();
         this.subToRouteChange();
         if (this.authService) {
-            this.sessionSub = this.authService.session$.subscribe(session => {
+            this.authService.session$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(session => {
                 this.signedIn = !!session;
                 this.userEmail = session && session.user ? session.user.email || '' : '';
                 this.updateAccountLabel();
             });
         }
         if (this.profileService) {
-            this.profileSub = this.profileService.profile$.subscribe(() => this.updateAccountLabel());
+            this.profileService.profile$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.updateAccountLabel());
         }
         if (this.userDataSync) {
-            this.syncErrorSub = this.userDataSync.error$.subscribe(error => this.syncError = error);
+            this.userDataSync.error$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(error => this.syncError = error);
         }
     }
 
@@ -108,41 +104,24 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
     }
 
-    ngOnDestroy() {
-        if (this.logTypeSub)
-            this.logTypeSub.unsubscribe();
-        if (this.logStartDatimSub)
-            this.logStartDatimSub.unsubscribe();
-        if (this.langSub)
-            this.langSub.unsubscribe();
-        if (this.routerSub)
-            this.routerSub.unsubscribe();
-        if (this.sessionSub)
-            this.sessionSub.unsubscribe();
-        if (this.syncErrorSub)
-            this.syncErrorSub.unsubscribe();
-        if (this.profileSub)
-            this.profileSub.unsubscribe();
-    }
-
     public sendOpenRequest(type: string): void {
         this.sharedService.emitOpenExerciseDialog(type);
     }
 
     subToLogType(): void {
-        this.logTypeSub = this.sharedService.logTypeEmitted$.subscribe(
+        this.sharedService.logTypeEmitted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(
             data => this.currentLogType = data
         );
     }
 
     subToLogStartDatim(): void {
-        this.logStartDatimSub = this.sharedService.logStartDatimEmitted$.subscribe(
+        this.sharedService.logStartDatimEmitted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(
             data => this.logStartDatim = data
         )
     }
 
     subToLanguageChange(): void {
-        this.langSub = this.translatorService.languageChangeEmitted$.subscribe(
+        this.translatorService.languageChangeEmitted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(
             data => {
                 this.currentLanguage = data;
                 if (this.currentLanguage == FormValues.ENCode) {
@@ -164,8 +143,9 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
     private subToRouteChange(): void {
         this.updateLogActionVisibility(this._router.url);
-        this.routerSub = this._router.events.pipe(
-            filter(event => event instanceof NavigationEnd)
+        this._router.events.pipe(
+            filter(event => event instanceof NavigationEnd),
+            takeUntilDestroyed(this.destroyRef)
         ).subscribe((event: NavigationEnd) => {
             this.updateLogActionVisibility(event.urlAfterRedirects);
         });

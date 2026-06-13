@@ -65,7 +65,9 @@ any data service, preserve this model:
 - Services are `@Injectable({ providedIn: 'root' })`.
 - Components are module-declared with separate `.ts`/`.html`/`.scss`/`.spec.ts`
   files; component prefix is `app`, styles are SCSS.
-- `moment` is imported as `import * as moment from 'moment'`.
+- Dates/durations use `luxon` (`import { Duration, DateTime } from 'luxon'`).
+  `Exercise.duration` is a luxon `Duration`; persisted durations are
+  milliseconds (legacy ISO-8601 strings are still parsed on hydrate).
 
 ## Localization
 

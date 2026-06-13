@@ -1,276 +1,298 @@
 <div class="profile-page">
-    <header class="profile-hero">
-        <div>
-            <span class="profile-hero__eyebrow">{{ 'profile.Eyebrow' | translate }}</span>
-            <h1>{{ 'profile.Title' | translate }}</h1>
-            <p>{{ 'profile.Description' | translate }}</p>
-        </div>
-        <div class="profile-hero__status" [class.profile-hero__status--account]="signedIn">
-            <em [class]="signedIn ? 'icon-cloud-upload' : 'icon-screen-desktop'" aria-hidden="true"></em>
-            <div>
-                <strong>{{ (signedIn ? 'profile.SyncedAccount' : 'profile.GuestProfile') | translate }}</strong>
-                <span>{{ signedIn ? email : ('profile.BrowserOnly' | translate) }}</span>
-            </div>
-        </div>
-    </header>
-
-    <div *ngIf="!signedIn" class="profile-account-callout">
-        <div>
-            <strong>{{ 'profile.AccountCalloutTitle' | translate }}</strong>
-            <p>{{ 'profile.AccountCalloutDescription' | translate }}</p>
-        </div>
-        <button class="btn btn-primary" type="button" (click)="openAccount()">{{ 'global.SignInOrRegister' | translate }}</button>
+  <header class="profile-hero">
+    <div>
+      <span class="profile-hero__eyebrow">{{ 'profile.Eyebrow' | translate }}</span>
+      <h1>{{ 'profile.Title' | translate }}</h1>
+      <p>{{ 'profile.Description' | translate }}</p>
     </div>
+    <div class="profile-hero__status" [class.profile-hero__status--account]="signedIn">
+      <em [class]="signedIn ? 'icon-cloud-upload' : 'icon-screen-desktop'" aria-hidden="true"></em>
+      <div>
+        <strong>{{ (signedIn ? 'profile.SyncedAccount' : 'profile.GuestProfile') | translate }}</strong>
+        <span>{{ signedIn ? email : ('profile.BrowserOnly' | translate) }}</span>
+      </div>
+    </div>
+  </header>
 
-    <form [formGroup]="form" (ngSubmit)="save()" novalidate>
-        <div class="profile-grid">
-            <section class="profile-card" aria-labelledby="identity-heading">
-                <div class="profile-card__heading">
-                    <em class="icon-user" aria-hidden="true"></em>
-                    <div>
-                        <h2 id="identity-heading">{{ 'profile.AboutTitle' | translate }}</h2>
-                        <p>{{ 'profile.AboutDescription' | translate }}</p>
-                    </div>
-                </div>
+  @if (!signedIn) {
+    <div class="profile-account-callout">
+      <div>
+        <strong>{{ 'profile.AccountCalloutTitle' | translate }}</strong>
+        <p>{{ 'profile.AccountCalloutDescription' | translate }}</p>
+      </div>
+      <button class="btn btn-primary" type="button" (click)="openAccount()">{{ 'global.SignInOrRegister' | translate }}</button>
+    </div>
+  }
 
-                <div class="profile-form-grid">
-                    <div class="form-group">
-                        <label for="profile-first-name">{{ 'profile.FirstName' | translate }}</label>
-                        <input id="profile-first-name" class="form-control" formControlName="firstName" autocomplete="given-name">
-                    </div>
-                    <div class="form-group">
-                        <label for="profile-last-name">{{ 'profile.LastName' | translate }}</label>
-                        <input id="profile-last-name" class="form-control" formControlName="lastName" autocomplete="family-name">
-                    </div>
-                    <div class="form-group">
-                        <label for="profile-username">{{ 'profile.Username' | translate }}</label>
-                        <input id="profile-username" class="form-control" formControlName="username" autocomplete="username"
-                            aria-describedby="profile-username-help profile-username-error"
-                            [attr.aria-invalid]="form.get('username').invalid && form.get('username').touched">
-                        <small id="profile-username-help" class="text-muted">{{ 'profile.UsernameHelp' | translate }}</small>
-                        <small id="profile-username-error" *ngIf="form.get('username').invalid && form.get('username').touched"
-                            class="text-danger">{{ 'profile.UsernameError' | translate }}</small>
-                    </div>
-                    <div class="form-group">
-                        <label for="profile-birth-date">{{ 'profile.BirthDate' | translate }}</label>
-                        <input id="profile-birth-date" class="form-control" type="date" formControlName="birthDate"
-                            [max]="today" aria-describedby="profile-birth-date-error"
-                            [attr.aria-invalid]="form.get('birthDate').invalid && form.get('birthDate').touched">
-                        <small id="profile-birth-date-error"
-                            *ngIf="form.get('birthDate').invalid && form.get('birthDate').touched"
-                            class="text-danger">{{ 'profile.BirthDateError' | translate }}</small>
-                    </div>
-                    <div class="form-group">
-                        <label for="profile-gender">{{ 'profile.Gender' | translate }} <span class="text-muted">({{ 'profile.Optional' | translate }})</span></label>
-                        <select id="profile-gender" class="form-control" formControlName="gender">
-                            <option value="">{{ 'profile.PreferNot' | translate }}</option>
-                            <option value="woman">{{ 'profile.Woman' | translate }}</option>
-                            <option value="man">{{ 'profile.Man' | translate }}</option>
-                            <option value="non-binary">{{ 'profile.NonBinary' | translate }}</option>
-                            <option value="self-described">{{ 'profile.SelfDescribed' | translate }}</option>
-                        </select>
-                    </div>
-                    <div class="form-group profile-form-grid__wide">
-                        <label for="profile-bio">{{ 'profile.TrainingBio' | translate }}</label>
-                        <textarea id="profile-bio" class="form-control" rows="3" formControlName="bio"
-                            [placeholder]="'profile.TrainingBioPlaceholder' | translate"></textarea>
-                    </div>
-                </div>
-            </section>
+  <form [formGroup]="form" (ngSubmit)="save()" novalidate>
+    <div class="profile-grid">
+      <section class="profile-card" aria-labelledby="identity-heading">
+        <div class="profile-card__heading">
+          <em class="icon-user" aria-hidden="true"></em>
+          <div>
+            <h2 id="identity-heading">{{ 'profile.AboutTitle' | translate }}</h2>
+            <p>{{ 'profile.AboutDescription' | translate }}</p>
+          </div>
+        </div>
 
-            <section class="profile-card" aria-labelledby="training-heading">
-                <div class="profile-card__heading">
-                    <em class="icon-energy" aria-hidden="true"></em>
-                    <div>
-                        <h2 id="training-heading">{{ 'profile.TrainingTitle' | translate }}</h2>
-                        <p>{{ 'profile.TrainingDescription' | translate }}</p>
-                    </div>
-                </div>
+        <div class="profile-form-grid">
+          <div class="form-group">
+            <label for="profile-first-name">{{ 'profile.FirstName' | translate }}</label>
+            <input id="profile-first-name" class="form-control" formControlName="firstName" autocomplete="given-name">
+          </div>
+          <div class="form-group">
+            <label for="profile-last-name">{{ 'profile.LastName' | translate }}</label>
+            <input id="profile-last-name" class="form-control" formControlName="lastName" autocomplete="family-name">
+          </div>
+          <div class="form-group">
+            <label for="profile-username">{{ 'profile.Username' | translate }}</label>
+            <input id="profile-username" class="form-control" formControlName="username" autocomplete="username"
+              aria-describedby="profile-username-help profile-username-error"
+              [attr.aria-invalid]="form.get('username').invalid && form.get('username').touched">
+              <small id="profile-username-help" class="text-muted">{{ 'profile.UsernameHelp' | translate }}</small>
+              @if (form.get('username').invalid && form.get('username').touched) {
+                <small id="profile-username-error"
+                class="text-danger">{{ 'profile.UsernameError' | translate }}</small>
+              }
+            </div>
+            <div class="form-group">
+              <label for="profile-birth-date">{{ 'profile.BirthDate' | translate }}</label>
+              <input id="profile-birth-date" class="form-control" type="date" formControlName="birthDate"
+                [max]="today" aria-describedby="profile-birth-date-error"
+                [attr.aria-invalid]="form.get('birthDate').invalid && form.get('birthDate').touched">
+                @if (form.get('birthDate').invalid && form.get('birthDate').touched) {
+                  <small id="profile-birth-date-error"
+                  class="text-danger">{{ 'profile.BirthDateError' | translate }}</small>
+                }
+              </div>
+              <div class="form-group">
+                <label for="profile-gender">{{ 'profile.Gender' | translate }} <span class="text-muted">({{ 'profile.Optional' | translate }})</span></label>
+                <select id="profile-gender" class="form-control" formControlName="gender">
+                  <option value="">{{ 'profile.PreferNot' | translate }}</option>
+                  <option value="woman">{{ 'profile.Woman' | translate }}</option>
+                  <option value="man">{{ 'profile.Man' | translate }}</option>
+                  <option value="non-binary">{{ 'profile.NonBinary' | translate }}</option>
+                  <option value="self-described">{{ 'profile.SelfDescribed' | translate }}</option>
+                </select>
+              </div>
+              <div class="form-group profile-form-grid__wide">
+                <label for="profile-bio">{{ 'profile.TrainingBio' | translate }}</label>
+                <textarea id="profile-bio" class="form-control" rows="3" formControlName="bio"
+                [placeholder]="'profile.TrainingBioPlaceholder' | translate"></textarea>
+              </div>
+            </div>
+          </section>
 
-                <div class="profile-form-grid">
-                    <div class="form-group">
-                        <label for="profile-goal">{{ 'profile.PrimaryGoal' | translate }}</label>
-                        <select id="profile-goal" class="form-control" formControlName="fitnessGoal">
-                            <option value="">{{ 'profile.SelectGoal' | translate }}</option>
-                            <option value="general-fitness">{{ 'profile.GeneralFitness' | translate }}</option>
-                            <option value="strength">{{ 'profile.BuildStrength' | translate }}</option>
-                            <option value="muscle">{{ 'profile.BuildMuscle' | translate }}</option>
-                            <option value="weight-loss">{{ 'profile.FatLoss' | translate }}</option>
-                            <option value="endurance">{{ 'profile.ImproveEndurance' | translate }}</option>
-                            <option value="competition">{{ 'profile.Competition' | translate }}</option>
-                            <option value="mobility">{{ 'profile.MobilityRecovery' | translate }}</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="profile-experience">{{ 'profile.Experience' | translate }}</label>
-                        <select id="profile-experience" class="form-control" formControlName="experienceLevel">
-                            <option value="">{{ 'profile.SelectExperience' | translate }}</option>
-                            <option value="beginner">{{ 'profile.Beginner' | translate }}</option>
-                            <option value="intermediate">{{ 'profile.Intermediate' | translate }}</option>
-                            <option value="advanced">{{ 'profile.Advanced' | translate }}</option>
-                            <option value="competitive">{{ 'profile.CompetitiveAthlete' | translate }}</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="profile-frequency">{{ 'profile.WorkoutsPerWeek' | translate }}</label>
-                        <input id="profile-frequency" class="form-control" type="number" min="1" max="14"
-                            formControlName="workoutsPerWeek" aria-describedby="profile-frequency-error"
-                            [attr.aria-invalid]="form.get('workoutsPerWeek').invalid && form.get('workoutsPerWeek').touched">
-                        <small id="profile-frequency-error"
-                            *ngIf="form.get('workoutsPerWeek').invalid && form.get('workoutsPerWeek').touched"
-                            class="text-danger">{{ 'profile.WorkoutFrequencyError' | translate }}</small>
-                    </div>
-                    <div class="form-group profile-form-grid__wide">
-                        <span class="profile-label">{{ 'profile.TrainingInterests' | translate }}</span>
-                        <div class="profile-tags" [attr.aria-label]="'profile.TrainingInterests' | translate">
-                            <button *ngFor="let option of trainingOptions" type="button"
-                                [class.profile-tag--selected]="isTrainingSelected(option)"
-                                [attr.aria-pressed]="isTrainingSelected(option)"
-                                (click)="toggleTraining(option)">
-                                {{ getTrainingOptionKey(option) | translate }}
-                            </button>
-                        </div>
-                    </div>
+          <section class="profile-card" aria-labelledby="training-heading">
+            <div class="profile-card__heading">
+              <em class="icon-energy" aria-hidden="true"></em>
+              <div>
+                <h2 id="training-heading">{{ 'profile.TrainingTitle' | translate }}</h2>
+                <p>{{ 'profile.TrainingDescription' | translate }}</p>
+              </div>
+            </div>
+
+            <div class="profile-form-grid">
+              <div class="form-group">
+                <label for="profile-goal">{{ 'profile.PrimaryGoal' | translate }}</label>
+                <select id="profile-goal" class="form-control" formControlName="fitnessGoal">
+                  <option value="">{{ 'profile.SelectGoal' | translate }}</option>
+                  <option value="general-fitness">{{ 'profile.GeneralFitness' | translate }}</option>
+                  <option value="strength">{{ 'profile.BuildStrength' | translate }}</option>
+                  <option value="muscle">{{ 'profile.BuildMuscle' | translate }}</option>
+                  <option value="weight-loss">{{ 'profile.FatLoss' | translate }}</option>
+                  <option value="endurance">{{ 'profile.ImproveEndurance' | translate }}</option>
+                  <option value="competition">{{ 'profile.Competition' | translate }}</option>
+                  <option value="mobility">{{ 'profile.MobilityRecovery' | translate }}</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="profile-experience">{{ 'profile.Experience' | translate }}</label>
+                <select id="profile-experience" class="form-control" formControlName="experienceLevel">
+                  <option value="">{{ 'profile.SelectExperience' | translate }}</option>
+                  <option value="beginner">{{ 'profile.Beginner' | translate }}</option>
+                  <option value="intermediate">{{ 'profile.Intermediate' | translate }}</option>
+                  <option value="advanced">{{ 'profile.Advanced' | translate }}</option>
+                  <option value="competitive">{{ 'profile.CompetitiveAthlete' | translate }}</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="profile-frequency">{{ 'profile.WorkoutsPerWeek' | translate }}</label>
+                <input id="profile-frequency" class="form-control" type="number" min="1" max="14"
+                  formControlName="workoutsPerWeek" aria-describedby="profile-frequency-error"
+                  [attr.aria-invalid]="form.get('workoutsPerWeek').invalid && form.get('workoutsPerWeek').touched">
+                  @if (form.get('workoutsPerWeek').invalid && form.get('workoutsPerWeek').touched) {
+                    <small id="profile-frequency-error"
+                    class="text-danger">{{ 'profile.WorkoutFrequencyError' | translate }}</small>
+                  }
                 </div>
+                <div class="form-group profile-form-grid__wide">
+                  <span class="profile-label">{{ 'profile.TrainingInterests' | translate }}</span>
+                  <div class="profile-tags" [attr.aria-label]="'profile.TrainingInterests' | translate">
+                    @for (option of trainingOptions; track option) {
+                      <button type="button"
+                        [class.profile-tag--selected]="isTrainingSelected(option)"
+                        [attr.aria-pressed]="isTrainingSelected(option)"
+                        (click)="toggleTraining(option)">
+                        {{ getTrainingOptionKey(option) | translate }}
+                      </button>
+                    }
+                  </div>
+                </div>
+              </div>
             </section>
 
             <section class="profile-card" aria-labelledby="metrics-heading">
-                <div class="profile-card__heading">
-                    <em class="icon-speedometer" aria-hidden="true"></em>
-                    <div>
-                        <h2 id="metrics-heading">{{ 'profile.MetricsTitle' | translate }}</h2>
-                        <p>{{ 'profile.MetricsDescription' | translate }}</p>
-                    </div>
+              <div class="profile-card__heading">
+                <em class="icon-speedometer" aria-hidden="true"></em>
+                <div>
+                  <h2 id="metrics-heading">{{ 'profile.MetricsTitle' | translate }}</h2>
+                  <p>{{ 'profile.MetricsDescription' | translate }}</p>
                 </div>
+              </div>
 
-                <div class="profile-form-grid">
-                    <div class="form-group">
-                        <label for="profile-units">{{ 'profile.UnitSystem' | translate }}</label>
-                        <select id="profile-units" class="form-control" formControlName="unitSystem"
-                            (change)="changeUnitSystemFromEvent($event)">
-                            <option value="imperial">{{ 'profile.Imperial' | translate }}</option>
-                            <option value="metric">{{ 'profile.Metric' | translate }}</option>
-                        </select>
+              <div class="profile-form-grid">
+                <div class="form-group">
+                  <label for="profile-units">{{ 'profile.UnitSystem' | translate }}</label>
+                  <select id="profile-units" class="form-control" formControlName="unitSystem"
+                    (change)="changeUnitSystemFromEvent($event)">
+                    <option value="imperial">{{ 'profile.Imperial' | translate }}</option>
+                    <option value="metric">{{ 'profile.Metric' | translate }}</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="profile-height">{{ 'profile.Height' | translate }}</label>
+                  <div class="input-group">
+                    <input id="profile-height" class="form-control" type="number" min="1" max="300"
+                      formControlName="height" aria-describedby="profile-height-error"
+                      [attr.aria-invalid]="form.get('height').invalid && form.get('height').touched">
+                      <span class="input-group-text">{{ form.get('unitSystem').value === 'metric' ? 'cm' : 'in' }}</span>
                     </div>
-                    <div class="form-group">
-                        <label for="profile-height">{{ 'profile.Height' | translate }}</label>
-                        <div class="input-group">
-                            <input id="profile-height" class="form-control" type="number" min="1" max="300"
-                                formControlName="height" aria-describedby="profile-height-error"
-                                [attr.aria-invalid]="form.get('height').invalid && form.get('height').touched">
-                            <span class="input-group-text">{{ form.get('unitSystem').value === 'metric' ? 'cm' : 'in' }}</span>
-                        </div>
-                        <small id="profile-height-error" *ngIf="form.get('height').invalid && form.get('height').touched"
-                            class="text-danger">{{ 'profile.HeightError' | translate }}</small>
-                    </div>
-                    <div class="form-group">
-                        <label for="profile-weight">{{ 'profile.BodyWeight' | translate }}</label>
-                        <div class="input-group">
-                            <input id="profile-weight" class="form-control" type="number" min="1" max="1000"
-                                formControlName="bodyWeight" aria-describedby="profile-weight-error"
-                                [attr.aria-invalid]="form.get('bodyWeight').invalid && form.get('bodyWeight').touched">
-                            <span class="input-group-text">{{ form.get('unitSystem').value === 'metric' ? 'kg' : 'lb' }}</span>
-                        </div>
-                        <small id="profile-weight-error" *ngIf="form.get('bodyWeight').invalid && form.get('bodyWeight').touched"
-                            class="text-danger">{{ 'profile.BodyWeightError' | translate }}</small>
+                    @if (form.get('height').invalid && form.get('height').touched) {
+                      <small id="profile-height-error"
+                      class="text-danger">{{ 'profile.HeightError' | translate }}</small>
+                    }
+                  </div>
+                  <div class="form-group">
+                    <label for="profile-weight">{{ 'profile.BodyWeight' | translate }}</label>
+                    <div class="input-group">
+                      <input id="profile-weight" class="form-control" type="number" min="1" max="1000"
+                        formControlName="bodyWeight" aria-describedby="profile-weight-error"
+                        [attr.aria-invalid]="form.get('bodyWeight').invalid && form.get('bodyWeight').touched">
+                        <span class="input-group-text">{{ form.get('unitSystem').value === 'metric' ? 'kg' : 'lb' }}</span>
+                      </div>
+                      @if (form.get('bodyWeight').invalid && form.get('bodyWeight').touched) {
+                        <small id="profile-weight-error"
+                        class="text-danger">{{ 'profile.BodyWeightError' | translate }}</small>
+                      }
                     </div>
                     <div class="form-group profile-form-grid__wide">
-                        <label class="profile-check">
-                            <input type="checkbox" formControlName="emailUpdates">
-                            <span>
-                                <strong>{{ 'profile.ProductUpdates' | translate }}</strong>
-                                <small>{{ 'profile.ProductUpdatesDescription' | translate }}</small>
-                            </span>
-                        </label>
+                      <label class="profile-check">
+                        <input type="checkbox" formControlName="emailUpdates">
+                        <span>
+                          <strong>{{ 'profile.ProductUpdates' | translate }}</strong>
+                          <small>{{ 'profile.ProductUpdatesDescription' | translate }}</small>
+                        </span>
+                      </label>
                     </div>
-                </div>
-            </section>
+                  </div>
+                </section>
 
-            <section class="profile-card" aria-labelledby="training-maxes-heading">
-                <div class="profile-card__heading">
+                <section class="profile-card" aria-labelledby="training-maxes-heading">
+                  <div class="profile-card__heading">
                     <em class="fas fa-dumbbell" aria-hidden="true"></em>
                     <div>
-                        <h2 id="training-maxes-heading">{{ 'profile.TrainingMaxesTitle' | translate }}</h2>
-                        <p>{{ 'profile.TrainingMaxesDescription' | translate }}</p>
+                      <h2 id="training-maxes-heading">{{ 'profile.TrainingMaxesTitle' | translate }}</h2>
+                      <p>{{ 'profile.TrainingMaxesDescription' | translate }}</p>
                     </div>
-                </div>
+                  </div>
 
-                <div class="profile-maxes" formArrayName="trainingMaxes">
-                    <div *ngFor="let trainingMax of trainingMaxes.controls; let index = index"
+                  <div class="profile-maxes" formArrayName="trainingMaxes">
+                    @for (trainingMax of trainingMaxes.controls; track trainingMax.value.id; let index = $index) {
+                      <div
                         class="profile-max"
                         [formGroupName]="index">
                         <label class="sr-only" [for]="'profile-max-name-' + index">
-                            {{ 'profile.ExerciseName' | translate }}
+                          {{ 'profile.ExerciseName' | translate }}
                         </label>
                         <input [id]="'profile-max-name-' + index" class="form-control"
-                            formControlName="exerciseName"
-                            [placeholder]="'profile.ExerciseNamePlaceholder' | translate">
-                        <label class="sr-only" [for]="'profile-max-value-' + index">
+                          formControlName="exerciseName"
+                          [placeholder]="'profile.ExerciseNamePlaceholder' | translate">
+                          <label class="sr-only" [for]="'profile-max-value-' + index">
                             {{ 'profile.BestLift' | translate }}
-                        </label>
-                        <div class="input-group">
+                          </label>
+                          <div class="input-group">
                             <input [id]="'profile-max-value-' + index" class="form-control" type="number"
-                                min="0.5" max="5000" step="0.5" formControlName="value"
-                                [placeholder]="'profile.BestLift' | translate">
-                            <span class="input-group-text">
+                              min="0.5" max="5000" step="0.5" formControlName="value"
+                              [placeholder]="'profile.BestLift' | translate">
+                              <span class="input-group-text">
                                 {{ form.get('unitSystem').value === 'metric' ? 'kg' : 'lb' }}
-                            </span>
-                        </div>
-                        <button class="btn btn-outline-danger profile-max__remove" type="button"
-                            [attr.aria-label]="'profile.RemoveTrainingMax' | translate"
-                            (click)="removeTrainingMax(index)">
-                            <em class="fa fa-trash" aria-hidden="true"></em>
+                              </span>
+                            </div>
+                            <button class="btn btn-outline-danger profile-max__remove" type="button"
+                              [attr.aria-label]="'profile.RemoveTrainingMax' | translate"
+                              (click)="removeTrainingMax(index)">
+                              <em class="fa fa-trash" aria-hidden="true"></em>
+                            </button>
+                          </div>
+                        }
+
+                        @if (!trainingMaxes.length) {
+                          <p class="profile-maxes__empty">
+                            {{ 'profile.NoTrainingMaxes' | translate }}
+                          </p>
+                        }
+                        <button class="btn btn-outline-secondary profile-maxes__add" type="button"
+                          (click)="addTrainingMax()">
+                          <em class="fa fa-plus" aria-hidden="true"></em>
+                          {{ 'profile.AddTrainingMax' | translate }}
                         </button>
+                      </div>
+                    </section>
+
+                    <section class="profile-card" aria-labelledby="appearance-heading">
+                      <div class="profile-card__heading">
+                        <em [class]="darkMode ? 'fas fa-moon' : 'fas fa-sun'" aria-hidden="true"></em>
+                        <div>
+                          <h2 id="appearance-heading">{{ 'appearance.Title' | translate }}</h2>
+                          <p>{{ 'appearance.DeviceDescription' | translate }}</p>
+                        </div>
+                      </div>
+
+                      <label class="profile-check profile-theme-setting" for="profile-dark-mode">
+                        <input id="profile-dark-mode" type="checkbox" [checked]="darkMode"
+                          (change)="setDarkMode($any($event.target).checked)">
+                          <span>
+                            <strong>{{ 'appearance.DarkMode' | translate }}</strong>
+                            <small>{{ 'appearance.SavedDescription' | translate }}</small>
+                          </span>
+                        </label>
+
+                        <div class="profile-language-setting">
+                          <label for="profile-language">{{ 'global.Language' | translate }}</label>
+                          <select id="profile-language" class="form-control" formControlName="preferredLanguage"
+                            (change)="setLanguageFromEvent($event)">
+                            @for (language of languages; track language) {
+                              <option [value]="language.code">{{ language.text }}</option>
+                            }
+                          </select>
+                          <small>{{ 'appearance.LanguageDescription' | translate }}</small>
+                        </div>
+                      </section>
                     </div>
 
-                    <p *ngIf="!trainingMaxes.length" class="profile-maxes__empty">
-                        {{ 'profile.NoTrainingMaxes' | translate }}
-                    </p>
-                    <button class="btn btn-outline-secondary profile-maxes__add" type="button"
-                        (click)="addTrainingMax()">
-                        <em class="fa fa-plus" aria-hidden="true"></em>
-                        {{ 'profile.AddTrainingMax' | translate }}
-                    </button>
-                </div>
-            </section>
-
-            <section class="profile-card" aria-labelledby="appearance-heading">
-                <div class="profile-card__heading">
-                    <em [class]="darkMode ? 'fas fa-moon' : 'fas fa-sun'" aria-hidden="true"></em>
-                    <div>
-                        <h2 id="appearance-heading">{{ 'appearance.Title' | translate }}</h2>
-                        <p>{{ 'appearance.DeviceDescription' | translate }}</p>
+                    <div class="profile-actions">
+                      @if (saved) {
+                        <span class="profile-saved" role="status">
+                          <em class="icon-check" aria-hidden="true"></em> {{ 'profile.Saved' | translate }}
+                        </span>
+                      }
+                      @if (saveError) {
+                        <span class="text-danger" role="alert">{{ saveError }}</span>
+                      }
+                      <button class="btn btn-primary" type="submit" [disabled]="saving">
+                        {{ (saving ? 'profile.Saving' : 'profile.Save') | translate }}
+                      </button>
                     </div>
+                  </form>
                 </div>
-
-                <label class="profile-check profile-theme-setting" for="profile-dark-mode">
-                    <input id="profile-dark-mode" type="checkbox" [checked]="darkMode"
-                        (change)="setDarkMode($any($event.target).checked)">
-                    <span>
-                        <strong>{{ 'appearance.DarkMode' | translate }}</strong>
-                        <small>{{ 'appearance.SavedDescription' | translate }}</small>
-                    </span>
-                </label>
-
-                <div class="profile-language-setting">
-                    <label for="profile-language">{{ 'global.Language' | translate }}</label>
-                    <select id="profile-language" class="form-control" formControlName="preferredLanguage"
-                        (change)="setLanguageFromEvent($event)">
-                        <option *ngFor="let language of languages" [value]="language.code">{{ language.text }}</option>
-                    </select>
-                    <small>{{ 'appearance.LanguageDescription' | translate }}</small>
-                </div>
-            </section>
-        </div>
-
-        <div class="profile-actions">
-            <span *ngIf="saved" class="profile-saved" role="status">
-                <em class="icon-check" aria-hidden="true"></em> {{ 'profile.Saved' | translate }}
-            </span>
-            <span *ngIf="saveError" class="text-danger" role="alert">{{ saveError }}</span>
-            <button class="btn btn-primary" type="submit" [disabled]="saving">
-                {{ (saving ? 'profile.Saving' : 'profile.Save') | translate }}
-            </button>
-        </div>
-    </form>
-</div>

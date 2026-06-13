@@ -1,10 +1,11 @@
-import { Component, ElementRef, Inject, ViewChild } from '@angular/core';
-import { UntypedFormGroup, UntypedFormBuilder, Validators } from '@angular/forms';
+import { Component, DestroyRef, ElementRef, inject, ViewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
-import { Observable, Subscription, map, startWith } from 'rxjs';
+import { Observable, map, startWith } from 'rxjs';
 
-import { Exercise } from '../../../shared/models/exercise.model';
+import { Exercise, Intensity } from '../../../shared/models/exercise.model';
 import { ExerciseDialogData } from 'src/app/shared/interfaces/exercise-dialog-data';
 import { SharedService } from '../../../shared/services/shared.service';
 import { TranslatorService } from '../../../core/translator/translator.service';
@@ -13,12 +14,24 @@ import { ExerciseNameLocalizerService } from '../../../shared/services/exercise-
 
 import { FormValues } from '../../../shared/common/common.constants';
 
-import * as moment from 'moment';
+import { Duration } from 'luxon';
 
 interface LocalizedExerciseOption {
     name: string;
     localizedName: string;
     searchText: string;
+}
+
+interface ExerciseForm {
+    exerciseName: FormControl<string | null>;
+    weight: FormControl<string | number | null>;
+    reps: FormControl<string | number | null>;
+    sets: FormControl<string | number | null>;
+    durationHours: FormControl<number | null>;
+    durationMinutes: FormControl<number | null>;
+    durationSeconds: FormControl<number | null>;
+    distance: FormControl<string | number | null>;
+    intensity: FormControl<Intensity | null>;
 }
 
 @Component({
@@ -35,7 +48,7 @@ export class ExerciseDialogComponent {
     @ViewChild('weight') weightInput: ElementRef;
     @ViewChild('distance') distanceInput: ElementRef;
 
-    public exerciseLogForm: UntypedFormGroup;
+    public exerciseLogForm: FormGroup<ExerciseForm>;
     private currentLanguage: string;
     public currentExercise: Exercise;
     public selectedWeightChip: string = 'lbs';
@@ -49,36 +62,34 @@ export class ExerciseDialogComponent {
 
     public filteredExercises: Observable<LocalizedExerciseOption[]>;
     public filteredCardioExercises: Observable<LocalizedExerciseOption[]>;
-    private langSub: Subscription;
-    private exerciseSub: Subscription;
-    private cardioExerciseSub: Subscription;
+    private readonly destroyRef = inject(DestroyRef);
     private exerciseNames: string[] = [];
     private cardioExerciseNames: string[] = [];
 
-    constructor(
-        @Inject(MAT_DIALOG_DATA) public _exerciseDialogData: ExerciseDialogData,
-        private _formBuilder: UntypedFormBuilder,
-        public _dialogRef: MatDialogRef<ExerciseDialogComponent>,
-        private _sharedService: SharedService,
-        private _translatorService: TranslatorService,
-        private _exerciseDirectoryService: ExerciseDirectoryService,
-        private _exerciseNameLocalizer: ExerciseNameLocalizerService
-    ) {
-        this.exerciseLogForm = this._formBuilder.group({
-            'exerciseName': ['', Validators.compose([Validators.required, Validators.maxLength(50)])],
-            'weight': ['', Validators.maxLength(15)],
-            'reps': ['', Validators.compose([Validators.pattern(/^\d+(?:[-+]\d+)?$/), Validators.maxLength(15)])],
-            'sets': ['', Validators.compose([Validators.pattern(/^\d+(?:[-+]\d+)?$/), Validators.maxLength(15)])],
-            'durationHours': [0, Validators.compose([Validators.min(0), Validators.max(99)])],
-            'durationMinutes': [0, Validators.compose([Validators.min(0), Validators.max(59)])],
-            'durationSeconds': [0, Validators.compose([Validators.min(0), Validators.max(59)])],
-            'distance': ['', Validators.maxLength(15)],
-            'intensity': ['']
+    public _exerciseDialogData = inject<ExerciseDialogData>(MAT_DIALOG_DATA);
+    private _formBuilder = inject(FormBuilder);
+    public _dialogRef = inject(MatDialogRef) as MatDialogRef<ExerciseDialogComponent>;
+    private _sharedService = inject(SharedService);
+    private _translatorService = inject(TranslatorService);
+    private _exerciseDirectoryService = inject(ExerciseDirectoryService);
+    private _exerciseNameLocalizer = inject(ExerciseNameLocalizerService);
+
+    constructor() {
+        this.exerciseLogForm = this._formBuilder.group<ExerciseForm>({
+            exerciseName: new FormControl('', Validators.compose([Validators.required, Validators.maxLength(50)])),
+            weight: new FormControl<string | number | null>('', Validators.maxLength(15)),
+            reps: new FormControl<string | number | null>('', Validators.compose([Validators.pattern(/^\d+(?:[-+]\d+)?$/), Validators.maxLength(15)])),
+            sets: new FormControl<string | number | null>('', Validators.compose([Validators.pattern(/^\d+(?:[-+]\d+)?$/), Validators.maxLength(15)])),
+            durationHours: new FormControl(0, Validators.compose([Validators.min(0), Validators.max(99)])),
+            durationMinutes: new FormControl(0, Validators.compose([Validators.min(0), Validators.max(59)])),
+            durationSeconds: new FormControl(0, Validators.compose([Validators.min(0), Validators.max(59)])),
+            distance: new FormControl<string | number | null>('', Validators.maxLength(15)),
+            intensity: new FormControl<Intensity | null>(null)
         });
-        this.currentExercise = _exerciseDialogData.exercise ? Object.assign(new Exercise(), _exerciseDialogData.exercise) : new Exercise();
-        this.currentExercise.exerciseType = _exerciseDialogData.exerciseType;
-        this.currentExercise.exerciseName = _exerciseDialogData.exerciseName || this.currentExercise.exerciseName;
-        this.setSelectedChip(_exerciseDialogData.measure);
+        this.currentExercise = this._exerciseDialogData.exercise ? Object.assign(new Exercise(), this._exerciseDialogData.exercise) : new Exercise();
+        this.currentExercise.exerciseType = this._exerciseDialogData.exerciseType;
+        this.currentExercise.exerciseName = this._exerciseDialogData.exerciseName || this.currentExercise.exerciseName;
+        this.setSelectedChip(this._exerciseDialogData.measure);
     }
 
     ngAfterViewInit() {
@@ -86,21 +97,12 @@ export class ExerciseDialogComponent {
     }
 
     ngOnInit(): void {
-        this.currentExercise.duration = this.currentExercise.duration || moment.duration();
+        this.currentExercise.duration = this.currentExercise.duration || Duration.fromMillis(0);
         this.populateForm();
         this.currentLanguage = FormValues.ENCode;
         this.subToLanguageChange();
         this.subToExerciseDirectoryService();
         this.subToCardioExerciseDirectoryService();
-    }
-
-    ngOnDestroy(): void {
-        if (this.langSub)
-            this.langSub.unsubscribe();
-        if (this.exerciseSub)
-            this.exerciseSub.unsubscribe();
-        if (this.cardioExerciseSub)
-            this.cardioExerciseSub.unsubscribe();
     }
 
     submitForm($ev) {
@@ -109,17 +111,18 @@ export class ExerciseDialogComponent {
             this.exerciseLogForm.controls[c].markAsTouched();
         }
         if (this.exerciseLogForm.valid) {
-            this.currentExercise.exerciseName = this.exerciseLogForm.get('exerciseName').value;
-            this.currentExercise.weight = this.exerciseLogForm.get('weight').value;
-            this.currentExercise.sets = this.exerciseLogForm.get('sets').value;
-            this.currentExercise.reps = this.exerciseLogForm.get('reps').value;
-            this.currentExercise.distance = this.exerciseLogForm.get('distance').value;
-            this.currentExercise.duration = moment.duration({
-                hours: Number(this.exerciseLogForm.get('durationHours').value) || 0,
-                minutes: Number(this.exerciseLogForm.get('durationMinutes').value) || 0,
-                seconds: Number(this.exerciseLogForm.get('durationSeconds').value) || 0
+            const controls = this.exerciseLogForm.controls;
+            this.currentExercise.exerciseName = controls.exerciseName.value ?? undefined;
+            this.currentExercise.weight = controls.weight.value ?? undefined;
+            this.currentExercise.sets = controls.sets.value ?? undefined;
+            this.currentExercise.reps = controls.reps.value ?? undefined;
+            this.currentExercise.distance = controls.distance.value ?? undefined;
+            this.currentExercise.duration = Duration.fromObject({
+                hours: Number(controls.durationHours.value) || 0,
+                minutes: Number(controls.durationMinutes.value) || 0,
+                seconds: Number(controls.durationSeconds.value) || 0
             });
-            this.currentExercise.intensity = this.exerciseLogForm.get('intensity').value;
+            this.currentExercise.intensity = controls.intensity.value ?? undefined;
             this._dialogRef.close(this.currentExercise);
         }
     }
@@ -149,7 +152,7 @@ export class ExerciseDialogComponent {
     * Track the language currently chosen by the user.
     */
     private subToLanguageChange(): void {
-        this.langSub = this._translatorService.languageChangeEmitted$.subscribe(
+        this._translatorService.languageChangeEmitted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(
             data => {
                 this.currentLanguage = data;
                 if (this.currentLanguage == FormValues.ENCode) {
@@ -163,7 +166,7 @@ export class ExerciseDialogComponent {
     }
 
     private subToExerciseDirectoryService(): void {
-        this.exerciseSub = this._exerciseDirectoryService.getExercises().subscribe({
+        this._exerciseDirectoryService.getExercises().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: (data) => {
                 this.exerciseNames = data.exercises.map(exercise => exercise.name);
                 this.updateLocalizedExerciseLists();
@@ -179,7 +182,7 @@ export class ExerciseDialogComponent {
     }
 
     private subToCardioExerciseDirectoryService(): void {
-        this.cardioExerciseSub = this._exerciseDirectoryService.getCardioExercises().subscribe({
+        this._exerciseDirectoryService.getCardioExercises().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: (data) => {
                 this.cardioExerciseNames = data.exercises.map(exercise => exercise.name);
                 this.updateLocalizedExerciseLists();
@@ -273,6 +276,8 @@ export class ExerciseDialogComponent {
     }
 
     private populateForm(): void {
+        const durationParts = (this.currentExercise.duration || Duration.fromMillis(0))
+            .shiftTo('hours', 'minutes', 'seconds');
         this.exerciseLogForm.patchValue({
             exerciseName: this.currentExercise.exerciseName || '',
             weight: this.currentExercise.weight,
@@ -280,9 +285,9 @@ export class ExerciseDialogComponent {
             reps: this.currentExercise.reps,
             distance: this.currentExercise.distance,
             intensity: this.currentExercise.intensity,
-            durationHours: Math.floor(this.currentExercise.duration.asHours()),
-            durationMinutes: this.currentExercise.duration.minutes(),
-            durationSeconds: this.currentExercise.duration.seconds()
+            durationHours: Math.floor(durationParts.hours),
+            durationMinutes: Math.floor(durationParts.minutes),
+            durationSeconds: Math.floor(durationParts.seconds)
         });
     }
 

@@ -1,333 +1,379 @@
 <div class="program-import-shell" [class.program-import-shell--empty]="!programCards.length">
-    <aside class="program-import__library" [class.program-import__library--empty]="!programCards.length" [attr.aria-label]="'program-import.ImportedProgram' | translate">
-        <div class="program-import__library-toolbar">
-            <div class="program-import__library-header">
-                <span>{{ 'program-import.Imports' | translate }}</span>
-                <span>{{ programCards.length }}</span>
-            </div>
-            <div class="program-import__library-actions">
-                <label class="btn btn-primary mb-0 program-import__file-control program-import__file-control--library">
-                    <span>
-                        <em class="fa fa-upload" aria-hidden="true"></em>
-                        {{ 'program-import.Import' | translate }}
-                    </span>
-                    <input class="program-import__file-input" type="file" accept=".xlsx,.xls" (change)="onFileSelected($event)">
-                </label>
-                <button *ngIf="program" class="btn btn-outline-danger program-import__library-clear" type="button" (click)="clearProgram()">
-                    <em class="fa fa-trash" aria-hidden="true"></em>
-                    <span class="sr-only">{{ 'program-import.DeleteCurrent' | translate }}</span>
-                </button>
-            </div>
-        </div>
-        <div *ngIf="programCards.length" class="program-import__library-list">
-            <div *ngFor="let card of programCards"
-                class="program-import__library-item"
-                [class.program-import__library-item--active]="program && program.id === card.program.id">
-                <button class="program-import__library-select" type="button" (click)="selectProgram(card.program)">
-                    <span class="program-import__library-title">{{ card.program.name }}</span>
-                    <span class="program-import__library-meta">
-                        <span class="program-import__library-status" [ngClass]="card.statusClass">
-                            {{ card.statusLabel }}
-                        </span>
-                        <span>{{ card.progressLabel }}</span>
-                    </span>
-                    <mat-progress-bar mode="determinate" [value]="card.progressPercent"></mat-progress-bar>
-                    <span class="program-import__library-row">
-                        <span>{{ card.program.weeks.length }} {{ 'global.Weeks' | translate }}</span>
-                    </span>
-                </button>
-                <button class="program-import__library-delete" type="button"
-                    [attr.aria-label]="'program-import.DeleteNamed' | translate:{ name: card.program.name }"
-                    (click)="deleteProgram($event, card.program)">
-                    <em class="fa fa-trash" aria-hidden="true"></em>
-                </button>
-            </div>
-        </div>
-    </aside>
-
-    <div class="program-import">
-        <div class="program-import__header">
-            <div>
-                <h1>{{ 'program-import.Title' | translate }}</h1>
-                <p>{{ 'program-import.Description' | translate }}</p>
-            </div>
-            <div class="program-import__actions">
-                <label class="btn btn-primary mb-0 program-import__file-control">
-                    <span>
-                        <em class="fa fa-upload" aria-hidden="true"></em>
-                        {{ 'program-import.ImportExcel' | translate }}
-                    </span>
-                    <input class="program-import__file-input" type="file" accept=".xlsx,.xls" (change)="onFileSelected($event)">
-                </label>
-                <button *ngIf="program" class="btn btn-outline-danger" type="button" (click)="clearProgram()">
-                    <em class="fa fa-trash" aria-hidden="true"></em>
-                    <span class="sr-only">{{ 'program-import.DeleteCurrent' | translate }}</span>
-                </button>
-            </div>
-        </div>
-
-        <mat-progress-bar *ngIf="isImporting" mode="indeterminate"></mat-progress-bar>
-        <div *ngIf="importError" class="alert alert-danger" role="alert" aria-live="assertive">{{ importError }}</div>
-
-        <section *ngIf="importPreview?.program" class="program-import__review">
-            <div *ngIf="importReviewStep === 'setup'" class="program-import__setup">
-                <div class="program-import__review-header">
-                    <div>
-                        <span class="program-import__eyebrow">{{ 'program-import.SetupEyebrow' | translate }}</span>
-                        <h2>{{ 'program-import.SetupTitle' | translate }}</h2>
-                        <p>{{ 'program-import.SetupDescription' | translate }}</p>
-                    </div>
-                </div>
-
-                <div *ngIf="importPreview.setup?.instructions?.length" class="program-import__setup-instructions">
-                    <h3>{{ 'program-import.WorkbookInstructions' | translate }}</h3>
-                    <ul>
-                        <li *ngFor="let instruction of importPreview.setup.instructions">{{ instruction }}</li>
-                    </ul>
-                </div>
-
-                <div *ngIf="importPreview.setup?.inputs?.length" class="program-import__setup-inputs">
-                    <label *ngFor="let input of importPreview.setup.inputs; let inputIndex = index"
-                        class="program-import__setup-input"
-                        [for]="'workbook-max-' + inputIndex">
-                        <span>{{ input.label }}</span>
-                        <span class="program-import__setup-control">
-                            <input [id]="'workbook-max-' + inputIndex"
-                                class="form-control" type="number" min="0.5" step="0.5"
-                                [(ngModel)]="input.value"
-                                [class.is-invalid]="!isWorkbookInputValid(input)"
-                                [attr.aria-invalid]="!isWorkbookInputValid(input)"
-                                [attr.aria-describedby]="!isWorkbookInputValid(input) ? 'workbook-max-error-' + inputIndex : null"
-                                (ngModelChange)="setupError = ''"
-                                (blur)="normalizeWorkbookInput(input)">
-                            <span>{{ workbookWeightUnit }}</span>
-                        </span>
-                        <small *ngIf="!isWorkbookInputValid(input)"
-                            [id]="'workbook-max-error-' + inputIndex"
-                            class="program-import__setup-error">
-                            {{ 'program-import.MaxMustBePositive' | translate }}
-                        </small>
-                    </label>
-                </div>
-
-                <div *ngIf="setupError" class="alert alert-danger" role="alert" aria-live="assertive">{{ setupError }}</div>
-
-                <div class="program-import__review-actions">
-                    <button class="btn btn-outline-secondary" type="button" (click)="cancelImportReview()">
-                        {{ 'global.CancelLabel' | translate }}
-                    </button>
-                    <button class="btn btn-primary" type="button"
-                        [disabled]="!workbookSetupValid"
-                        (click)="continueToImportReview()">
-                        {{ 'program-import.CalculateAndReview' | translate }}
-                    </button>
-                </div>
-            </div>
-
-            <ng-container *ngIf="importReviewStep === 'review'">
-            <div class="program-import__review-header">
-                <div>
-                    <span class="program-import__eyebrow">{{ 'program-import.ReviewEyebrow' | translate }}</span>
-                    <h2>{{ 'program-import.ReviewTitle' | translate }}</h2>
-                    <p>
-                        {{ importPreview.program.weeks.length }} {{ 'global.Weeks' | translate }},
-                        {{ reviewExerciseCount }} {{ 'program-import.Exercises' | translate }}
-                    </p>
-                </div>
-                <span class="program-import__confidence">
-                    {{ 'program-import.Confidence' | translate }}:
-                    {{ importPreview.confidence | percent:'1.0-0' }}
-                </span>
-            </div>
-
-            <div *ngIf="importWarnings.length" class="alert alert-warning" role="status" aria-live="polite">
-                <div *ngFor="let warning of importWarnings">{{ warning }}</div>
-            </div>
-
-            <div class="program-import__review-actions program-import__review-actions--top">
-                <button *ngIf="importPreview.setup?.inputs?.length"
-                    class="btn btn-outline-secondary" type="button" (click)="editWorkbookMaxes()">
-                    {{ 'program-import.EditMaxes' | translate }}
-                </button>
-                <button class="btn btn-outline-secondary" type="button" (click)="cancelImportReview()">
-                    {{ 'global.CancelLabel' | translate }}
-                </button>
-                <button class="btn btn-primary" type="button" (click)="confirmImport()">
-                    {{ 'program-import.ConfirmImport' | translate }}
-                </button>
-            </div>
-
-            <nav class="program-import__review-pagination" [attr.aria-label]="'program-import.ReviewWeeks' | translate">
-                <button class="btn btn-outline-secondary program-import__review-nav-button" type="button"
-                    [disabled]="selectedReviewWeekIndex === 0"
-                    (click)="previousReviewWeek()">
-                    <em class="fa fa-chevron-left" aria-hidden="true"></em>
-                    {{ 'program-import.PreviousWeek' | translate }}
-                </button>
-                <div class="program-import__review-week-tabs">
-                    <button *ngFor="let week of importPreview.program.weeks; let weekIndex = index"
-                        type="button"
-                        class="program-import__review-week-tab"
-                        [class.program-import__review-week-tab--active]="weekIndex === selectedReviewWeekIndex"
-                        [attr.aria-current]="weekIndex === selectedReviewWeekIndex ? 'page' : null"
-                        (click)="selectReviewWeek(weekIndex)">
-                        {{ week.name }}
-                    </button>
-                </div>
-                <button class="btn btn-outline-secondary program-import__review-nav-button" type="button"
-                    [disabled]="selectedReviewWeekIndex === importPreview.program.weeks.length - 1"
-                    (click)="nextReviewWeek()">
-                    {{ 'program-import.NextWeek' | translate }}
-                    <em class="fa fa-chevron-right" aria-hidden="true"></em>
-                </button>
-            </nav>
-
-            <div class="program-import__review-weeks">
-                <section *ngIf="selectedReviewWeek as week" class="program-import__review-week">
-                    <div class="program-import__review-week-heading">
-                        <h3>{{ week.name }}</h3>
-                        <span>
-                            {{ selectedReviewWeekIndex + 1 }} / {{ importPreview.program.weeks.length }}
-                        </span>
-                    </div>
-                    <section *ngFor="let day of week.days; let dayIndex = index"
-                        class="program-import__review-day">
-                        <h4>{{ day.name }}</h4>
-                        <div class="program-import__review-table">
-                            <div *ngFor="let exercise of day.exercises; let exerciseIndex = index; trackBy: trackExerciseById"
-                                class="program-import__review-row">
-                                <label>
-                                    <span>{{ 'program-import.ExerciseName' | translate }}</span>
-                                    <input class="form-control" [(ngModel)]="exercise.exerciseName">
-                                </label>
-                                <label>
-                                    <span>{{ 'program-import.Sets' | translate }}</span>
-                                    <input class="form-control" [(ngModel)]="exercise.sets">
-                                </label>
-                                <label>
-                                    <span>{{ 'program-import.Reps' | translate }}</span>
-                                    <input class="form-control" [(ngModel)]="exercise.reps">
-                                </label>
-                                <label>
-                                    <span>{{ 'program-import.Weight' | translate }}</span>
-                                    <input class="form-control" [(ngModel)]="exercise.weight">
-                                </label>
-                                <label>
-                                    <span>{{ 'program-import.Rest' | translate }}</span>
-                                    <input class="form-control" [(ngModel)]="exercise.rest">
-                                </label>
-                                <label>
-                                    <span>{{ 'program-import.Tempo' | translate }}</span>
-                                    <input class="form-control" [(ngModel)]="exercise.tempo">
-                                </label>
-                                <label>
-                                    <span>RPE</span>
-                                    <input class="form-control" [(ngModel)]="exercise.rpe">
-                                </label>
-                                <label class="program-import__review-notes">
-                                    <span>{{ 'program-import.Notes' | translate }}</span>
-                                    <input class="form-control" [(ngModel)]="exercise.notes">
-                                </label>
-                                <button class="btn btn-outline-danger program-import__review-delete"
-                                    type="button"
-                                    [attr.aria-label]="'program-import.DeleteExercise' | translate:{ name: exercise.exerciseName }"
-                                    (click)="deleteReviewExercise(selectedReviewWeekIndex, dayIndex, exerciseIndex)">
-                                    <em class="fa fa-trash" aria-hidden="true"></em>
-                                </button>
-                            </div>
-                        </div>
-                    </section>
-                </section>
-            </div>
-
-            <div class="program-import__review-actions">
-                <button class="btn btn-outline-secondary" type="button" (click)="cancelImportReview()">
-                    {{ 'global.CancelLabel' | translate }}
-                </button>
-                <button class="btn btn-primary" type="button" (click)="confirmImport()">
-                    {{ 'program-import.ConfirmImport' | translate }}
-                </button>
-            </div>
-            </ng-container>
-        </section>
-
-        <div *ngIf="!program && !importPreview" class="program-import__empty">
-            <img alt="Log Your Workout" src="assets/img/log-your-wo-logo-single-black.svg">
-            <h2>{{ 'program-import.EmptyTitle' | translate }}</h2>
-            <p>{{ 'program-import.EmptyDescription' | translate }}</p>
-        </div>
-
-        <div *ngIf="program && !importPreview" class="program-import__content">
-            <div class="program-import__meta">
-                <div>
-                    <span class="program-import__eyebrow">{{ 'program-import.ImportedProgram' | translate }}</span>
-                    <h2>{{ program.name }}</h2>
-                </div>
-                <div class="program-import__meta-actions">
-                    <div class="program-import__color-picker" [attr.aria-label]="'program-import.CompletionColor' | translate">
-                        <span>{{ 'global.Complete' | translate }}</span>
-                        <button *ngFor="let color of completionColorOptions"
-                            type="button"
-                            class="program-import__color-swatch"
-                            [attr.aria-label]="'program-import.UseColor' | translate:{ color: color }"
-                            [attr.aria-pressed]="completionColor === color"
-                            [class.program-import__color-swatch--active]="completionColor === color"
-                            [style.background]="color"
-                            (click)="onCompletionColorChange(color)">
-                        </button>
-                    </div>
-                    <div class="program-import__count">{{ program.weeks.length }} {{ 'global.Weeks' | translate }}</div>
-                </div>
-            </div>
-
-            <div class="program-import__weeks" [attr.aria-label]="'program-import.ProgramWeeks' | translate">
-                <button *ngFor="let week of weekCards; trackBy: trackWeekById"
-                    #weekTab
-                    type="button"
-                    class="program-import__week"
-                    [attr.data-week-id]="week.id"
-                    [attr.aria-pressed]="selectedWeek && selectedWeek.id === week.id"
-                    [class.program-import__week--active]="selectedWeek && selectedWeek.id === week.id"
-                    [class.program-import__week--complete]="week.complete"
-                    [ngStyle]="week.complete ? completionStyles : null"
-                    (click)="selectWeek(week)">
-                    {{ week.name }}
-                </button>
-            </div>
-
-            <div *ngIf="selectedWeek" class="program-import__days">
-                <div *ngFor="let day of dayCards; trackBy: trackDayById"
-                    #dayCard
-                    class="program-import__day"
-                    [attr.data-day-id]="day.id"
-                    [class.program-import__day--complete]="day.complete"
-                    [ngStyle]="day.complete ? completionStyles : null">
-                    <button class="program-import__day-open" type="button"
-                        (click)="openWorkout(selectedWeek.id, day.id)">
-                        <span class="program-import__day-title">
-                            <span>{{ day.name }}</span>
-                            <span>{{ day.completionLabel }}</span>
-                        </span>
-                        <mat-progress-bar mode="determinate" [value]="day.completionPercent"></mat-progress-bar>
-                        <span class="program-import__preview">
-                            <span *ngFor="let exerciseName of day.exercisePreview">{{ exerciseName }}</span>
-                        </span>
-                    </button>
-                    <div class="program-import__day-actions">
-                        <span *ngIf="day.elapsedLabel" class="program-import__elapsed">
-                            {{ day.elapsedLabel }}
-                        </span>
-                        <button class="btn btn-sm"
-                            [class.btn-success]="!day.complete"
-                            [class.program-import__complete-button]="day.complete"
-                            type="button"
-                            [disabled]="day.complete"
-                            (click)="markDayComplete($event, selectedWeek.id, day.id)">
-                            {{ (day.complete ? 'global.Complete' : 'global.MarkAsComplete') | translate }}
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
+  <aside class="program-import__library" [class.program-import__library--empty]="!programCards.length" [attr.aria-label]="'program-import.ImportedProgram' | translate">
+    <div class="program-import__library-toolbar">
+      <div class="program-import__library-header">
+        <span>{{ 'program-import.Imports' | translate }}</span>
+        <span>{{ programCards.length }}</span>
+      </div>
+      <div class="program-import__library-actions">
+        <label class="btn btn-primary mb-0 program-import__file-control program-import__file-control--library">
+          <span>
+            <em class="fa fa-upload" aria-hidden="true"></em>
+            {{ 'program-import.Import' | translate }}
+          </span>
+          <input class="program-import__file-input" type="file" accept=".xlsx,.xls" (change)="onFileSelected($event)">
+        </label>
+        @if (program) {
+          <button class="btn btn-outline-danger program-import__library-clear" type="button" (click)="clearProgram()">
+            <em class="fa fa-trash" aria-hidden="true"></em>
+            <span class="sr-only">{{ 'program-import.DeleteCurrent' | translate }}</span>
+          </button>
+        }
+      </div>
     </div>
-</div>
+    @if (programCards.length) {
+      <div class="program-import__library-list">
+        @for (card of programCards; track card.program.id) {
+          <div
+            class="program-import__library-item"
+            [class.program-import__library-item--active]="program && program.id === card.program.id">
+            <button class="program-import__library-select" type="button" (click)="selectProgram(card.program)">
+              <span class="program-import__library-title">{{ card.program.name }}</span>
+              <span class="program-import__library-meta">
+                <span class="program-import__library-status" [ngClass]="card.statusClass">
+                  {{ card.statusLabel }}
+                </span>
+                <span>{{ card.progressLabel }}</span>
+              </span>
+              <mat-progress-bar mode="determinate" [value]="card.progressPercent"></mat-progress-bar>
+              <span class="program-import__library-row">
+                <span>{{ card.program.weeks.length }} {{ 'global.Weeks' | translate }}</span>
+              </span>
+            </button>
+            <button class="program-import__library-delete" type="button"
+              [attr.aria-label]="'program-import.DeleteNamed' | translate:{ name: card.program.name }"
+              (click)="deleteProgram($event, card.program)">
+              <em class="fa fa-trash" aria-hidden="true"></em>
+            </button>
+          </div>
+        }
+      </div>
+    }
+  </aside>
+
+  <div class="program-import">
+    <div class="program-import__header">
+      <div>
+        <h1>{{ 'program-import.Title' | translate }}</h1>
+        <p>{{ 'program-import.Description' | translate }}</p>
+      </div>
+      <div class="program-import__actions">
+        <label class="btn btn-primary mb-0 program-import__file-control">
+          <span>
+            <em class="fa fa-upload" aria-hidden="true"></em>
+            {{ 'program-import.ImportExcel' | translate }}
+          </span>
+          <input class="program-import__file-input" type="file" accept=".xlsx,.xls" (change)="onFileSelected($event)">
+        </label>
+        @if (program) {
+          <button class="btn btn-outline-danger" type="button" (click)="clearProgram()">
+            <em class="fa fa-trash" aria-hidden="true"></em>
+            <span class="sr-only">{{ 'program-import.DeleteCurrent' | translate }}</span>
+          </button>
+        }
+      </div>
+    </div>
+
+    @if (isImporting) {
+      <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+    }
+    @if (importError) {
+      <div class="alert alert-danger" role="alert" aria-live="assertive">{{ importError }}</div>
+    }
+
+    @if (importPreview?.program) {
+      <section class="program-import__review">
+        @if (importReviewStep === 'setup') {
+          <div class="program-import__setup">
+            <div class="program-import__review-header">
+              <div>
+                <span class="program-import__eyebrow">{{ 'program-import.SetupEyebrow' | translate }}</span>
+                <h2>{{ 'program-import.SetupTitle' | translate }}</h2>
+                <p>{{ 'program-import.SetupDescription' | translate }}</p>
+              </div>
+            </div>
+            @if (importPreview.setup?.instructions?.length) {
+              <div class="program-import__setup-instructions">
+                <h3>{{ 'program-import.WorkbookInstructions' | translate }}</h3>
+                <ul>
+                  @for (instruction of importPreview.setup.instructions; track instruction) {
+                    <li>{{ instruction }}</li>
+                  }
+                </ul>
+              </div>
+            }
+            @if (importPreview.setup?.inputs?.length) {
+              <div class="program-import__setup-inputs">
+                @for (input of importPreview.setup.inputs; track input; let inputIndex = $index) {
+                  <label
+                    class="program-import__setup-input"
+                    [for]="'workbook-max-' + inputIndex">
+                    <span>{{ input.label }}</span>
+                    <span class="program-import__setup-control">
+                      <input [id]="'workbook-max-' + inputIndex"
+                        class="form-control" type="number" min="0.5" step="0.5"
+                        [(ngModel)]="input.value"
+                        [class.is-invalid]="!isWorkbookInputValid(input)"
+                        [attr.aria-invalid]="!isWorkbookInputValid(input)"
+                        [attr.aria-describedby]="!isWorkbookInputValid(input) ? 'workbook-max-error-' + inputIndex : null"
+                        (ngModelChange)="setupError = ''"
+                        (blur)="normalizeWorkbookInput(input)">
+                        <span>{{ workbookWeightUnit }}</span>
+                      </span>
+                      @if (!isWorkbookInputValid(input)) {
+                        <small
+                          [id]="'workbook-max-error-' + inputIndex"
+                          class="program-import__setup-error">
+                          {{ 'program-import.MaxMustBePositive' | translate }}
+                        </small>
+                      }
+                    </label>
+                  }
+                </div>
+              }
+              @if (setupError) {
+                <div class="alert alert-danger" role="alert" aria-live="assertive">{{ setupError }}</div>
+              }
+              <div class="program-import__review-actions">
+                <button class="btn btn-outline-secondary" type="button" (click)="cancelImportReview()">
+                  {{ 'global.CancelLabel' | translate }}
+                </button>
+                <button class="btn btn-primary" type="button"
+                  [disabled]="!workbookSetupValid"
+                  (click)="continueToImportReview()">
+                  {{ 'program-import.CalculateAndReview' | translate }}
+                </button>
+              </div>
+            </div>
+          }
+          @if (importReviewStep === 'review') {
+            <div class="program-import__review-header">
+              <div>
+                <span class="program-import__eyebrow">{{ 'program-import.ReviewEyebrow' | translate }}</span>
+                <h2>{{ 'program-import.ReviewTitle' | translate }}</h2>
+                <p>
+                  {{ importPreview.program.weeks.length }} {{ 'global.Weeks' | translate }},
+                  {{ reviewExerciseCount }} {{ 'program-import.Exercises' | translate }}
+                </p>
+              </div>
+              <span class="program-import__confidence">
+                {{ 'program-import.Confidence' | translate }}:
+                {{ importPreview.confidence | percent:'1.0-0' }}
+              </span>
+            </div>
+            @if (importWarnings.length) {
+              <div class="alert alert-warning" role="status" aria-live="polite">
+                @for (warning of importWarnings; track warning) {
+                  <div>{{ warning }}</div>
+                }
+              </div>
+            }
+            <div class="program-import__review-actions program-import__review-actions--top">
+              @if (importPreview.setup?.inputs?.length) {
+                <button
+                  class="btn btn-outline-secondary" type="button" (click)="editWorkbookMaxes()">
+                  {{ 'program-import.EditMaxes' | translate }}
+                </button>
+              }
+              <button class="btn btn-outline-secondary" type="button" (click)="cancelImportReview()">
+                {{ 'global.CancelLabel' | translate }}
+              </button>
+              <button class="btn btn-primary" type="button" (click)="confirmImport()">
+                {{ 'program-import.ConfirmImport' | translate }}
+              </button>
+            </div>
+            <nav class="program-import__review-pagination" [attr.aria-label]="'program-import.ReviewWeeks' | translate">
+              <button class="btn btn-outline-secondary program-import__review-nav-button" type="button"
+                [disabled]="selectedReviewWeekIndex === 0"
+                (click)="previousReviewWeek()">
+                <em class="fa fa-chevron-left" aria-hidden="true"></em>
+                {{ 'program-import.PreviousWeek' | translate }}
+              </button>
+              <div class="program-import__review-week-tabs">
+                @for (week of importPreview.program.weeks; track week; let weekIndex = $index) {
+                  <button
+                    type="button"
+                    class="program-import__review-week-tab"
+                    [class.program-import__review-week-tab--active]="weekIndex === selectedReviewWeekIndex"
+                    [attr.aria-current]="weekIndex === selectedReviewWeekIndex ? 'page' : null"
+                    (click)="selectReviewWeek(weekIndex)">
+                    {{ week.name }}
+                  </button>
+                }
+              </div>
+              <button class="btn btn-outline-secondary program-import__review-nav-button" type="button"
+                [disabled]="selectedReviewWeekIndex === importPreview.program.weeks.length - 1"
+                (click)="nextReviewWeek()">
+                {{ 'program-import.NextWeek' | translate }}
+                <em class="fa fa-chevron-right" aria-hidden="true"></em>
+              </button>
+            </nav>
+            <div class="program-import__review-weeks">
+              @if (selectedReviewWeek; as week) {
+                <section class="program-import__review-week">
+                  <div class="program-import__review-week-heading">
+                    <h3>{{ week.name }}</h3>
+                    <span>
+                      {{ selectedReviewWeekIndex + 1 }} / {{ importPreview.program.weeks.length }}
+                    </span>
+                  </div>
+                  @for (day of week.days; track day; let dayIndex = $index) {
+                    <section
+                      class="program-import__review-day">
+                      <h4>{{ day.name }}</h4>
+                      <div class="program-import__review-table">
+                        @for (exercise of day.exercises; track trackExerciseById(exerciseIndex, exercise); let exerciseIndex = $index) {
+                          <div
+                            class="program-import__review-row">
+                            <label>
+                              <span>{{ 'program-import.ExerciseName' | translate }}</span>
+                              <input class="form-control" [(ngModel)]="exercise.exerciseName">
+                            </label>
+                            <label>
+                              <span>{{ 'program-import.Sets' | translate }}</span>
+                              <input class="form-control" [(ngModel)]="exercise.sets">
+                            </label>
+                            <label>
+                              <span>{{ 'program-import.Reps' | translate }}</span>
+                              <input class="form-control" [(ngModel)]="exercise.reps">
+                            </label>
+                            <label>
+                              <span>{{ 'program-import.Weight' | translate }}</span>
+                              <input class="form-control" [(ngModel)]="exercise.weight">
+                            </label>
+                            <label>
+                              <span>{{ 'program-import.Rest' | translate }}</span>
+                              <input class="form-control" [(ngModel)]="exercise.rest">
+                            </label>
+                            <label>
+                              <span>{{ 'program-import.Tempo' | translate }}</span>
+                              <input class="form-control" [(ngModel)]="exercise.tempo">
+                            </label>
+                            <label>
+                              <span>RPE</span>
+                              <input class="form-control" [(ngModel)]="exercise.rpe">
+                            </label>
+                            <label class="program-import__review-notes">
+                              <span>{{ 'program-import.Notes' | translate }}</span>
+                              <input class="form-control" [(ngModel)]="exercise.notes">
+                            </label>
+                            <button class="btn btn-outline-danger program-import__review-delete"
+                              type="button"
+                              [attr.aria-label]="'program-import.DeleteExercise' | translate:{ name: exercise.exerciseName }"
+                              (click)="deleteReviewExercise(selectedReviewWeekIndex, dayIndex, exerciseIndex)">
+                              <em class="fa fa-trash" aria-hidden="true"></em>
+                            </button>
+                          </div>
+                        }
+                      </div>
+                    </section>
+                  }
+                </section>
+              }
+            </div>
+            <div class="program-import__review-actions">
+              <button class="btn btn-outline-secondary" type="button" (click)="cancelImportReview()">
+                {{ 'global.CancelLabel' | translate }}
+              </button>
+              <button class="btn btn-primary" type="button" (click)="confirmImport()">
+                {{ 'program-import.ConfirmImport' | translate }}
+              </button>
+            </div>
+          }
+        </section>
+      }
+
+      @if (!program && !importPreview) {
+        <div class="program-import__empty">
+          <img alt="Log Your Workout" src="assets/img/log-your-wo-logo-single-black.svg">
+          <h2>{{ 'program-import.EmptyTitle' | translate }}</h2>
+          <p>{{ 'program-import.EmptyDescription' | translate }}</p>
+        </div>
+      }
+
+      @if (program && !importPreview) {
+        <div class="program-import__content">
+          <div class="program-import__meta">
+            <div>
+              <span class="program-import__eyebrow">{{ 'program-import.ImportedProgram' | translate }}</span>
+              <h2>{{ program.name }}</h2>
+            </div>
+            <div class="program-import__meta-actions">
+              <div class="program-import__color-picker" [attr.aria-label]="'program-import.CompletionColor' | translate">
+                <span>{{ 'global.Complete' | translate }}</span>
+                @for (color of completionColorOptions; track color) {
+                  <button
+                    type="button"
+                    class="program-import__color-swatch"
+                    [attr.aria-label]="'program-import.UseColor' | translate:{ color: color }"
+                    [attr.aria-pressed]="completionColor === color"
+                    [class.program-import__color-swatch--active]="completionColor === color"
+                    [style.background]="color"
+                    (click)="onCompletionColorChange(color)">
+                  </button>
+                }
+              </div>
+              <div class="program-import__count">{{ program.weeks.length }} {{ 'global.Weeks' | translate }}</div>
+            </div>
+          </div>
+          <div class="program-import__weeks" [attr.aria-label]="'program-import.ProgramWeeks' | translate">
+            @for (week of weekCards; track trackWeekById($index, week)) {
+              <button
+                #weekTab
+                type="button"
+                class="program-import__week"
+                [attr.data-week-id]="week.id"
+                [attr.aria-pressed]="selectedWeek && selectedWeek.id === week.id"
+                [class.program-import__week--active]="selectedWeek && selectedWeek.id === week.id"
+                [class.program-import__week--complete]="week.complete"
+                [ngStyle]="week.complete ? completionStyles : null"
+                (click)="selectWeek(week)">
+                {{ week.name }}
+              </button>
+            }
+          </div>
+          @if (selectedWeek) {
+            <div class="program-import__days">
+              @for (day of dayCards; track trackDayById($index, day)) {
+                <div
+                  #dayCard
+                  class="program-import__day"
+                  [attr.data-day-id]="day.id"
+                  [class.program-import__day--complete]="day.complete"
+                  [ngStyle]="day.complete ? completionStyles : null">
+                  <button class="program-import__day-open" type="button"
+                    (click)="openWorkout(selectedWeek.id, day.id)">
+                    <span class="program-import__day-title">
+                      <span>{{ day.name }}</span>
+                      <span>{{ day.completionLabel }}</span>
+                    </span>
+                    <mat-progress-bar mode="determinate" [value]="day.completionPercent"></mat-progress-bar>
+                    <span class="program-import__preview">
+                      @for (exerciseName of day.exercisePreview; track exerciseName) {
+                        <span>{{ exerciseName }}</span>
+                      }
+                    </span>
+                  </button>
+                  <div class="program-import__day-actions">
+                    @if (day.elapsedLabel) {
+                      <span class="program-import__elapsed">
+                        {{ day.elapsedLabel }}
+                      </span>
+                    }
+                    <button class="btn btn-sm"
+                      [class.btn-success]="!day.complete"
+                      [class.program-import__complete-button]="day.complete"
+                      type="button"
+                      [disabled]="day.complete"
+                      (click)="markDayComplete($event, selectedWeek.id, day.id)">
+                      {{ (day.complete ? 'global.Complete' : 'global.MarkAsComplete') | translate }}
+                    </button>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </div>

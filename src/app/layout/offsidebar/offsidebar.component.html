@@ -1,29 +1,31 @@
 <div class="p-2 offsidebar-appearance">
-    <h4 class="text-muted text-thin">{{ 'appearance.Title' | translate }}</h4>
-    <label class="appearance-setting" for="offsidebar-dark-mode">
-        <span class="appearance-setting__icon">
-            <em [class]="darkMode ? 'fas fa-moon' : 'fas fa-sun'" aria-hidden="true"></em>
-        </span>
-        <span class="appearance-setting__copy">
-            <strong>{{ 'appearance.DarkMode' | translate }}</strong>
-            <small>{{ 'appearance.Description' | translate }}</small>
-        </span>
-        <span class="switch">
-            <input id="offsidebar-dark-mode" type="checkbox" [ngModel]="darkMode"
-                (ngModelChange)="setDarkMode($event)" />
-            <span></span>
-        </span>
+  <h4 class="text-muted text-thin">{{ 'appearance.Title' | translate }}</h4>
+  <label class="appearance-setting" for="offsidebar-dark-mode">
+    <span class="appearance-setting__icon">
+      <em [class]="darkMode ? 'fas fa-moon' : 'fas fa-sun'" aria-hidden="true"></em>
+    </span>
+    <span class="appearance-setting__copy">
+      <strong>{{ 'appearance.DarkMode' | translate }}</strong>
+      <small>{{ 'appearance.Description' | translate }}</small>
+    </span>
+    <span class="switch">
+      <input id="offsidebar-dark-mode" type="checkbox" [ngModel]="darkMode"
+        (ngModelChange)="setDarkMode($event)" />
+        <span></span>
+      </span>
     </label>
-</div>
+  </div>
 
-<div class="p-2">
+  <div class="p-2">
     <h4 class="text-muted text-thin">{{ 'global.Language' | translate }}</h4>
     <select class="form-control" [ngModel]="selectedLanguage" (ngModelChange)="setLang($event)">
-        <option [value]="lang.code" *ngFor="let lang of getLangs()">{{ lang.text }}</option>
+      @for (lang of getLangs(); track lang) {
+        <option [value]="lang.code">{{ lang.text }}</option>
+      }
     </select>
     <small class="language-setting-help">{{ 'appearance.LanguageDescription' | translate }}</small>
-</div>
+  </div>
 
-<div class="p-2">
+  <div class="p-2">
     <span id="app-info">&copy; {{ _settings.getAppSetting('year') }} - {{ _settings.getAppSetting('name') }}</span>
-</div>
+  </div>

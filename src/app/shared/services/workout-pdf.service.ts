@@ -480,13 +480,14 @@ export class WorkoutPdfService {
     }
 
     private getDurationDisplay(exercise: Exercise, notAvailableLabel: string): string {
-        if (!exercise.duration || exercise.duration.asMilliseconds() <= 0) {
+        if (!exercise.duration || exercise.duration.toMillis() <= 0) {
             return notAvailableLabel;
         }
 
-        const hours = Math.floor(exercise.duration.asHours());
-        const minutes = exercise.duration.minutes();
-        const seconds = exercise.duration.seconds();
+        const durationParts = exercise.duration.shiftTo('hours', 'minutes', 'seconds');
+        const hours = Math.floor(durationParts.hours);
+        const minutes = Math.floor(durationParts.minutes);
+        const seconds = Math.floor(durationParts.seconds);
         const parts = [];
 
         if (hours) {

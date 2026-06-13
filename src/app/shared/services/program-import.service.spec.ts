@@ -4,7 +4,7 @@ import * as XLSX from 'xlsx';
 import { ProgramImportService } from './program-import.service';
 import { ImportedProgram, ImportedWorkoutState } from '../models/imported-program.model';
 import { Exercise } from '../models/exercise.model';
-import * as moment from 'moment';
+import { Duration } from 'luxon';
 import { SupabaseDataService } from './supabase-data.service';
 
 describe('ProgramImportService', () => {
@@ -378,7 +378,7 @@ describe('ProgramImportService', () => {
         const program = createProgram();
         const cardio = createExercise('Run', false);
         cardio.exerciseType = 'cardio';
-        cardio.duration = moment.duration({ minutes: 12, seconds: 30 });
+        cardio.duration = Duration.fromObject({ minutes: 12, seconds: 30 });
         service.saveProgram(program);
 
         service.saveWorkoutState({

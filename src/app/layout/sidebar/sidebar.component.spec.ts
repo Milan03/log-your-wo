@@ -21,7 +21,7 @@ describe('Component: Sidebar', () => {
     });
 
     it('should create an instance', waitForAsync(inject([MenuService, SettingsService, Router], (menuService, settingsService, router) => {
-        let component = new SidebarComponent(menuService, settingsService, router);
+        let component = TestBed.runInInjectionContext(() => new SidebarComponent());
         expect(component).toBeTruthy();
     })));
 });

@@ -1,7 +1,7 @@
-import { Component, OnDestroy, OnInit, Optional } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AbstractControl, FormArray, FormBuilder, FormGroup, ValidationErrors, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { Subscription } from 'rxjs';
 
 import { AuthService } from '../../core/auth/auth.service';
 import {
@@ -22,7 +22,7 @@ import { TranslatorService } from '../../core/translator/translator.service';
     templateUrl: './profile.component.html',
     styleUrls: ['./profile.component.scss']
 })
-export class ProfileComponent implements OnInit, OnDestroy {
+export class ProfileComponent implements OnInit {
     public form: FormGroup;
     public signedIn = false;
     public email = '';
@@ -52,24 +52,20 @@ export class ProfileComponent implements OnInit, OnDestroy {
         'Mobility': 'profile.InterestMobility'
     };
 
-    private profileSub: Subscription;
-    private sessionSub: Subscription;
-    private formSub: Subscription;
+    private readonly destroyRef = inject(DestroyRef);
     private currentUnitSystem: UnitSystem = 'imperial';
     private loadedProfile: UserProfile;
-    private readonly formBuilder: FormBuilder;
 
-    constructor(
-        formBuilder: FormBuilder,
-        private auth: AuthService,
-        private profileService: ProfileService,
-        private sharedService: SharedService,
-        private router: Router,
-        private themes: ThemesService,
-        @Optional() private translator?: TranslatorService
-    ) {
-        this.formBuilder = formBuilder;
-        this.form = formBuilder.group({
+    private readonly formBuilder = inject(FormBuilder);
+    private auth = inject(AuthService);
+    private profileService = inject(ProfileService);
+    private sharedService = inject(SharedService);
+    private router = inject(Router);
+    private themes = inject(ThemesService);
+    private translator = inject(TranslatorService, { optional: true });
+
+    constructor() {
+        this.form = this.formBuilder.group({
             firstName: ['', Validators.maxLength(50)],
             lastName: ['', Validators.maxLength(50)],
             username: ['', [Validators.maxLength(30), Validators.pattern(/^[a-zA-Z0-9_.-]*$/)]],
@@ -83,31 +79,19 @@ export class ProfileComponent implements OnInit, OnDestroy {
             fitnessGoal: [''],
             experienceLevel: [''],
             workoutsPerWeek: [3, [Validators.min(1), Validators.max(14)]],
-            trainingMaxes: formBuilder.array([]),
+            trainingMaxes: this.formBuilder.array([]),
             emailUpdates: [false]
         });
     }
 
     public ngOnInit(): void {
         this.sharedService.emitLogType(undefined);
-        this.profileSub = this.profileService.profile$.subscribe(profile => this.loadProfile(profile));
-        this.sessionSub = this.auth.session$.subscribe(session => {
+        this.profileService.profile$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(profile => this.loadProfile(profile));
+        this.auth.session$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(session => {
             this.signedIn = !!session;
             this.email = session && session.user ? session.user.email || '' : '';
         });
-        this.formSub = this.form.valueChanges.subscribe(() => this.saved = false);
-    }
-
-    public ngOnDestroy(): void {
-        if (this.profileSub) {
-            this.profileSub.unsubscribe();
-        }
-        if (this.sessionSub) {
-            this.sessionSub.unsubscribe();
-        }
-        if (this.formSub) {
-            this.formSub.unsubscribe();
-        }
+        this.form.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.saved = false);
     }
 
     public toggleTraining(option: string): void {

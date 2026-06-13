@@ -1,6 +1,7 @@
-import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, Optional, QueryList, ViewChildren } from '@angular/core';
+import { AfterViewInit, Component, DestroyRef, ElementRef, inject, OnDestroy, OnInit, QueryList, ViewChildren } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
-import { filter, Subscription } from 'rxjs';
+import { filter } from 'rxjs';
 
 import {
     ImportedProgram,
@@ -53,13 +54,7 @@ export class ProgramImportComponent implements OnInit, AfterViewInit, OnDestroy 
         '#111827'
     ];
 
-    private programSub: Subscription;
-    private programsSub: Subscription;
-    private routeSub: Subscription;
-    private navigationSub: Subscription;
-    private languageSub: Subscription;
-    private weekTabsSub: Subscription;
-    private dayCardsSub: Subscription;
+    private readonly destroyRef = inject(DestroyRef);
     private focusTimerId: ReturnType<typeof setTimeout>;
     private scrollFrameId: number;
     private selectedWeekId: string;
@@ -68,20 +63,18 @@ export class ProgramImportComponent implements OnInit, AfterViewInit, OnDestroy 
     private selectedProgramId: string;
     private pendingTrainingMaxes: TrainingMax[] = [];
 
-    constructor(
-        private _programImportService: ProgramImportService,
-        private _sharedService: SharedService,
-        private _router: Router,
-        private _activatedRoute: ActivatedRoute,
-        @Optional() private _translatorService?: TranslatorService,
-        @Optional() private _profileService?: ProfileService
-    ) { }
+    private _programImportService = inject(ProgramImportService);
+    private _sharedService = inject(SharedService);
+    private _router = inject(Router);
+    private _activatedRoute = inject(ActivatedRoute);
+    private _translatorService = inject(TranslatorService, { optional: true });
+    private _profileService = inject(ProfileService, { optional: true });
 
     ngOnInit(): void {
         this._sharedService.emitLogType(undefined);
         this.completionColor = this._programImportService.getCompletionColor();
         this.refreshCompletionStyles();
-        this.routeSub = this._activatedRoute.queryParamMap.subscribe(params => {
+        this._activatedRoute.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
             this.selectedProgramId = params.get('programId');
             this.selectedWeekId = params.get('weekId');
             this.pendingFocusWeekId = this.selectedWeekId;
@@ -91,20 +84,21 @@ export class ProgramImportComponent implements OnInit, AfterViewInit, OnDestroy 
             }
             this.selectWeekFromProgram();
         });
-        this.programSub = this._programImportService.program$.subscribe(program => {
+        this._programImportService.program$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(program => {
             this.program = program;
             this.selectWeekFromProgram();
             this.refreshWeekCards();
         });
-        this.programsSub = this._programImportService.programs$.subscribe(programs => {
+        this._programImportService.programs$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(programs => {
             this.programs = programs;
             this.refreshProgramCards();
         });
-        this.navigationSub = this._router.events.pipe(
-            filter(event => event instanceof NavigationEnd)
+        this._router.events.pipe(
+            filter(event => event instanceof NavigationEnd),
+            takeUntilDestroyed(this.destroyRef)
         ).subscribe(() => this.queueRequestedFocus());
         if (this._translatorService) {
-            this.languageSub = this._translatorService.languageChangeEmitted$.subscribe(() => {
+            this._translatorService.languageChangeEmitted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
                 this.refreshProgramCards();
                 this.refreshDayCards();
             });
@@ -112,33 +106,12 @@ export class ProgramImportComponent implements OnInit, AfterViewInit, OnDestroy 
     }
 
     ngAfterViewInit(): void {
-        this.weekTabsSub = this.weekTabElements.changes.subscribe(() => this.queueRequestedFocus());
-        this.dayCardsSub = this.dayCardElements.changes.subscribe(() => this.queueRequestedFocus());
+        this.weekTabElements.changes.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.queueRequestedFocus());
+        this.dayCardElements.changes.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.queueRequestedFocus());
         this.queueRequestedFocus();
     }
 
     ngOnDestroy(): void {
-        if (this.programSub) {
-            this.programSub.unsubscribe();
-        }
-        if (this.routeSub) {
-            this.routeSub.unsubscribe();
-        }
-        if (this.programsSub) {
-            this.programsSub.unsubscribe();
-        }
-        if (this.dayCardsSub) {
-            this.dayCardsSub.unsubscribe();
-        }
-        if (this.weekTabsSub) {
-            this.weekTabsSub.unsubscribe();
-        }
-        if (this.navigationSub) {
-            this.navigationSub.unsubscribe();
-        }
-        if (this.languageSub) {
-            this.languageSub.unsubscribe();
-        }
         if (this.focusTimerId !== undefined) {
             clearTimeout(this.focusTimerId);
             this.focusTimerId = undefined;
