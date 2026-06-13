@@ -1,75 +1,77 @@
 <div class="home-container">
-    <div class="jumbotron home-hero">
-        <div class="home-hero__mark" aria-hidden="true">
-            <em class="icon-notebook"></em>
-        </div>
-        <div class="home-text">
-            <span class="home-hero__eyebrow">{{ 'home.Eyebrow' | translate }}</span>
-            <h1 class="home-text-big">{{ 'global.LogYourWorkout' | translate }}</h1>
-            <p class="lead">{{ 'home.HeroLead' | translate }}</p>
-            <div class="home-hero__actions">
-                <button class="btn btn-primary" type="button" (click)="navigateToSimpleLogEntry()">
-                    {{ 'home.StartLogging' | translate }}
-                </button>
-                <button class="btn btn-outline-light" type="button" (click)="navigateToImportProgram()">
-                    {{ 'home.ImportProgram' | translate }}
-                </button>
-            </div>
-        </div>
+  <div class="jumbotron home-hero">
+    <div class="home-hero__mark" aria-hidden="true">
+      <em class="icon-notebook"></em>
     </div>
+    <div class="home-text">
+      <span class="home-hero__eyebrow">{{ 'home.Eyebrow' | translate }}</span>
+      <h1 class="home-text-big">{{ 'global.LogYourWorkout' | translate }}</h1>
+      <p class="lead">{{ 'home.HeroLead' | translate }}</p>
+      <div class="home-hero__actions">
+        <button class="btn btn-primary" type="button" (click)="navigateToSimpleLogEntry()">
+          {{ 'home.StartLogging' | translate }}
+        </button>
+        <button class="btn btn-outline-light" type="button" (click)="navigateToImportProgram()">
+          {{ 'home.ImportProgram' | translate }}
+        </button>
+      </div>
+    </div>
+  </div>
 
-    <!-- Primary actions -->
+  <!-- Primary actions -->
+  <div class="row">
+    <div class="col-lg-6">
+      <div class="card b">
+        <button class="btn-transparent" (click)="navigateToSimpleLogEntry()">
+          <div class="card-header">
+            <h2>{{ 'log-entry.SimpleLog' | translate }}</h2>
+          </div>
+          <div class="card-body">
+            {{ 'log-entry.SimpleLogDescription' | translate }}
+          </div>
+        </button>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="card b">
+        <button class="btn-transparent" (click)="navigateToImportProgram()">
+          <div class="card-header">
+            <h2>{{ 'home.ImportProgram' | translate }}</h2>
+          </div>
+          <div class="card-body">
+            {{ 'home.ImportProgramDescription' | translate }}
+          </div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Feature overview / internal linking for discoverability -->
+  <section class="home-features" aria-labelledby="home-features-title">
+    <h2 id="home-features-title" class="home-section-title">{{ 'home.FeaturesTitle' | translate }}</h2>
+    <p class="home-section-lead">{{ 'home.FeaturesLead' | translate }}</p>
     <div class="row">
-        <div class="col-lg-6">
-            <div class="card b">
-                <button class="btn-transparent" (click)="navigateToSimpleLogEntry()">
-                    <div class="card-header">
-                        <h2>{{ 'log-entry.SimpleLog' | translate }}</h2>
-                    </div>
-                    <div class="card-body">
-                        {{ 'log-entry.SimpleLogDescription' | translate }}
-                    </div>
-                </button>
-            </div>
+      @for (feature of features; track feature) {
+        <div class="col-md-6 col-lg-4">
+          <a class="home-feature-card" [routerLink]="feature.link">
+            <em [class]="feature.icon" aria-hidden="true"></em>
+            <h3>{{ feature.titleKey | translate }}</h3>
+            <p>{{ feature.descKey | translate }}</p>
+            <span class="home-feature-card__more">{{ 'home.LearnMore' | translate }} &rarr;</span>
+          </a>
         </div>
-        <div class="col-lg-6">
-            <div class="card b">
-                <button class="btn-transparent" (click)="navigateToImportProgram()">
-                    <div class="card-header">
-                        <h2>{{ 'home.ImportProgram' | translate }}</h2>
-                    </div>
-                    <div class="card-body">
-                        {{ 'home.ImportProgramDescription' | translate }}
-                    </div>
-                </button>
-            </div>
-        </div>
+      }
     </div>
+  </section>
 
-    <!-- Feature overview / internal linking for discoverability -->
-    <section class="home-features" aria-labelledby="home-features-title">
-        <h2 id="home-features-title" class="home-section-title">{{ 'home.FeaturesTitle' | translate }}</h2>
-        <p class="home-section-lead">{{ 'home.FeaturesLead' | translate }}</p>
-        <div class="row">
-            <div class="col-md-6 col-lg-4" *ngFor="let feature of features">
-                <a class="home-feature-card" [routerLink]="feature.link">
-                    <em [class]="feature.icon" aria-hidden="true"></em>
-                    <h3>{{ feature.titleKey | translate }}</h3>
-                    <p>{{ feature.descKey | translate }}</p>
-                    <span class="home-feature-card__more">{{ 'home.LearnMore' | translate }} &rarr;</span>
-                </a>
-            </div>
-        </div>
-    </section>
-
-    <!-- Reassurance / what the app does -->
-    <section class="home-pitch" aria-labelledby="home-pitch-title">
-        <h2 id="home-pitch-title" class="home-section-title">{{ 'home.WhyTitle' | translate }}</h2>
-        <ul class="home-pitch__list">
-            <li><strong>{{ 'home.WhyGuestTitle' | translate }}</strong> {{ 'home.WhyGuestDesc' | translate }}</li>
-            <li><strong>{{ 'home.WhyCloudTitle' | translate }}</strong> {{ 'home.WhyCloudDesc' | translate }}</li>
-            <li><strong>{{ 'home.WhyDevicesTitle' | translate }}</strong> {{ 'home.WhyDevicesDesc' | translate }}</li>
-            <li><strong>{{ 'home.WhyProgramsTitle' | translate }}</strong> {{ 'home.WhyProgramsDesc' | translate }}</li>
-        </ul>
-    </section>
+  <!-- Reassurance / what the app does -->
+  <section class="home-pitch" aria-labelledby="home-pitch-title">
+    <h2 id="home-pitch-title" class="home-section-title">{{ 'home.WhyTitle' | translate }}</h2>
+    <ul class="home-pitch__list">
+      <li><strong>{{ 'home.WhyGuestTitle' | translate }}</strong> {{ 'home.WhyGuestDesc' | translate }}</li>
+      <li><strong>{{ 'home.WhyCloudTitle' | translate }}</strong> {{ 'home.WhyCloudDesc' | translate }}</li>
+      <li><strong>{{ 'home.WhyDevicesTitle' | translate }}</strong> {{ 'home.WhyDevicesDesc' | translate }}</li>
+      <li><strong>{{ 'home.WhyProgramsTitle' | translate }}</strong> {{ 'home.WhyProgramsDesc' | translate }}</li>
+    </ul>
+  </section>
 </div>

@@ -1,191 +1,205 @@
 <!-- START Top Navbar-->
 <nav class="navbar topnavbar" role="navigation">
-    <!-- START navbar header-->
-    <div class="navbar-header">
-        <a class="navbar-brand" href="#/">
-            <div class="brand-logo">
-                <img class="img-fluid" src="assets/img/log-your-wo-logo-single.png" alt="App Logo" />
-            </div>
-            <div class="brand-logo-collapsed">
-                <img class="img-fluid" src="assets/img/log-your-wo-logo-single.png" alt="App Logo" />
-            </div>
-        </a>
+  <!-- START navbar header-->
+  <div class="navbar-header">
+    <a class="navbar-brand" href="#/">
+      <div class="brand-logo">
+        <img class="img-fluid" src="assets/img/log-your-wo-logo-single.png" alt="App Logo" />
+      </div>
+      <div class="brand-logo-collapsed">
+        <img class="img-fluid" src="assets/img/log-your-wo-logo-single.png" alt="App Logo" />
+      </div>
+    </a>
+  </div>
+  <!-- END navbar header-->
+  <!-- START Left navbar-->
+  <ul class="navbar-nav mr-auto flex-row">
+    <li class="nav-item">
+      <!-- Button used to collapse the left sidebar. Only visible on tablet and desktops-->
+      <button class="nav-link header-nav-button d-none d-md-block d-lg-block d-xl-block" type="button"
+        [attr.aria-label]="'layout.ToggleSidebar' | translate" trigger-resize=""
+        (click)="toggleCollapsedSideabar()">
+        <em class="fas fa-bars" aria-hidden="true"></em>
+      </button>
+      <!-- Button to show/hide the sidebar on mobile. Visible on mobile only.-->
+      <button class="nav-link header-nav-button sidebar-toggle d-md-none" type="button"
+        [attr.aria-label]="'layout.OpenNavigation' | translate"
+        (click)="settings.toggleLayoutSetting('asideToggled'); $event.stopPropagation()">
+        <em class="fas fa-bars" aria-hidden="true"></em>
+        <!--<span id="mobile-log-type">{{ currentLogType }}</span>-->
+      </button>
+    </li>
+    <!-- START Offsidebar button START -->
+    <li class="nav-item">
+      <button class="nav-link header-nav-button" type="button" [attr.aria-label]="'layout.OpenSettings' | translate"
+        (click)="toggleOffsidebar(); $event.stopPropagation()">
+        <em class="icon-notebook" aria-hidden="true"></em>
+      </button>
+    </li>
+    <!-- END Offsidebar menu END -->
+    <!-- START User avatar toggle-->
+    <!-- <li class="nav-item d-none d-md-block"> -->
+    <!-- Button used to collapse the left sidebar. Only visible on tablet and desktops-->
+    <!-- <a  class="nav-link" (click)="toggleUserBlock($event)">
+    <em class="icon-user"></em>
+  </a>
+</li> -->
+<!-- END User avatar toggle-->
+<!-- START lock screen-->
+<!-- <li class="nav-item d-none d-md-block">
+<a class="nav-link"  title="Lock screen" [routerLink]="'/lock'">
+  <em class="icon-lock"></em>
+</a>
+</li> -->
+<!-- END lock screen-->
+</ul>
+@if (showLogActions && currentLogType) {
+  <ul class="navbar-nav mr-auto flex-row">
+    <li class="nav-item d-none d-md-block">
+      <div id="log-header" class="nav-link">
+        <span>{{ currentLogType }} - {{ logStartDatim | date:'MM/dd/yyyy h:mm a' }}</span>
+      </div>
+    </li>
+  </ul>
+}
+<!-- END Left navbar-->
+<!-- START Right Navbar-->
+<ul class="navbar-nav flex-row">
+  @if (syncError) {
+    <li class="nav-item d-none d-md-flex align-items-center">
+      <span class="nav-link header-sync-warning" role="status" [attr.title]="syncError">
+        {{ 'layout.CloudUnavailable' | translate }}
+      </span>
+    </li>
+  }
+  <li class="nav-item header-account-menu">
+    <button class="nav-link header-account" type="button" [matMenuTriggerFor]="accountMenu"
+      [attr.aria-label]="'layout.OpenAccountMenu' | translate:{ name: accountLabel }">
+      <span class="header-account__avatar" aria-hidden="true">{{ accountLabel.charAt(0) | uppercase }}</span>
+      <span class="header-account__name d-none d-sm-inline">{{ accountLabel }}</span>
+      @if (!signedIn) {
+        <span class="header-account__local d-none d-lg-inline">{{ 'global.Local' | translate }}</span>
+      }
+      <em class="fas fa-chevron-down header-account__chevron" aria-hidden="true"></em>
+    </button>
+    <mat-menu #accountMenu="matMenu" xPosition="before">
+      @if (!signedIn) {
+        <button mat-menu-item type="button" (click)="openSignIn()">
+          <em class="icon-login header-menu-icon" aria-hidden="true"></em>
+          <span>{{ 'global.SignInOrRegister' | translate }}</span>
+        </button>
+      }
+      <button mat-menu-item type="button" (click)="openProfile()">
+        <em class="icon-user header-menu-icon" aria-hidden="true"></em>
+        <span>{{ 'global.Profile' | translate }}</span>
+      </button>
+      <button mat-menu-item type="button" role="menuitemcheckbox" [attr.aria-checked]="darkMode"
+        (click)="toggleDarkMode()">
+        <em [class]="(darkMode ? 'fas fa-moon' : 'fas fa-sun') + ' header-menu-icon'"
+        aria-hidden="true"></em>
+        <span>{{ 'appearance.DarkMode' | translate }}</span>
+        @if (darkMode) {
+          <em class="fas fa-check header-menu-check" aria-hidden="true"></em>
+        }
+      </button>
+      @if (signedIn) {
+        <button mat-menu-item type="button" (click)="signOut()">
+          <em class="icon-logout header-menu-icon" aria-hidden="true"></em>
+          <span>{{ 'global.LogOut' | translate }}</span>
+        </button>
+      }
+    </mat-menu>
+  </li>
+  <!-- START Add Exercise Buttons START -->
+  @if (showLogActions) {
+    <li class="nav-item">
+      <div id="add-exercise-label">{{ 'log-entry.AddExercise' | translate }}</div>
+      <div id="exercise-btns">
+        <button class="mb-1 mr-1 btn btn-primary" type="button" (click)="sendOpenRequest('strength')">+
+          <em class="fa fa-dumbbell"></em></button>
+          <button class="mb-1 mr-1 btn btn-primary" type="button" (click)="sendOpenRequest('cardio')">+ <em
+          class="fa fa-running"></em></button>
+        </div>
+      </li>
+    }
+    <!-- END Add Exercise Buttons END -->
+    <!-- Search icon-->
+    <!-- <li class="nav-item">
+    <a class="nav-link" (click)="openNavSearch($event)">
+      <em class="icon-magnifier"></em>
+    </a>
+  </li> -->
+  <!-- Fullscreen (only desktops)-->
+  <!-- <li class="nav-item d-none d-md-block">
+  <a class="nav-link" #fsbutton (click)="toggleFullScreen($event)">
+    <em class="fa fa-expand"></em>
+  </a>
+</li> -->
+<!-- START Alert menu-->
+<!-- <li class="nav-item dropdown dropdown-list" dropdown>
+<a class="nav-link dropdown-toggle dropdown-toggle-nocaret" dropdownToggle>
+  <em class="icon-bell"></em>
+  <span class="badge badge-danger">11</span>
+</a> -->
+<!-- START Dropdown menu-->
+<!-- <div *dropdownMenu class="dropdown-menu dropdown-menu-right animated flipInX">
+<div class="dropdown-item"> -->
+  <!-- START list group-->
+  <!-- <div class="list-group"> -->
+  <!-- list item-->
+  <!-- <div class="list-group-item list-group-item-action">
+  <div class="media">
+    <div class="align-self-start mr-2">
+      <em class="fab fa-twitter fa-2x text-info"></em>
     </div>
-    <!-- END navbar header-->
-    <!-- START Left navbar-->
-    <ul class="navbar-nav mr-auto flex-row">
-        <li class="nav-item">
-            <!-- Button used to collapse the left sidebar. Only visible on tablet and desktops-->
-            <button class="nav-link header-nav-button d-none d-md-block d-lg-block d-xl-block" type="button"
-                [attr.aria-label]="'layout.ToggleSidebar' | translate" trigger-resize=""
-                (click)="toggleCollapsedSideabar()">
-                <em class="fas fa-bars" aria-hidden="true"></em>
-            </button>
-            <!-- Button to show/hide the sidebar on mobile. Visible on mobile only.-->
-            <button class="nav-link header-nav-button sidebar-toggle d-md-none" type="button"
-                [attr.aria-label]="'layout.OpenNavigation' | translate"
-                (click)="settings.toggleLayoutSetting('asideToggled'); $event.stopPropagation()">
-                <em class="fas fa-bars" aria-hidden="true"></em>
-                <!--<span id="mobile-log-type">{{ currentLogType }}</span>-->
-            </button>
-        </li>
-        <!-- START Offsidebar button START -->
-        <li class="nav-item">
-            <button class="nav-link header-nav-button" type="button" [attr.aria-label]="'layout.OpenSettings' | translate"
-                (click)="toggleOffsidebar(); $event.stopPropagation()">
-                <em class="icon-notebook" aria-hidden="true"></em>
-            </button>
-        </li>
-        <!-- END Offsidebar menu END -->
-        <!-- START User avatar toggle-->
-        <!-- <li class="nav-item d-none d-md-block"> -->
-        <!-- Button used to collapse the left sidebar. Only visible on tablet and desktops-->
-        <!-- <a  class="nav-link" (click)="toggleUserBlock($event)">
-                <em class="icon-user"></em>
-            </a>
-        </li> -->
-        <!-- END User avatar toggle-->
-        <!-- START lock screen-->
-        <!-- <li class="nav-item d-none d-md-block">
-            <a class="nav-link"  title="Lock screen" [routerLink]="'/lock'">
-                <em class="icon-lock"></em>
-            </a>
-        </li> -->
-        <!-- END lock screen-->
-    </ul>
-    <ul *ngIf="showLogActions && currentLogType" class="navbar-nav mr-auto flex-row">
-        <li class="nav-item d-none d-md-block">
-            <div id="log-header" class="nav-link">
-                <span>{{ currentLogType }} - {{ logStartDatim | date:'MM/dd/yyyy h:mm a' }}</span>
-            </div>
-        </li>
-    </ul>
-    <!-- END Left navbar-->
-    <!-- START Right Navbar-->
-    <ul class="navbar-nav flex-row">
-        <li *ngIf="syncError" class="nav-item d-none d-md-flex align-items-center">
-            <span class="nav-link header-sync-warning" role="status" [attr.title]="syncError">
-                {{ 'layout.CloudUnavailable' | translate }}
-            </span>
-        </li>
-        <li class="nav-item header-account-menu">
-            <button class="nav-link header-account" type="button" [matMenuTriggerFor]="accountMenu"
-                [attr.aria-label]="'layout.OpenAccountMenu' | translate:{ name: accountLabel }">
-                <span class="header-account__avatar" aria-hidden="true">{{ accountLabel.charAt(0) | uppercase }}</span>
-                <span class="header-account__name d-none d-sm-inline">{{ accountLabel }}</span>
-                <span *ngIf="!signedIn" class="header-account__local d-none d-lg-inline">{{ 'global.Local' | translate }}</span>
-                <em class="fas fa-chevron-down header-account__chevron" aria-hidden="true"></em>
-            </button>
-            <mat-menu #accountMenu="matMenu" xPosition="before">
-                <button *ngIf="!signedIn" mat-menu-item type="button" (click)="openSignIn()">
-                    <em class="icon-login header-menu-icon" aria-hidden="true"></em>
-                    <span>{{ 'global.SignInOrRegister' | translate }}</span>
-                </button>
-                <button mat-menu-item type="button" (click)="openProfile()">
-                    <em class="icon-user header-menu-icon" aria-hidden="true"></em>
-                    <span>{{ 'global.Profile' | translate }}</span>
-                </button>
-                <button mat-menu-item type="button" role="menuitemcheckbox" [attr.aria-checked]="darkMode"
-                    (click)="toggleDarkMode()">
-                    <em [class]="(darkMode ? 'fas fa-moon' : 'fas fa-sun') + ' header-menu-icon'"
-                        aria-hidden="true"></em>
-                    <span>{{ 'appearance.DarkMode' | translate }}</span>
-                    <em *ngIf="darkMode" class="fas fa-check header-menu-check" aria-hidden="true"></em>
-                </button>
-                <button *ngIf="signedIn" mat-menu-item type="button" (click)="signOut()">
-                    <em class="icon-logout header-menu-icon" aria-hidden="true"></em>
-                    <span>{{ 'global.LogOut' | translate }}</span>
-                </button>
-            </mat-menu>
-        </li>
-        <!-- START Add Exercise Buttons START -->
-        <li *ngIf="showLogActions" class="nav-item">
-            <div id="add-exercise-label">{{ 'log-entry.AddExercise' | translate }}</div>
-            <div id="exercise-btns">
-                <button class="mb-1 mr-1 btn btn-primary" type="button" (click)="sendOpenRequest('strength')">+
-                    <em class="fa fa-dumbbell"></em></button>
-                <button class="mb-1 mr-1 btn btn-primary" type="button" (click)="sendOpenRequest('cardio')">+ <em
-                        class="fa fa-running"></em></button>
-            </div>
-        </li>
-        <!-- END Add Exercise Buttons END -->
-        <!-- Search icon-->
-        <!-- <li class="nav-item">
-            <a class="nav-link" (click)="openNavSearch($event)">
-                <em class="icon-magnifier"></em>
-            </a>
-        </li> -->
-        <!-- Fullscreen (only desktops)-->
-        <!-- <li class="nav-item d-none d-md-block">
-            <a class="nav-link" #fsbutton (click)="toggleFullScreen($event)">
-                <em class="fa fa-expand"></em>
-            </a>
-        </li> -->
-        <!-- START Alert menu-->
-        <!-- <li class="nav-item dropdown dropdown-list" dropdown>
-            <a class="nav-link dropdown-toggle dropdown-toggle-nocaret" dropdownToggle>
-                <em class="icon-bell"></em>
-                <span class="badge badge-danger">11</span>
-            </a> -->
-        <!-- START Dropdown menu-->
-        <!-- <div *dropdownMenu class="dropdown-menu dropdown-menu-right animated flipInX">
-                <div class="dropdown-item"> -->
-        <!-- START list group-->
-        <!-- <div class="list-group"> -->
-        <!-- list item-->
-        <!-- <div class="list-group-item list-group-item-action">
-                          <div class="media">
-                             <div class="align-self-start mr-2">
-                                <em class="fab fa-twitter fa-2x text-info"></em>
-                             </div>
-                             <div class="media-body">
-                                <p class="m-0">New followers</p>
-                                <p class="m-0 text-muted text-sm">1 new follower</p>
-                             </div>
-                          </div>
-                       </div> -->
-        <!-- list item-->
-        <!-- <div class="list-group-item list-group-item-action">
-                          <div class="media">
-                             <div class="align-self-start mr-2">
-                                <em class="fa fa-envelope fa-2x text-warning"></em>
-                             </div>
-                             <div class="media-body">
-                                <p class="m-0">New e-mails</p>
-                                <p class="m-0 text-muted text-sm">You have 10 new emails</p>
-                             </div>
-                          </div>
-                       </div> -->
-        <!-- list item-->
-        <!-- <div class="list-group-item list-group-item-action">
-                          <div class="media">
-                             <div class="align-self-start mr-2">
-                                <em class="fa fa-tasks fa-2x text-success"></em>
-                             </div>
-                             <div class="media-body">
-                                <p class="m-0">Pending Tasks</p>
-                                <p class="m-0 text-muted text-sm">11 pending task</p>
-                             </div>
-                          </div>
-                       </div> -->
-        <!-- last list item-->
-        <!-- <div class="list-group-item list-group-item-action">
-                          <span class="d-flex align-items-center">
-                             <span class="text-sm">More notifications</span>
-                             <span class="badge badge-danger ml-auto">14</span>
-                          </span>
-                       </div>
-                    </div> -->
-        <!-- END list group-->
-        <!-- </div>
-            </div> -->
-        <!-- END Dropdown menu-->
-        <!-- </li> -->
-        <!-- END Alert menu-->
-    </ul>
-    <!-- END Right Navbar-->
+    <div class="media-body">
+      <p class="m-0">New followers</p>
+      <p class="m-0 text-muted text-sm">1 new follower</p>
+    </div>
+  </div>
+</div> -->
+<!-- list item-->
+<!-- <div class="list-group-item list-group-item-action">
+<div class="media">
+  <div class="align-self-start mr-2">
+    <em class="fa fa-envelope fa-2x text-warning"></em>
+  </div>
+  <div class="media-body">
+    <p class="m-0">New e-mails</p>
+    <p class="m-0 text-muted text-sm">You have 10 new emails</p>
+  </div>
+</div>
+</div> -->
+<!-- list item-->
+<!-- <div class="list-group-item list-group-item-action">
+<div class="media">
+  <div class="align-self-start mr-2">
+    <em class="fa fa-tasks fa-2x text-success"></em>
+  </div>
+  <div class="media-body">
+    <p class="m-0">Pending Tasks</p>
+    <p class="m-0 text-muted text-sm">11 pending task</p>
+  </div>
+</div>
+</div> -->
+<!-- last list item-->
+<!-- <div class="list-group-item list-group-item-action">
+<span class="d-flex align-items-center">
+  <span class="text-sm">More notifications</span>
+  <span class="badge badge-danger ml-auto">14</span>
+</span>
+</div>
+</div> -->
+<!-- END list group-->
+<!-- </div>
+</div> -->
+<!-- END Dropdown menu-->
+<!-- </li> -->
+<!-- END Alert menu-->
+</ul>
+<!-- END Right Navbar-->
 
-    <!-- <app-navsearch [visible]="getNavSearchVisible()" (onclose)="setNavSearchVisible(false)"></app-navsearch> -->
+<!-- <app-navsearch [visible]="getNavSearchVisible()" (onclose)="setNavSearchVisible(false)"></app-navsearch> -->
 
 </nav>
 <!-- END Top Navbar-->

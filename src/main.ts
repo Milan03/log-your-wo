@@ -11,7 +11,7 @@
 
 import './vendor';
 import { enableProdMode, provideZoneChangeDetection } from '@angular/core';
-import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
+import { platformBrowser } from '@angular/platform-browser';
 
 import { AppModule } from './app/app.module';
 import { environment } from './environments/environment';
@@ -28,7 +28,7 @@ if (environment.production) {
         .catch(() => undefined);
 }
 
-let p = platformBrowserDynamic().bootstrapModule(AppModule, {
+let p = platformBrowser().bootstrapModule(AppModule, {
     applicationProviders: [
         provideZoneChangeDetection()
     ]
