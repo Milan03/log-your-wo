@@ -7,7 +7,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { ExerciseDialogComponent } from '../exercise-dialog/exercise-dialog.component';
 import { EmailDialogComponent } from '../email-dialog/email-dialog.component';
 import { ExerciseGroup } from '../exercise-group-list/exercise-group-list.component';
-import { CalendarDay } from '../simple-log-history/simple-log-history.component';
+import { CalendarDay, CalendarService } from '../../../shared/services/calendar.service';
 import { Exercise } from '../../../shared/models/exercise.model';
 import {
     DistanceMeasure,
@@ -98,6 +98,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     private _dialog = inject(MatDialog);
     private _programImportService = inject(ProgramImportService);
     private _measureConversionService = inject(MeasureConversionService);
+    private _calendarService = inject(CalendarService);
     private _workoutTimerService = inject(WorkoutTimerService);
     private _simpleLogService = inject(SimpleLogService);
     private _workoutExportService = inject(WorkoutExportService);
@@ -667,7 +668,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
                 } else {
                     this.intensities = FormValues.ExerciseIntensitiesFR;
                 }
-                this.calendarWeekdays = this.getCalendarWeekdays();
+                this.calendarWeekdays = this._calendarService.weekdays(this.currentLanguage);
             }
         );
     }
@@ -960,48 +961,25 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     }
 
     private refreshCalendar(): void {
-        const year = this.calendarMonth.getFullYear();
-        const month = this.calendarMonth.getMonth();
-        const firstVisibleDate = new Date(year, month, 1 - new Date(year, month, 1).getDay());
-        const todayValue = this.toDateInputValue(new Date());
-
-        this.calendarDays = Array.from({ length: 42 }, (_, index) => {
-            const date = new Date(firstVisibleDate.getFullYear(), firstVisibleDate.getMonth(), firstVisibleDate.getDate() + index);
-            const dateValue = this.toDateInputValue(date);
-
-            return {
-                date,
-                dateValue,
-                dayNumber: date.getDate(),
-                inCurrentMonth: date.getMonth() === month,
-                isToday: dateValue === todayValue,
-                hasWorkout: this.savedLogs.some(log => log.workoutDate === dateValue)
-            };
-        });
-
+        const workoutDates = new Set(this.savedLogs.map(log => log.workoutDate));
+        this.calendarDays = this._calendarService.buildMonth(this.calendarMonth, new Date(), workoutDates);
         this.refreshSelectedDateLogs();
     }
 
     private toDateInputValue(date: Date): string {
-        const pad = (value: number) => String(value).padStart(2, '0');
-        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+        return this._calendarService.toDateValue(date);
     }
 
     private dateFromInputValue(value: string): Date {
-        const [year, month, day] = value.split('-').map(part => Number(part));
-        return new Date(year, month - 1, day, 12);
+        return this._calendarService.fromDateValue(value);
     }
 
     private toDateTimeInputValue(date: Date): string {
-        const pad = (value: number) => String(value).padStart(2, '0');
-        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+        return this._calendarService.toDateTimeValue(date);
     }
 
     private dateTimeFromInputValue(value: string): Date {
-        const [datePart, timePart] = value.split('T');
-        const [year, month, day] = datePart.split('-').map(part => Number(part));
-        const [hours, minutes] = timePart.split(':').map(part => Number(part));
-        return new Date(year, month - 1, day, hours, minutes);
+        return this._calendarService.fromDateTimeValue(value);
     }
 
     private ensureWorkoutStarted(): void {
@@ -1088,14 +1066,6 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     /**
      * Sweet alert prompts.
      */
-    private getCalendarWeekdays(): string[] {
-        const formatter = new Intl.DateTimeFormat(this.currentLanguage, { weekday: 'short' });
-        const sunday = new Date(2026, 0, 4);
-        return Array.from({ length: 7 }, (_, index) =>
-            formatter.format(new Date(2026, 0, sunday.getDate() + index))
-        );
-    }
-
     private t(key: string, params?: object): string {
         return this._translatorService.translate.instant(key, params);
     }

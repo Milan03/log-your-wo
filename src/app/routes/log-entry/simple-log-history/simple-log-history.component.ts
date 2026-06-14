@@ -2,15 +2,7 @@ import { ChangeDetectionStrategy, Component, EventEmitter, inject, Input, Output
 
 import { SavedSimpleLog } from '../../../shared/models/simple-log.model';
 import { TranslatorService } from '../../../core/translator/translator.service';
-
-export interface CalendarDay {
-    date: Date;
-    dateValue: string;
-    dayNumber: number;
-    inCurrentMonth: boolean;
-    isToday: boolean;
-    hasWorkout: boolean;
-}
+import { CalendarDay } from '../../../shared/services/calendar.service';
 
 @Component({
     selector: 'app-simple-log-history',
