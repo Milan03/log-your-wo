@@ -12,7 +12,7 @@ import {
 } from '../models/imported-program.model';
 import { SupabaseDataService } from './supabase-data.service';
 import { CloudSyncStatusService } from './cloud-sync-status.service';
-import { ProgramWorkbookParserService } from './program-workbook-parser.service';
+import type { ProgramWorkbookParserService } from './program-workbook-parser.service';
 
 @Injectable({
     providedIn: 'root'
@@ -29,6 +29,7 @@ export class ProgramImportService {
     private readonly deletedProgramIds = new Set<string>();
     private workoutStatesCacheRaw: string;
     private workoutStatesCache: ImportedWorkoutState[] = [];
+    private workbookParserPromise: Promise<ProgramWorkbookParserService>;
     private readonly programSource = new BehaviorSubject<ImportedProgram>(this.getProgram());
     private readonly programsSource = new BehaviorSubject<ImportedProgram[]>(this.getPrograms());
 
@@ -37,8 +38,7 @@ export class ProgramImportService {
 
     constructor(
         private cloudData?: SupabaseDataService,
-        @Optional() private syncStatus?: CloudSyncStatusService,
-        @Optional() private workbookParser?: ProgramWorkbookParserService
+        @Optional() private syncStatus?: CloudSyncStatusService
     ) { }
 
     public setUserContext(userId: string): void {
@@ -160,16 +160,25 @@ export class ProgramImportService {
         }
 
         const data = await file.arrayBuffer();
-        const parser = this.workbookParser || new ProgramWorkbookParserService();
+        const parser = await this.getWorkbookParser();
         return parser.parse(data, file.name);
     }
 
-    public applyWorkbookInputs(
+    public async applyWorkbookInputs(
         preview: ProgramImportPreview,
         values: { [inputId: string]: number }
-    ): ProgramImportPreview {
-        const parser = this.workbookParser || new ProgramWorkbookParserService();
+    ): Promise<ProgramImportPreview> {
+        const parser = await this.getWorkbookParser();
         return parser.applyInputs(preview, values);
+    }
+
+    private getWorkbookParser(): Promise<ProgramWorkbookParserService> {
+        if (!this.workbookParserPromise) {
+            this.workbookParserPromise = import('./program-workbook-parser.service')
+                .then(module => new module.ProgramWorkbookParserService());
+        }
+
+        return this.workbookParserPromise;
     }
 
     public getProgram(): ImportedProgram {

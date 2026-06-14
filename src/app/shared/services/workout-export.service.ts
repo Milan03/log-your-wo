@@ -1,9 +1,9 @@
-import { inject, Injectable } from '@angular/core';
-import { jsPDF } from 'jspdf';
+import { inject, Injectable, Injector } from '@angular/core';
+import type { jsPDF } from 'jspdf';
 
 import { EmailService } from './email.service';
 import { GoogleAnalyticsService } from './google-analytics.service';
-import {
+import type {
     WorkoutPdfData,
     WorkoutPdfLabels,
     WorkoutPdfService
@@ -36,23 +36,26 @@ export interface WorkoutExportContext {
  */
 @Injectable({ providedIn: 'root' })
 export class WorkoutExportService {
-    private _workoutPdfService = inject(WorkoutPdfService);
     private _emailService = inject(EmailService);
     private _translatorService = inject(TranslatorService);
     private _googleAnalyticsService = inject(GoogleAnalyticsService);
+    private _injector = inject(Injector);
+    private _workoutPdfServicePromise: Promise<WorkoutPdfService>;
 
     /**
      * Generate the workout PDF and trigger a browser download.
      */
     public async savePdf(context: WorkoutExportContext): Promise<void> {
         let createdPDF: jsPDF;
+        let workoutPdfService: WorkoutPdfService;
         try {
-            createdPDF = await this._workoutPdfService.create(this.buildPdfData(context));
+            workoutPdfService = await this.getWorkoutPdfService();
+            createdPDF = await workoutPdfService.create(this.buildPdfData(context));
         } catch {
             this.swalPdfError();
             return;
         }
-        createdPDF.save(this._workoutPdfService.getFileName(context.log));
+        createdPDF.save(workoutPdfService.getFileName(context.log));
         this._googleAnalyticsService.eventEmitter('pdf_saved_success', 'general', 'engagement');
     }
 
@@ -62,14 +65,21 @@ export class WorkoutExportService {
     public async emailPdf(recipientEmailAddress: string, context: WorkoutExportContext): Promise<void> {
         this.swalEmailSending();
         let pdfBase64: string;
+        let workoutPdfService: WorkoutPdfService;
         try {
-            const createdPDF = await this._workoutPdfService.create(this.buildPdfData(context));
+            workoutPdfService = await this.getWorkoutPdfService();
+            const createdPDF = await workoutPdfService.create(this.buildPdfData(context));
             pdfBase64 = createdPDF.output('datauristring').split(',')[1];
         } catch {
             this.swalPdfError();
             return;
         }
-        const request = this.buildEmailRequest(recipientEmailAddress, context, pdfBase64);
+        const request = this.buildEmailRequest(
+            recipientEmailAddress,
+            context,
+            pdfBase64,
+            workoutPdfService
+        );
         this._emailService.sendMail(request).subscribe({
             next: () => {
                 this.swalEmailSent();
@@ -145,7 +155,8 @@ export class WorkoutExportService {
     private buildEmailRequest(
         recipientEmailAddress: string,
         context: WorkoutExportContext,
-        pdfBase64: string
+        pdfBase64: string,
+        workoutPdfService: WorkoutPdfService
     ): EmailRequest {
         const options: Intl.DateTimeFormatOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
         const isEnglish = context.language == FormValues.ENCode;
@@ -160,8 +171,17 @@ export class WorkoutExportService {
             [pdfBase64],
             body,
             context.log.startDatim.toDateString(),
-            this._workoutPdfService.getFileName(context.log)
+            workoutPdfService.getFileName(context.log)
         );
+    }
+
+    private getWorkoutPdfService(): Promise<WorkoutPdfService> {
+        if (!this._workoutPdfServicePromise) {
+            this._workoutPdfServicePromise = import('./workout-pdf.service')
+                .then(module => this._injector.get(module.WorkoutPdfService));
+        }
+
+        return this._workoutPdfServicePromise;
     }
 
     private swalEmailSending(): void {
