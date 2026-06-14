@@ -4,7 +4,7 @@
     <h1 mat-dialog-title>{{ 'log-entry.EmailAsPDF' | translate }}</h1>
   </div>
 
-  <form [formGroup]="emailForm" (submit)="submitForm($event, emailForm.value)" class="form-validate" novalidate>
+  <form [formGroup]="emailForm" (submit)="submitForm($event)" class="form-validate" novalidate>
     <p class="email-dialog__help">{{ 'email-dialog.Help' | translate }}</p>
     <div class="mda-form-group float-label">
       <input id="email-address" class="mda-form-control" name="emailAddress" type="email"

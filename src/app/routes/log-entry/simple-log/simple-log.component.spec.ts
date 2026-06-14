@@ -10,6 +10,7 @@ import { BehaviorSubject, of } from 'rxjs';
 
 import { SimpleLogComponent } from './simple-log.component';
 import { SimpleLogHistoryComponent } from '../simple-log-history/simple-log-history.component';
+import { ExerciseGroupListComponent } from '../exercise-group-list/exercise-group-list.component';
 import { SharedModule } from '../../../shared/shared.module';
 import { EmailService } from '../../../shared/services/email.service';
 import { TranslatorService } from '../../../core/translator/translator.service';
@@ -48,7 +49,7 @@ describe('SimpleLogComponent', () => {
           }
         })
       ],
-      declarations: [ SimpleLogComponent, SimpleLogHistoryComponent ],
+      declarations: [ SimpleLogComponent, SimpleLogHistoryComponent, ExerciseGroupListComponent ],
       providers: [
         EmailService,
         {

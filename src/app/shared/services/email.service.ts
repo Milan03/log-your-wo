@@ -5,7 +5,9 @@ import { Observable } from 'rxjs';
 import { EmailRequest } from '../models/email-request.model';
 import { environment } from 'src/environments/environment';
 
-@Injectable()
+@Injectable({
+    providedIn: 'root'
+})
 export class EmailService {
     private readonly sendMailAppend: string = 'sendmail';
 
