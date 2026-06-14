@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, inject, OnDestroy, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
@@ -48,7 +48,8 @@ interface SimpleLogForm {
     selector: 'app-simple-log',
     standalone: false,
     templateUrl: './simple-log.component.html',
-    styleUrls: ['./simple-log.component.scss']
+    styleUrls: ['./simple-log.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SimpleLogComponent implements OnInit, OnDestroy {
     public simpleLogForm: FormGroup<SimpleLogForm>;
@@ -66,6 +67,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     public distanceMeasure: DistanceMeasure = 'km';
 
     private readonly destroyRef = inject(DestroyRef);
+    private _cdr = inject(ChangeDetectorRef);
     private strengthGroupSource: Exercise[];
     private strengthGroups: ExerciseGroup[] = [];
     private cardioGroupSource: Exercise[];
@@ -215,6 +217,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
                     this.ensureWorkoutStarted();
                 }
                 this.saveCurrentWorkoutState();
+                this._cdr.markForCheck();
             }
         });
     }
@@ -254,6 +257,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             if (result) {
                 this.replaceExercise(exercise, result);
                 this.saveCurrentWorkoutState();
+                this._cdr.markForCheck();
             }
         });
     }
@@ -344,6 +348,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         }
 
         this.applyWorkoutReset();
+        this._cdr.markForCheck();
     }
 
     private applyWorkoutReset(): void {
@@ -515,6 +520,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
 
         this._simpleLogService.deleteLog(this.activeSimpleLogId);
         this.createNewSimpleLog();
+        this._cdr.markForCheck();
     }
 
     public async deleteSavedSimpleLog(log: SavedSimpleLog): Promise<void> {
@@ -536,6 +542,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         if (this.activeSimpleLogId === log.id) {
             this.createNewSimpleLog(log.workoutDate);
         }
+        this._cdr.markForCheck();
     }
 
     private refreshSelectedDateLogs(): void {
@@ -669,6 +676,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
                     this.intensities = FormValues.ExerciseIntensitiesFR;
                 }
                 this.calendarWeekdays = this._calendarService.weekdays(this.currentLanguage);
+                this._cdr.markForCheck();
             }
         );
     }
@@ -677,6 +685,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         this._sharedService.sidebarToggleEmitted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(
             data => {
                 this.sbIsCollapsed = data;
+                this._cdr.markForCheck();
             }
         );
     }
@@ -697,6 +706,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
                         this.saveCurrentWorkoutState();
                     }
                 }
+                this._cdr.markForCheck();
             }
         );
     }
@@ -720,7 +730,8 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
           data => {
             this.currentLog.title = data;
             this.saveCurrentWorkoutState();
-          }  
+            this._cdr.markForCheck();
+          }
         );
     }
 
@@ -728,6 +739,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         this._simpleLogService.logs$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(logs => {
             this.savedLogs = logs;
             this.refreshCalendar();
+            this._cdr.markForCheck();
         });
     }
 
@@ -766,6 +778,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
                     this.activeSimpleLogId = undefined;
                 }
             }
+            this._cdr.markForCheck();
         });
     }
 
@@ -1053,7 +1066,10 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
 
     private syncElapsedTimer(): void {
         if (this._workoutTimerService.isRunning(this.timingSnapshot())) {
-            this._workoutTimerService.start(() => this.refreshElapsedMs());
+            this._workoutTimerService.start(() => {
+                this.refreshElapsedMs();
+                this._cdr.markForCheck();
+            });
         } else {
             this._workoutTimerService.stop();
         }

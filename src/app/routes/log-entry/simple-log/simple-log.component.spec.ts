@@ -563,14 +563,16 @@ describe('SimpleLogComponent', () => {
     expect(fixture.nativeElement.querySelector('.imported-log-actions__pause')).toBeNull();
     expect(fixture.nativeElement.querySelector('.imported-log-actions__resume')).toBeNull();
 
-    component.startWorkout();
-    fixture.changeDetectorRef.detectChanges();
+    // Drive the timer through real button clicks so the OnPush view is marked
+    // for check the same way it is in the app.
+    fixture.nativeElement.querySelector('.imported-log-toolbar__timer-main .btn-primary').click();
+    fixture.detectChanges();
 
     expect(fixture.nativeElement.querySelector('.imported-log-actions__pause')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('.imported-log-actions__resume')).toBeNull();
 
-    component.pauseWorkout();
-    fixture.changeDetectorRef.detectChanges();
+    fixture.nativeElement.querySelector('.imported-log-toolbar__timer-main .btn-danger').click();
+    fixture.detectChanges();
 
     expect(fixture.nativeElement.querySelector('.imported-log-actions__pause')).toBeNull();
     expect(fixture.nativeElement.querySelector('.imported-log-actions__resume')).not.toBeNull();
