@@ -113,13 +113,15 @@ describe('HeaderComponent', () => {
         expect(component.syncError).toBe('Offline');
     });
 
-    it('toggles the shared dark mode preference', () => {
+    it('toggles dark mode without closing the account menu', () => {
         const themes = TestBed.inject(ThemesService);
         const component = createComponent();
         spyOn(themes, 'toggleDarkMode');
+        const event = jasmine.createSpyObj<MouseEvent>('MouseEvent', ['stopPropagation']);
 
-        component.toggleDarkMode();
+        component.toggleDarkMode(event);
 
+        expect(event.stopPropagation).toHaveBeenCalledTimes(1);
         expect(themes.toggleDarkMode).toHaveBeenCalledTimes(1);
     });
 

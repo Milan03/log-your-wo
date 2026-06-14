@@ -107,7 +107,8 @@ export class HeaderComponent implements OnInit {
         return this.themesService.isDarkMode();
     }
 
-    public toggleDarkMode(): void {
+    public toggleDarkMode(event?: MouseEvent): void {
+        event?.stopPropagation();
         this.themesService.toggleDarkMode();
     }
 

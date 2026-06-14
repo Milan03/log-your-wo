@@ -79,7 +79,7 @@
         <span>{{ 'global.Profile' | translate }}</span>
       </button>
       <button mat-menu-item type="button" role="menuitemcheckbox" [attr.aria-checked]="darkMode"
-        (click)="toggleDarkMode()">
+        (click)="toggleDarkMode($event)">
         <em [class]="(darkMode ? 'fas fa-moon' : 'fas fa-sun') + ' header-menu-icon'"
         aria-hidden="true"></em>
         <span>{{ 'appearance.DarkMode' | translate }}</span>
