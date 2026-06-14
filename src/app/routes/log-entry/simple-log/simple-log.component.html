@@ -218,119 +218,32 @@
           }
           <!-- START Exercise Grid START -->
           @if (currentLog.exercises.length > 0) {
-            <div class="log-mobile-list log-mobile-list--strength">
-              @for (group of getStrengthExerciseGroups(); track group.exercises[0].exerciseId) {
-                <div class="log-mobile-card log-mobile-card--group">
-                  <div class="log-mobile-card__header">
-                    <div>
-                      <span class="log-mobile-card__eyebrow">{{ 'log-entry.Exercise' | translate }}</span>
-                      <strong [class.completed-exercise]="group.exercises.length === 1 && group.exercises[0].completed">
-                        {{ group.exerciseName }}
-                      </strong>
-                      @if (group.exercises.length > 1) {
-                        <small>{{ group.exercises.length }} {{ 'global.Entries' | translate }}</small>
-                      }
-                    </div>
-                    <button type="button" class="icon add-icon" [attr.aria-label]="'log-entry.AddAnotherSet' | translate" (click)="addRow(group.exercises[group.exercises.length - 1])">+</button>
-                  </div>
-                  <div class="log-mobile-group">
-                    @for (exercise of group.exercises; track exercise.exerciseId; let rowIndex = $index) {
-                      <div
-                        class="log-mobile-group__row"
-                        [class.completed-row]="exercise.completed"
-                        (click)="onExerciseRowClick(exercise)">
-                        <div class="log-mobile-group__index">
-                          <span>{{ 'log-entry.Entry' | translate }}</span>
-                          <strong>{{ rowIndex + 1 }}</strong>
-                        </div>
-                        <div class="log-mobile-group__metric">
-                          <span>{{ 'log-entry.ExerciseWeight' | translate }}</span>
-                          <strong class="log-mobile-group__weight">{{ getWeightDisplay(exercise) || '-' }}</strong>
-                        </div>
-                        <div class="log-mobile-group__metric">
-                          <span>{{ 'log-entry.ExerciseReps' | translate }}</span>
-                          <strong>{{ exercise.reps || '-' }}</strong>
-                        </div>
-                        <div class="log-mobile-group__metric">
-                          <span>{{ 'log-entry.ExerciseSets' | translate }}</span>
-                          <strong>{{ exercise.sets || '-' }}</strong>
-                        </div>
-                        <div class="log-mobile-group__controls">
-                          <mat-checkbox [checked]="exercise.completed"
-                            [attr.aria-label]="'log-entry.CompleteExerciseEntry' | translate"
-                            (click)="$event.stopPropagation()"
-                          (change)="toggleExerciseComplete(exercise)"></mat-checkbox>
-                          <button type="button" class="icon edit-icon" [attr.aria-label]="'log-entry.EditExerciseEntry' | translate" (click)="$event.stopPropagation(); editRow(exercise)">
-                            <em class="fa fa-pen"></em>
-                          </button>
-                          <button type="button" class="icon remove-icon" [attr.aria-label]="'log-entry.RemoveExerciseEntry' | translate" (click)="$event.stopPropagation(); removeRow(exercise)">-</button>
-                        </div>
-                      </div>
-                    }
-                  </div>
-                </div>
-              }
-            </div>
+            <app-exercise-group-list
+              exerciseType="strength"
+              [groups]="getStrengthExerciseGroups()"
+              [weightMeasure]="weightMeasure"
+              [distanceMeasure]="distanceMeasure"
+              (addRow)="addRow($event)"
+              (rowClick)="onExerciseRowClick($event)"
+              (toggleComplete)="toggleExerciseComplete($event)"
+              (editRow)="editRow($event)"
+              (removeRow)="removeRow($event)">
+            </app-exercise-group-list>
           }
           <!-- END Exercise Grid END -->
           <!-- START Cardio Exercise Grid START -->
           @if (currentLog.cardioExercises.length > 0) {
-            <div class="log-mobile-list log-mobile-list--cardio">
-              @for (group of getCardioExerciseGroups(); track group.exercises[0].exerciseId) {
-                <div class="log-mobile-card log-mobile-card--group log-mobile-card--cardio-group">
-                  <div class="log-mobile-card__header">
-                    <div>
-                      <span class="log-mobile-card__eyebrow">{{ 'log-entry.Cardio' | translate }}</span>
-                      <strong [class.completed-exercise]="group.exercises.length === 1 && group.exercises[0].completed">
-                        {{ group.exerciseName }}
-                      </strong>
-                      @if (group.exercises.length > 1) {
-                        <small>{{ group.exercises.length }} {{ 'global.Entries' | translate }}</small>
-                      }
-                    </div>
-                    <button type="button" class="icon add-icon" [attr.aria-label]="'log-entry.AddAnotherCardioEntry' | translate"
-                    (click)="addRow(group.exercises[group.exercises.length - 1])">+</button>
-                  </div>
-                  <div class="log-mobile-group log-mobile-group--cardio">
-                    @for (exercise of group.exercises; track exercise.exerciseId; let rowIndex = $index) {
-                      <div
-                        class="log-mobile-group__row log-mobile-group__row--cardio"
-                        [class.completed-row]="exercise.completed"
-                        (click)="onExerciseRowClick(exercise)">
-                        <div class="log-mobile-group__index">
-                          <span>{{ 'log-entry.Entry' | translate }}</span>
-                          <strong>{{ rowIndex + 1 }}</strong>
-                        </div>
-                        <div class="log-mobile-group__metric">
-                          <span>{{ 'log-entry.ExerciseDistance' | translate }}</span>
-                          <strong>{{ getDistanceDisplay(exercise) || '-' }}</strong>
-                        </div>
-                        <div class="log-mobile-group__metric">
-                          <span>{{ 'log-entry.ExerciseDuration' | translate }}</span>
-                          <strong>{{ getDurationDisplay(exercise) }}</strong>
-                        </div>
-                        <div class="log-mobile-group__metric">
-                          <span>{{ 'log-entry.ExerciseIntensity' | translate }}</span>
-                          <strong>{{ (exercise.intensity | formatIntensity) || '-' }}</strong>
-                        </div>
-                        <div class="log-mobile-group__controls">
-                          <mat-checkbox [checked]="exercise.completed"
-                            [attr.aria-label]="'log-entry.CompleteCardioEntry' | translate"
-                            (click)="$event.stopPropagation()"
-                          (change)="toggleExerciseComplete(exercise)"></mat-checkbox>
-                          <button type="button" class="icon edit-icon" [attr.aria-label]="'log-entry.EditCardioEntry' | translate"
-                            (click)="$event.stopPropagation(); editRow(exercise)">
-                            <em class="fa fa-pen"></em>
-                          </button>
-                          <button type="button" class="icon remove-icon" [attr.aria-label]="'log-entry.RemoveCardioEntry' | translate"
-                          (click)="$event.stopPropagation(); removeRow(exercise)">-</button>
-                        </div>
-                      </div>
-                    }
-                  </div>
-                </div>
-              }
-            </div>
+            <app-exercise-group-list
+              exerciseType="cardio"
+              [groups]="getCardioExerciseGroups()"
+              [weightMeasure]="weightMeasure"
+              [distanceMeasure]="distanceMeasure"
+              (addRow)="addRow($event)"
+              (rowClick)="onExerciseRowClick($event)"
+              (toggleComplete)="toggleExerciseComplete($event)"
+              (editRow)="editRow($event)"
+              (removeRow)="removeRow($event)">
+            </app-exercise-group-list>
           }
           <!-- END Cardio Exercise Grid END -->
           @if (currentLog.exercises.length || currentLog.cardioExercises.length || workoutStartedAt) {

@@ -6,6 +6,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 
 import { ExerciseDialogComponent } from '../exercise-dialog/exercise-dialog.component';
 import { EmailDialogComponent } from '../email-dialog/email-dialog.component';
+import { ExerciseGroup } from '../exercise-group-list/exercise-group-list.component';
 import { Exercise } from '../../../shared/models/exercise.model';
 import {
     DistanceMeasure,
@@ -39,11 +40,6 @@ const swal = require('sweetalert');
 
 interface SimpleLogForm {
     title: FormControl<string | null>;
-}
-
-interface ExerciseGroup {
-    exerciseName: string;
-    exercises: Exercise[];
 }
 
 interface CalendarDay {
@@ -736,18 +732,6 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         });
     }
 
-    public getWeightDisplay(exercise: Exercise): string {
-        const weight = exercise.weight === undefined || exercise.weight === null ? '' : String(exercise.weight).trim();
-
-        if (!weight || weight.toLowerCase() === 'x') {
-            return '';
-        }
-
-        return this.isConvertibleMeasurement(weight)
-            ? `${weight} ${this.weightMeasure}`
-            : weight;
-    }
-
     public getStrengthExerciseGroups(): ExerciseGroup[] {
         if (this.strengthGroupSource !== this.currentLog.exercises) {
             this.strengthGroupSource = this.currentLog.exercises;
@@ -766,19 +750,6 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         return this.cardioGroups;
     }
 
-    public getDistanceDisplay(exercise: Exercise): string {
-        const distance = exercise.distance === undefined || exercise.distance === null ? '' : String(exercise.distance).trim();
-        return distance && this.isConvertibleMeasurement(distance)
-            ? `${distance} ${this.distanceMeasure}`
-            : distance;
-    }
-
-    public getDurationDisplay(exercise: Exercise): string {
-        return exercise.duration && exercise.duration.toMillis() > 0
-            ? this.formatDuration(exercise.duration)
-            : 'N/A';
-    }
-
     private getSequentialExerciseGroups(exercises: Exercise[]): ExerciseGroup[] {
         return exercises.reduce((groups: ExerciseGroup[], exercise: Exercise) => {
             const previousGroup = groups[groups.length - 1];
@@ -794,26 +765,6 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
 
             return groups;
         }, []);
-    }
-
-    private formatDuration(duration: Duration): string {
-        const durationParts = duration.shiftTo('hours', 'minutes', 'seconds');
-        const hours = Math.floor(durationParts.hours);
-        const minutes = Math.floor(durationParts.minutes);
-        const seconds = Math.floor(durationParts.seconds);
-        const parts = [];
-
-        if (hours) {
-            parts.push(`${hours}h`);
-        }
-        if (minutes) {
-            parts.push(`${minutes}m`);
-        }
-        if (seconds || !parts.length) {
-            parts.push(`${seconds}s`);
-        }
-
-        return parts.join(' ');
     }
 
     private refreshCompletionStyles(): void {
@@ -943,11 +894,6 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
 
     private roundMeasurement(value: number): number {
         return Math.round(value * 10) / 10;
-    }
-
-    private isConvertibleMeasurement(value: string): boolean {
-        return /^-?\d+(?:\.\d+)?$/.test(value)
-            || /^-?\d+(?:\.\d+)?\s*[-–]\s*-?\d+(?:\.\d+)?$/.test(value);
     }
 
     /**

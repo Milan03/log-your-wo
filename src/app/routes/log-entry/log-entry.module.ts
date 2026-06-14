@@ -13,6 +13,7 @@ import { Routes, RouterModule } from '@angular/router';
 import { SimpleLogComponent } from './simple-log/simple-log.component'
 import { EmailDialogComponent } from './email-dialog/email-dialog.component';
 import { ExerciseDialogComponent } from './exercise-dialog/exercise-dialog.component';
+import { ExerciseGroupListComponent } from './exercise-group-list/exercise-group-list.component';
 import { ProgramImportComponent } from './program-import/program-import.component';
 
 import { SharedModule } from '../../shared/shared.module';
@@ -58,6 +59,7 @@ const routes: Routes = [
         SimpleLogComponent,
         EmailDialogComponent,
         ExerciseDialogComponent,
+        ExerciseGroupListComponent,
         ProgramImportComponent
     ],
     exports: [

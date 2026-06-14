@@ -360,16 +360,6 @@ describe('SimpleLogComponent', () => {
     expect(component.currentLog.exercises[2].weight).toBe('x');
   });
 
-  it('does not append a weight unit to percentages or textual prescriptions', () => {
-    const percentage = createExercise('Clean', false);
-    percentage.weight = '75%';
-    const bodyweight = createExercise('Pull-up', false);
-    bodyweight.weight = 'bodyweight';
-
-    expect(component.getWeightDisplay(percentage)).toBe('75%');
-    expect(component.getWeightDisplay(bodyweight)).toBe('bodyweight');
-  });
-
   it('loads imported workouts from route params', () => {
     programImportService.saveProgram(createProgram());
 

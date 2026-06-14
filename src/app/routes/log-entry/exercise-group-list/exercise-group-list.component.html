@@ -1,0 +1,78 @@
+<div class="log-mobile-list"
+  [class.log-mobile-list--strength]="exerciseType === 'strength'"
+  [class.log-mobile-list--cardio]="exerciseType === 'cardio'">
+  @for (group of groups; track group.exercises[0].exerciseId) {
+    <div class="log-mobile-card log-mobile-card--group"
+      [class.log-mobile-card--cardio-group]="exerciseType === 'cardio'">
+      <div class="log-mobile-card__header">
+        <div>
+          <span class="log-mobile-card__eyebrow">{{ (exerciseType === 'cardio' ? 'log-entry.Cardio' : 'log-entry.Exercise') | translate }}</span>
+          <strong [class.completed-exercise]="group.exercises.length === 1 && group.exercises[0].completed">
+            {{ group.exerciseName }}
+          </strong>
+          @if (group.exercises.length > 1) {
+            <small>{{ group.exercises.length }} {{ 'global.Entries' | translate }}</small>
+          }
+        </div>
+        <button type="button" class="icon add-icon"
+          [attr.aria-label]="(exerciseType === 'cardio' ? 'log-entry.AddAnotherCardioEntry' : 'log-entry.AddAnotherSet') | translate"
+          (click)="onAddRow(group)">+</button>
+      </div>
+      <div class="log-mobile-group" [class.log-mobile-group--cardio]="exerciseType === 'cardio'">
+        @for (exercise of group.exercises; track exercise.exerciseId; let rowIndex = $index) {
+          <div
+            class="log-mobile-group__row"
+            [class.log-mobile-group__row--cardio]="exerciseType === 'cardio'"
+            [class.completed-row]="exercise.completed"
+            (click)="rowClick.emit(exercise)">
+            <div class="log-mobile-group__index">
+              <span>{{ 'log-entry.Entry' | translate }}</span>
+              <strong>{{ rowIndex + 1 }}</strong>
+            </div>
+            @if (exerciseType === 'strength') {
+              <div class="log-mobile-group__metric">
+                <span>{{ 'log-entry.ExerciseWeight' | translate }}</span>
+                <strong class="log-mobile-group__weight">{{ getWeightDisplay(exercise) || '-' }}</strong>
+              </div>
+              <div class="log-mobile-group__metric">
+                <span>{{ 'log-entry.ExerciseReps' | translate }}</span>
+                <strong>{{ exercise.reps || '-' }}</strong>
+              </div>
+              <div class="log-mobile-group__metric">
+                <span>{{ 'log-entry.ExerciseSets' | translate }}</span>
+                <strong>{{ exercise.sets || '-' }}</strong>
+              </div>
+            } @else {
+              <div class="log-mobile-group__metric">
+                <span>{{ 'log-entry.ExerciseDistance' | translate }}</span>
+                <strong>{{ getDistanceDisplay(exercise) || '-' }}</strong>
+              </div>
+              <div class="log-mobile-group__metric">
+                <span>{{ 'log-entry.ExerciseDuration' | translate }}</span>
+                <strong>{{ getDurationDisplay(exercise) }}</strong>
+              </div>
+              <div class="log-mobile-group__metric">
+                <span>{{ 'log-entry.ExerciseIntensity' | translate }}</span>
+                <strong>{{ (exercise.intensity | formatIntensity) || '-' }}</strong>
+              </div>
+            }
+            <div class="log-mobile-group__controls">
+              <mat-checkbox [checked]="exercise.completed"
+                [attr.aria-label]="(exerciseType === 'cardio' ? 'log-entry.CompleteCardioEntry' : 'log-entry.CompleteExerciseEntry') | translate"
+                (click)="$event.stopPropagation()"
+                (change)="toggleComplete.emit(exercise)"></mat-checkbox>
+              <button type="button" class="icon edit-icon"
+                [attr.aria-label]="(exerciseType === 'cardio' ? 'log-entry.EditCardioEntry' : 'log-entry.EditExerciseEntry') | translate"
+                (click)="$event.stopPropagation(); editRow.emit(exercise)">
+                <em class="fa fa-pen"></em>
+              </button>
+              <button type="button" class="icon remove-icon"
+                [attr.aria-label]="(exerciseType === 'cardio' ? 'log-entry.RemoveCardioEntry' : 'log-entry.RemoveExerciseEntry') | translate"
+                (click)="$event.stopPropagation(); removeRow.emit(exercise)">-</button>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>
