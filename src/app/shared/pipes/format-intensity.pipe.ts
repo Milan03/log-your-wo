@@ -3,7 +3,7 @@ import { Intensity } from '../models/exercise.model';
 
 @Pipe({ name: 'formatIntensity', standalone: false })
 export class IntensityFormatPipe implements PipeTransform {
-    transform(value: number): string {
-        return Intensity[value]; // Converts numeric enum to string
+    public transform(value: Intensity | null | undefined): string {
+        return value == null ? '' : Intensity[value] || '';
     }
 }

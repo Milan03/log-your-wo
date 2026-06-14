@@ -485,6 +485,14 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         this.isEditingSimpleLogTitle = false;
     }
 
+    public updateSimpleLogTitleDraft(event: Event): void {
+        this.simpleLogTitleDraft = (event.currentTarget as HTMLInputElement).value;
+    }
+
+    public onWorkoutDateTimeChangeFromEvent(event: Event): void {
+        this.onWorkoutDateTimeChange((event.currentTarget as HTMLInputElement).value);
+    }
+
     public onWorkoutDateTimeChange(dateTimeValue: string): void {
         if (!dateTimeValue) {
             return;

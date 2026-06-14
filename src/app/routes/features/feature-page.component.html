@@ -16,7 +16,7 @@
         </li>
       }
     </ul>
-    @for (section of content.sections; track section) {
+    @for (section of content.sections; track section.heading) {
       <section class="feature-section">
         <h2>{{ section.heading }}</h2>
         @for (paragraph of section.body; track paragraph) {
@@ -27,7 +27,7 @@
     <section class="feature-related" aria-label="Related pages">
       <h2>Explore more</h2>
       <div class="feature-related__grid">
-        @for (link of content.related; track link) {
+        @for (link of content.related; track link.routerLink) {
           <a class="feature-related__card" [routerLink]="link.routerLink">
             <strong>{{ link.label }}</strong>
             <span>{{ link.description }}</span>

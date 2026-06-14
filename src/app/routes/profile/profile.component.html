@@ -261,7 +261,7 @@
 
                       <label class="profile-check profile-theme-setting" for="profile-dark-mode">
                         <input id="profile-dark-mode" type="checkbox" [checked]="darkMode"
-                          (change)="setDarkMode($any($event.target).checked)">
+                          (change)="setDarkModeFromEvent($event)">
                           <span>
                             <strong>{{ 'appearance.DarkMode' | translate }}</strong>
                             <small>{{ 'appearance.SavedDescription' | translate }}</small>
@@ -272,7 +272,7 @@
                           <label for="profile-language">{{ 'global.Language' | translate }}</label>
                           <select id="profile-language" class="form-control" formControlName="preferredLanguage"
                             (change)="setLanguageFromEvent($event)">
-                            @for (language of languages; track language) {
+                            @for (language of languages; track language.code) {
                               <option [value]="language.code">{{ language.text }}</option>
                             }
                           </select>

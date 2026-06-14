@@ -4,9 +4,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 
-import { FormatDurationPipe } from './pipes/format-duration.pipe';
 import { IntensityFormatPipe } from './pipes/format-intensity.pipe';
-import { DuplicateNamePipe } from './pipes/duplicate-name.pipe';
 
 // https://angular.io/styleguide#!#04-10
 @NgModule({
@@ -17,9 +15,7 @@ import { DuplicateNamePipe } from './pipes/duplicate-name.pipe';
         TranslateModule
     ],
     declarations: [
-        FormatDurationPipe,
-        IntensityFormatPipe,
-        DuplicateNamePipe
+        IntensityFormatPipe
     ],
     exports: [
         CommonModule,
@@ -27,9 +23,7 @@ import { DuplicateNamePipe } from './pipes/duplicate-name.pipe';
         ReactiveFormsModule,
         TranslateModule,
         RouterModule,
-        FormatDurationPipe,
-        IntensityFormatPipe,
-        DuplicateNamePipe
+        IntensityFormatPipe
     ]
 })
 export class SharedModule { }

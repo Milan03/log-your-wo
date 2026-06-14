@@ -230,6 +230,10 @@ export class ProfileComponent implements OnInit {
         this.themes.setDarkMode(enabled);
     }
 
+    public setDarkModeFromEvent(event: Event): void {
+        this.setDarkMode((event.currentTarget as HTMLInputElement).checked);
+    }
+
     public setLanguage(language: PreferredLanguage): void {
         this.form.controls.preferredLanguage.setValue(language);
         if (this.translator) {
