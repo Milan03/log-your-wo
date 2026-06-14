@@ -19,27 +19,33 @@
     <div class="navbar-collapse collapse" [collapse]="navCollapsed">
         <!-- Navbar Menu -->
         <ul class="nav navbar-nav mr-auto flex-column flex-lg-row">
-            <ng-template ngFor let-item [ngForOf]="menuItems">
+            @for (item of menuItems; track item) {
                 <!-- Single items -->
-                <li [routerLinkActive]="['active']" class="nav-item" *ngIf="!item.heading && !item.submenu">
-                    <a class="nav-link" [routerLink]="item.link" [title]="item.text">
-                        <span>{{(item.translate | translate) || item.text}}</span>
-                    </a>
-                </li>
-                <!-- Dropdown items -->
-                <li [routerLinkActive]="['active']" class="nav-item"
-                    [ngClass]="{'dropdown': item.submenu}" dropdown *ngIf="!item.heading && item.submenu">
-                    <a class="nav-link dropdown-toggle dropdown-toggle-nocaret" dropdownToggle>
-                        <span>{{(item.translate | translate) || item.text}}</span>
-                    </a>
-                    <!-- START Dropdown menu-->
-                    <div *dropdownMenu class="dropdown-menu">
-                        <a class="dropdown-item" [routerLinkActive]="['active']" *ngFor="let subitem of item.submenu" [routerLink]="subitem.link" [title]="subitem.text" >
-                            <span>{{(subitem.translate | translate) || subitem.text}}</span>
+                @if (!item.heading && !item.submenu) {
+                    <li [routerLinkActive]="['active']" class="nav-item">
+                        <a class="nav-link" [routerLink]="item.link" [title]="item.text">
+                            <span>{{(item.translate | translate) || item.text}}</span>
                         </a>
-                    </div>
-                </li>
-            </ng-template>
+                    </li>
+                }
+                <!-- Dropdown items -->
+                @if (!item.heading && item.submenu) {
+                    <li [routerLinkActive]="['active']" class="nav-item"
+                        [ngClass]="{'dropdown': item.submenu}" dropdown>
+                        <a class="nav-link dropdown-toggle dropdown-toggle-nocaret" dropdownToggle>
+                            <span>{{(item.translate | translate) || item.text}}</span>
+                        </a>
+                        <!-- START Dropdown menu-->
+                        <div *dropdownMenu class="dropdown-menu">
+                            @for (subitem of item.submenu; track subitem) {
+                                <a class="dropdown-item" [routerLinkActive]="['active']" [routerLink]="subitem.link" [title]="subitem.text">
+                                    <span>{{(subitem.translate | translate) || subitem.text}}</span>
+                                </a>
+                            }
+                        </div>
+                    </li>
+                }
+            }
         </ul>
         <!-- End Navbar Menu-->
         <!-- START Right Navbar-->

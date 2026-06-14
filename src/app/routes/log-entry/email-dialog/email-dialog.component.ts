@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef } from '@angular/material/dialog';
 
@@ -10,7 +10,8 @@ interface EmailForm {
   selector: 'app-email-dialog',
   standalone: false,
   templateUrl: './email-dialog.component.html',
-    styleUrls: ['./email-dialog.component.scss']
+    styleUrls: ['./email-dialog.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class EmailDialogComponent {
     public _dialogRef = inject(MatDialogRef) as MatDialogRef<EmailDialogComponent>;
