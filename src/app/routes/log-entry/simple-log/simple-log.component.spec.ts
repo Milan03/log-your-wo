@@ -9,6 +9,7 @@ import { ActivatedRoute, convertToParamMap, Router } from '@angular/router';
 import { BehaviorSubject, of } from 'rxjs';
 
 import { SimpleLogComponent } from './simple-log.component';
+import { SimpleLogHistoryComponent } from '../simple-log-history/simple-log-history.component';
 import { SharedModule } from '../../../shared/shared.module';
 import { EmailService } from '../../../shared/services/email.service';
 import { TranslatorService } from '../../../core/translator/translator.service';
@@ -50,7 +51,7 @@ describe('SimpleLogComponent', () => {
           }
         })
       ],
-      declarations: [ SimpleLogComponent ],
+      declarations: [ SimpleLogComponent, SimpleLogHistoryComponent ],
       providers: [
         EmailService,
         {
@@ -261,18 +262,6 @@ describe('SimpleLogComponent', () => {
 
     expect(component.selectedDateLogs.length).toBe(1);
     expect(component.selectedDateLogs[0].workoutDate).toBe('2026-06-06');
-  });
-
-  it('reports saved log progress states', () => {
-    const log = component.currentLog;
-    log.exercises = [createExercise('Press', false)];
-    const notStarted = simpleLogService.saveLog(log, component.workoutDate);
-    const inProgress = { ...notStarted, startedAt: '2026-06-06T10:00:00.000Z' };
-    const completed = { ...inProgress, completedAt: '2026-06-06T11:00:00.000Z' };
-
-    expect(component.getSimpleLogStatus(notStarted)).toBe('not-started');
-    expect(component.getSimpleLogStatus(inProgress)).toBe('in-progress');
-    expect(component.getSimpleLogStatus(completed)).toBe('completed');
   });
 
   it('starts and persists timing for a standalone log', () => {

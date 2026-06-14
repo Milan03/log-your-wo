@@ -1,0 +1,381 @@
+@use '../../../shared/styles/app/variables.scss';
+
+:host {
+    display: contents;
+}
+
+.simple-log-library {
+    position: sticky;
+    top: 88px;
+    align-self: start;
+    display: grid;
+    gap: 16px;
+    max-height: calc(100vh - 112px);
+    padding: 14px;
+    overflow: auto;
+    border: 1px solid #dce1e6;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.96);
+    box-shadow: 0 12px 28px rgba(31, 41, 51, 0.12);
+}
+
+.simple-log-library__header,
+.simple-log-calendar__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.simple-log-library__header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.simple-log-library__toggle {
+    display: none;
+}
+
+.simple-log-library__body {
+    display: contents;
+}
+
+.simple-log-library__header > div {
+    display: grid;
+    gap: 2px;
+}
+
+.simple-log-library__header span,
+.simple-log-library__item small {
+    color: #6c757d;
+    font-size: 0.75rem;
+}
+
+.simple-log-library__header strong {
+    color: #1f2933;
+    font-size: 0.92rem;
+}
+
+.simple-log-calendar {
+    display: grid;
+    gap: 8px;
+    padding: 12px;
+    border-radius: 8px;
+    background: #f7f9fb;
+}
+
+.simple-log-calendar__header button {
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    color: #4f5b67;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    cursor: pointer;
+}
+
+.simple-log-calendar__header button:hover,
+.simple-log-calendar__header button:focus {
+    color: variables.$primary;
+    background: #e8eef4;
+}
+
+.simple-log-calendar__header strong {
+    color: #1f2933;
+    font-size: 0.88rem;
+}
+
+.simple-log-calendar__grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 3px;
+}
+
+.simple-log-calendar__weekdays span {
+    color: #7a8793;
+    font-size: 0.64rem;
+    font-weight: 700;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+.simple-log-calendar__day {
+    aspect-ratio: 1;
+    padding: 0;
+    color: #344250;
+    border: 0;
+    border-radius: 5px;
+    background: transparent;
+    font-size: 0.75rem;
+    cursor: pointer;
+}
+
+.simple-log-calendar__day:hover,
+.simple-log-calendar__day:focus {
+    background: #e2eaf1;
+}
+
+.simple-log-calendar__day--muted {
+    color: #aeb7bf;
+}
+
+.simple-log-calendar__day--today {
+    box-shadow: inset 0 0 0 1px variables.$primary;
+    font-weight: 800;
+}
+
+.simple-log-calendar__day--selected {
+    box-shadow: inset 0 0 0 2px variables.$primary;
+    color: variables.$primary;
+    font-weight: 800;
+}
+
+.simple-log-calendar__day--worked {
+    background: variables.$primary;
+    color: #fff;
+    font-weight: 800;
+}
+
+.simple-log-calendar__day--worked.simple-log-calendar__day--selected {
+    box-shadow: inset 0 0 0 2px #fff, 0 0 0 1px variables.$primary;
+    color: #fff;
+}
+
+.simple-log-calendar__day--worked:hover,
+.simple-log-calendar__day--worked:focus {
+    background: #176495;
+}
+
+.simple-log-library__list {
+    display: grid;
+    gap: 8px;
+    align-content: start;
+    align-items: start;
+}
+
+.simple-log-library__item {
+    position: relative;
+    display: grid;
+    width: 100%;
+    text-align: left;
+    color: #1f2933;
+    border: 1px solid #dce1e6;
+    border-radius: 6px;
+    background: #fff;
+    overflow: hidden;
+}
+
+.simple-log-library__select {
+    display: grid;
+    gap: 3px;
+    width: 100%;
+    padding: 11px 44px 11px 12px;
+    text-align: left;
+    color: inherit;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+}
+
+.simple-log-library__item-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.simple-log-library__select strong {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.simple-log-library__delete {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    color: #8a1f11;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    cursor: pointer;
+}
+
+.simple-log-library__delete:hover,
+.simple-log-library__delete:focus {
+    background: #fde8e5;
+}
+
+.simple-log-library__status {
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+
+.simple-log-library__status--completed {
+    color: #1f8f5f;
+}
+
+.simple-log-library__status--in-progress {
+    color: #c36a12;
+}
+
+.simple-log-library__status--not-started {
+    color: #6c757d;
+}
+
+.simple-log-library__empty-day {
+    align-self: start;
+    padding: 18px 12px;
+    color: #6c757d;
+    text-align: center;
+    border: 1px dashed #cbd3da;
+    border-radius: 6px;
+    background: #fff;
+    font-size: 0.82rem;
+}
+
+.simple-log-library__item:hover,
+.simple-log-library__item:focus-within,
+.simple-log-library__item--active {
+    border-color: variables.$primary;
+}
+
+.simple-log-library__item--active {
+    box-shadow: inset 3px 0 0 variables.$primary;
+}
+
+.simple-log-library__item span {
+    color: #4f5b67;
+    font-size: 0.8rem;
+}
+
+@media only screen and (max-width: 1180px) {
+    .simple-log-library {
+        position: sticky;
+        top: 56px;
+        z-index: 5;
+        grid-template-columns: 1fr;
+        max-height: none;
+        overflow: visible;
+    }
+
+    .simple-log-library__toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        min-height: 34px;
+        padding: 6px 9px;
+        color: #4f5b67;
+        border: 1px solid #cbd3da;
+        border-radius: 4px;
+        background: #fff;
+        font-size: 0.78rem;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    .simple-log-library__header {
+        grid-column: auto;
+    }
+
+    .simple-log-library__body {
+        display: none;
+    }
+
+    .simple-log-library__body--expanded {
+        grid-column: auto;
+        display: grid;
+        grid-template-columns: minmax(220px, 280px) minmax(190px, 320px);
+        align-items: start;
+        justify-content: center;
+        gap: 12px;
+        width: min(100%, 620px);
+        margin: 0 auto;
+    }
+
+    .simple-log-library__list {
+        display: grid;
+        grid-template-columns: 1fr;
+        align-items: start;
+        align-content: start;
+        gap: 10px;
+        overflow-x: auto;
+    }
+
+    .simple-log-library__item {
+        min-height: 0;
+        align-self: start;
+    }
+
+    .simple-log-calendar {
+        padding: 10px;
+    }
+
+    .simple-log-calendar__day {
+        aspect-ratio: auto;
+        min-height: 28px;
+    }
+}
+
+/* phones */
+@media only screen and (max-width: 767px) {
+    .simple-log-library {
+        top: 65px;
+        grid-template-columns: 1fr;
+        margin: -15px -15px 14px;
+        padding: 12px 15px;
+        border-right: 0;
+        border-left: 0;
+        border-radius: 0;
+    }
+
+    .simple-log-library__header {
+        grid-column: auto;
+    }
+
+    .simple-log-library__body {
+        display: none;
+    }
+
+    .simple-log-library__body--expanded {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 12px;
+        width: 100%;
+    }
+
+    .simple-log-library__header-actions {
+        flex: 0 0 auto;
+    }
+
+    .simple-log-library__header > div:first-child {
+        min-width: 0;
+    }
+
+    .simple-log-calendar {
+        width: min(100%, 340px);
+        margin: 0 auto;
+        padding: 10px;
+    }
+
+    .simple-log-calendar__day {
+        aspect-ratio: auto;
+        min-height: 30px;
+    }
+
+    .simple-log-library__list {
+        display: grid;
+        grid-template-columns: 1fr;
+        overflow: visible;
+    }
+}
