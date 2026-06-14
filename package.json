@@ -33,7 +33,6 @@
     "bootstrap": "5.3.8",
     "codemirror": "6.0.2",
     "guid-typescript": "^1.0.9",
-    "jquery": "^3.7.1",
     "jspdf": "4.2.1",
     "luxon": "^3.7.2",
     "ngx-bootstrap": "21.2.0",

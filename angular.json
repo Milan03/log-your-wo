@@ -58,7 +58,6 @@
               "src/styles.scss"
             ],
             "scripts": [
-              "src/app/core/wrapper/wrapper.js",
               "src/app/core/preloader/preloader.js"
             ],
             "vendorChunk": true,
@@ -134,7 +133,6 @@
               "src/styles.scss"
             ],
             "scripts": [
-              "src/app/core/wrapper/wrapper.js",
               "src/app/core/preloader/preloader.js"
             ]
           }
