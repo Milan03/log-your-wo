@@ -189,7 +189,7 @@ export class WorkoutExportService {
             title: this.t('log-entry.EmailError'),
             text: this.t('log-entry.EmailErrorDescription'),
             icon: 'error',
-            showConfirmButton: true
+            button: true
         });
     }
 
@@ -198,7 +198,7 @@ export class WorkoutExportService {
             title: this.t('log-entry.PdfError'),
             text: this.t('log-entry.PdfErrorDescription'),
             icon: 'error',
-            showConfirmButton: true
+            button: true
         });
     }
 
