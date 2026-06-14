@@ -1,0 +1,82 @@
+<aside class="simple-log-library" [attr.aria-label]="'log-entry.WorkoutHistory' | translate">
+    <div class="simple-log-library__header">
+        <div>
+            <span>{{ 'log-entry.WorkoutHistory' | translate }}</span>
+            <strong>{{ 'log-entry.OnThisDay' | translate:{ count: selectedDateLogs.length } }}</strong>
+        </div>
+        <div class="simple-log-library__header-actions">
+            <button class="simple-log-library__toggle" type="button"
+                [attr.aria-expanded]="isHistoryExpanded"
+                (click)="toggleHistory.emit()">
+                {{ 'log-entry.History' | translate }}
+                <em class="fa" [class.fa-chevron-down]="!isHistoryExpanded" [class.fa-chevron-up]="isHistoryExpanded"></em>
+            </button>
+            <button class="btn btn-primary btn-sm" type="button" (click)="startNewLog.emit()">{{ 'log-entry.NewLog' | translate }}</button>
+        </div>
+    </div>
+    <div class="simple-log-library__body" [class.simple-log-library__body--expanded]="isHistoryExpanded">
+        <div class="simple-log-calendar">
+            <div class="simple-log-calendar__header">
+                <button type="button" [attr.aria-label]="'log-entry.PreviousMonth' | translate" (click)="changeMonth.emit(-1)">
+                    <em class="fa fa-chevron-left"></em>
+                </button>
+                <strong>{{ getCalendarMonthLabel() }}</strong>
+                <button type="button" [attr.aria-label]="'log-entry.NextMonth' | translate" (click)="changeMonth.emit(1)">
+                    <em class="fa fa-chevron-right"></em>
+                </button>
+            </div>
+            <div class="simple-log-calendar__grid simple-log-calendar__weekdays">
+                @for (weekday of calendarWeekdays; track weekday) {
+                    <span>{{ weekday }}</span>
+                }
+            </div>
+            <div class="simple-log-calendar__grid">
+                @for (day of calendarDays; track day.dateValue) {
+                    <button
+                        type="button"
+                        class="simple-log-calendar__day"
+                        [class.simple-log-calendar__day--muted]="!day.inCurrentMonth"
+                        [class.simple-log-calendar__day--today]="day.isToday"
+                        [class.simple-log-calendar__day--worked]="day.hasWorkout"
+                        [class.simple-log-calendar__day--selected]="day.dateValue === workoutDate"
+                        [attr.aria-label]="day.date | date:'longDate'"
+                        (click)="selectDay.emit(day)">
+                        {{ day.dayNumber }}
+                    </button>
+                }
+            </div>
+        </div>
+        @if (selectedDateLogs.length) {
+            <div class="simple-log-library__list">
+                @for (log of selectedDateLogs; track log.id) {
+                    <div
+                        class="simple-log-library__item"
+                        [class.simple-log-library__item--active]="activeLogId === log.id">
+                        <button class="simple-log-library__select" type="button" (click)="selectLog.emit(log)">
+                            <strong>{{ log.title || ('log-entry.SimpleLog' | translate) }}</strong>
+                            <span>{{ getSimpleLogDateLabel(log.workoutDate) }}</span>
+                            <span class="simple-log-library__item-meta">
+                                <span class="simple-log-library__status"
+                                    [ngClass]="'simple-log-library__status--' + getSimpleLogStatus(log)">
+                                    {{ getSimpleLogStatusLabel(log) }}
+                                </span>
+                                <small>{{ getSimpleLogExerciseCount(log) }} {{ 'global.Entries' | translate }}</small>
+                            </span>
+                        </button>
+                        <button class="simple-log-library__delete"
+                            type="button"
+                            [attr.aria-label]="'log-entry.DeleteWorkoutLog' | translate"
+                            (click)="onDeleteLog($event, log)">
+                            <em class="fa fa-trash" aria-hidden="true"></em>
+                        </button>
+                    </div>
+                }
+            </div>
+        }
+        @if (!selectedDateLogs.length) {
+            <div class="simple-log-library__empty-day">
+                {{ 'log-entry.NoWorkoutsForDay' | translate }}
+            </div>
+        }
+    </div>
+</aside>

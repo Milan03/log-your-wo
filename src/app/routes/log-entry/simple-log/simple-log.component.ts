@@ -7,6 +7,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { ExerciseDialogComponent } from '../exercise-dialog/exercise-dialog.component';
 import { EmailDialogComponent } from '../email-dialog/email-dialog.component';
 import { ExerciseGroup } from '../exercise-group-list/exercise-group-list.component';
+import { CalendarDay } from '../simple-log-history/simple-log-history.component';
 import { Exercise } from '../../../shared/models/exercise.model';
 import {
     DistanceMeasure,
@@ -42,15 +43,6 @@ interface SimpleLogForm {
     title: FormControl<string | null>;
 }
 
-interface CalendarDay {
-    date: Date;
-    dateValue: string;
-    dayNumber: number;
-    inCurrentMonth: boolean;
-    isToday: boolean;
-    hasWorkout: boolean;
-}
-
 @Component({
     selector: 'app-simple-log',
     standalone: false,
@@ -59,7 +51,7 @@ interface CalendarDay {
 })
 export class SimpleLogComponent implements OnInit, OnDestroy {
     public simpleLogForm: FormGroup<SimpleLogForm>;
-    private currentLanguage: string;
+    public currentLanguage: string;
     public currentLog: SimpleLog;
     private currentPDF: string;
     public sbIsCollapsed: boolean;
@@ -664,9 +656,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         this.createNewSimpleLog();
     }
 
-    public async deleteSavedSimpleLog(event: Event, log: SavedSimpleLog): Promise<void> {
-        event.stopPropagation();
-
+    public async deleteSavedSimpleLog(log: SavedSimpleLog): Promise<void> {
         const confirmed = await swal({
             title: this.t('log-entry.DeleteTitle'),
             text: this.t('log-entry.DeleteText', {
@@ -687,49 +677,12 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         }
     }
 
-    public getCalendarMonthLabel(): string {
-        return this.calendarMonth.toLocaleDateString(this.currentLanguage, { month: 'long', year: 'numeric' });
-    }
-
-    public getSimpleLogExerciseCount(log: SavedSimpleLog): number {
-        return (log.exercises || []).length + (log.cardioExercises || []).length;
-    }
-
     private refreshSelectedDateLogs(): void {
         this.selectedDateLogs = this.savedLogs.filter(log => log.workoutDate === this.workoutDate);
     }
 
-    public getSimpleLogStatus(log: SavedSimpleLog): 'completed' | 'in-progress' | 'not-started' {
-        if (log.completedAt) {
-            return 'completed';
-        }
-
-        return log.startedAt ? 'in-progress' : 'not-started';
-    }
-
-    public getSimpleLogStatusLabel(log: SavedSimpleLog): string {
-        const status = this.getSimpleLogStatus(log);
-
-        if (status === 'completed') {
-            return this.t('log-entry.Completed');
-        }
-
-        return status === 'in-progress'
-            ? this.t('log-entry.InProgress')
-            : this.t('log-entry.NotStarted');
-    }
-
     public hasActiveSimpleLog(): boolean {
         return Boolean(this.activeSimpleLogId);
-    }
-
-    public getSimpleLogDateLabel(dateValue: string): string {
-        return this.dateFromInputValue(dateValue).toLocaleDateString(this.currentLanguage, {
-            weekday: 'long',
-            month: 'short',
-            day: 'numeric',
-            year: 'numeric'
-        });
     }
 
     public getStrengthExerciseGroups(): ExerciseGroup[] {
