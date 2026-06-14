@@ -11,7 +11,7 @@
             </li> -->
             <!-- END user info-->
 
-            @for (item of menuItems; track item) {
+            @for (item of menuItems; track item.link || item.elink || item.translate || item.text) {
             <li [ngClass]="{'nav-heading': item.heading}" [routerLinkActive]="['active']">
                 <!-- menu heading -->
                 @if (item.heading) {
@@ -59,7 +59,7 @@
                 @if (item.submenu) {
                 <ul class="sidebar-nav sidebar-subnav" [routerLinkActive]="['opening']">
                     <li class="sidebar-subnav-header">{{(item.translate | translate) || item.text}}</li>
-                    @for (subitem of item.submenu; track subitem) {
+                    @for (subitem of item.submenu; track subitem.link || subitem.elink || subitem.translate || subitem.text) {
                     <li [routerLinkActive]="['active']">
                         <!-- sublevel: external links -->
                         @if (!subitem.heading && !subitem.submenu && subitem.elink) {
@@ -101,7 +101,7 @@
                         <!-- SUBLEVEL 2 -->
                         @if (subitem.submenu) {
                         <ul class="sidebar-nav sidebar-subnav level2" [routerLinkActive]="['opening']">
-                            @for (subitem2 of subitem.submenu; track subitem2) {
+                            @for (subitem2 of subitem.submenu; track subitem2.link || subitem2.elink || subitem2.translate || subitem2.text) {
                             <li [routerLinkActive]="['active']">
                                 <!-- sublevel 2: single menu item  -->
                                 @if (!subitem2.submenu) {
@@ -131,7 +131,7 @@
                                 <!-- SUBLEVEL 3 -->
                                 @if (subitem2.submenu) {
                                 <ul class="sidebar-nav sidebar-subnav level3" [routerLinkActive]="['opening']">
-                                    @for (subitem3 of subitem2.submenu; track subitem3) {
+                                    @for (subitem3 of subitem2.submenu; track subitem3.link || subitem3.elink || subitem3.translate || subitem3.text) {
                                     <li [routerLinkActive]="['active']">
                                         <!-- sublevel 2: single menu item  -->
                                         @if (!subitem3.submenu) {
@@ -161,7 +161,7 @@
                                         <!-- SUBLEVEL 4 -->
                                         @if (subitem3.submenu) {
                                         <ul class="sidebar-nav sidebar-subnav level3" [routerLinkActive]="['opening']">
-                                            @for (subitem4 of subitem3.submenu; track subitem4) {
+                                            @for (subitem4 of subitem3.submenu; track subitem4.link || subitem4.elink || subitem4.translate || subitem4.text) {
                                             <li [routerLinkActive]="['active']">
                                                 <!-- sublevel 2: single menu item  -->
                                                 @if (!subitem4.submenu) {

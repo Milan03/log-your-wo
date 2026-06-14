@@ -1,11 +1,12 @@
-import { Component, OnInit, Injector, OnDestroy, DestroyRef, inject } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
+import { Component, DestroyRef, HostListener, inject, OnDestroy, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Router } from '@angular/router';
-declare var $: any;
+import { NavigationEnd, Router } from '@angular/router';
+import { filter } from 'rxjs';
 
+import { AuthService } from '../../core/auth/auth.service';
 import { MenuItem, MenuService } from '../../core/menu/menu.service';
 import { SettingsService } from '../../core/settings/settings.service';
-import { AuthService } from '../../core/auth/auth.service';
 
 @Component({
     selector: 'app-sidebar',
@@ -14,208 +15,126 @@ import { AuthService } from '../../core/auth/auth.service';
     styleUrls: ['./sidebar.component.scss']
 })
 export class SidebarComponent implements OnInit, OnDestroy {
+    public readonly menuItems: MenuItem[];
+    public signedIn = false;
 
-    menuItems: MenuItem[];
-    router: Router;
-    sbclickEvent = 'click.sidebar-toggle';
-    $doc: any = null;
-    signedIn = false;
+    private readonly auth = inject(AuthService, { optional: true });
     private readonly destroyRef = inject(DestroyRef);
+    private readonly document = inject(DOCUMENT);
+    private readonly menu = inject(MenuService);
+    private readonly router = inject(Router);
+    public readonly settings = inject(SettingsService);
 
-    public menu = inject(MenuService);
-    public settings = inject(SettingsService);
-    public injector = inject(Injector);
-    private auth = inject(AuthService, { optional: true });
+    private floatingNav: HTMLElement | null = null;
 
     constructor() {
-
         this.menuItems = this.menu.getMenu();
-        if (this.auth) {
-            this.auth.session$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(session => {
-                this.signedIn = !!session;
-            });
-        }
-
+        this.auth?.session$
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe(session => this.signedIn = !!session);
     }
 
-    ngOnInit() {
-
-        this.router = this.injector.get(Router);
-
-        this.router.events.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-            // close any submenu opened when route changes
+    public ngOnInit(): void {
+        this.router.events.pipe(
+            filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+            takeUntilDestroyed(this.destroyRef)
+        ).subscribe(() => {
             this.removeFloatingNav();
-            // scroll view to top
-            window.scrollTo(0, 0);
-            // close sidebar on route change
+            this.document.defaultView?.scrollTo(0, 0);
             this.settings.setLayoutSetting('asideToggled', false);
         });
-
-        // enable sidebar autoclose from extenal clicks
-        this.anyClickClose();
-
     }
 
-    anyClickClose() {
-        this.$doc = $(document).on(this.sbclickEvent, (e) => {
-            if (!$(e.target).parents('.aside-container').length) {
-                this.settings.setLayoutSetting('asideToggled', false);
-            }
-        });
-    }
-
-    ngOnDestroy() {
-        if (this.$doc)
-            this.$doc.off(this.sbclickEvent);
-        $(document).off('click.sidebar-floating');
+    public ngOnDestroy(): void {
         this.removeFloatingNav();
     }
 
-    toggleSubmenuClick(event) {
-        const submenu = event.currentTarget.nextElementSibling;
+    @HostListener('document:click', ['$event'])
+    public onDocumentClick(event: MouseEvent): void {
+        const target = event.target;
+        if (!(target instanceof Element)) {
+            return;
+        }
+
+        const floatingRoute = target.closest('a[route]') as HTMLAnchorElement | null;
+        if (floatingRoute?.closest('.nav-floating')) {
+            const route = floatingRoute.getAttribute('route');
+            if (route) {
+                event.preventDefault();
+                void this.router.navigate([route]);
+            }
+        }
+
+        if (!target.closest('.aside-container')) {
+            this.settings.setLayoutSetting('asideToggled', false);
+            this.removeFloatingNav();
+        }
+    }
+
+    public toggleSubmenuClick(event: MouseEvent): void {
+        const submenu = this.getSubmenu(event);
         if (!submenu) {
             return;
         }
 
         event.preventDefault();
-
-        if (this.isSidebarCollapsed() || this.isSidebarCollapsedText() || this.isEnabledHover()) {
-            this.toggleSubmenuHover(event);
+        if (this.usesFloatingNavigation()) {
+            this.openFloatingNav(event, submenu);
             return;
         }
 
-        if (!this.isSidebarCollapsed() && !this.isSidebarCollapsedText() && !this.isEnabledHover()) {
+        this.removeFloatingNav();
+        const ancestorSubmenus = new Set(
+            this.getAncestors(submenu).filter(element => element.classList.contains('sidebar-subnav'))
+        );
 
-            let ul = $(event.currentTarget.nextElementSibling);
-
-            // hide other submenus
-            let parentNav = ul.parents('.sidebar-subnav');
-            $('.sidebar-subnav').each((idx, el) => {
-                let $el = $(el);
-                // if element is not a parent or self ul
-                if (el !== parentNav[0] && el !== ul[0]) {
-                    this.closeMenu($el);
-                }
-            });
-
-            // abort if not UL to process
-            if (!ul.length) {
-                return;
-            }
-
-            // any child menu should start closed
-            ul.find('.sidebar-subnav').each((idx, el) => {
-                this.closeMenu($(el));
-            });
-
-            // toggle UL height
-            const ulHeight = ul.css('height')
-            if (ulHeight === 'auto' || parseInt(ulHeight, 10)) {
-                this.closeMenu(ul);
-            }
-            else {
-                // expand menu
-                ul.on('transitionend', () => {
-                    ul.css('height', 'auto').off('transitionend');
-                }).css('height', ul[0].scrollHeight);
-                // add class to manage animation
-                ul.addClass('opening');
-            }
-
-        }
-
-    }
-
-    // Close menu collapsing height
-    closeMenu(elem) {
-        elem.css('height', elem[0].scrollHeight); // set height
-        elem.css('height', 0); // and move to zero to collapse
-        elem.removeClass('opening');
-    }
-
-    toggleSubmenuHover(event) {
-        let self = this;
-        if (this.isSidebarCollapsed() || this.isSidebarCollapsedText() || this.isEnabledHover()) {
-            event.preventDefault();
-
-            this.removeFloatingNav();
-
-            let ul = $(event.currentTarget.nextElementSibling);
-            let anchor = $(event.currentTarget);
-
-            if (!ul.length) {
-                return; // if not submenu return
-            }
-
-            let $aside = $('.aside-container');
-            let $asideInner = $aside.children('.aside-inner'); // for top offset calculation
-            let $sidebar = $asideInner.children('.sidebar');
-            let mar = parseInt($asideInner.css('padding-top'), 0) + parseInt($aside.css('padding-top'), 0);
-            let itemTop = ((anchor.parent().position().top) + mar) - $sidebar.scrollTop();
-
-            let floatingNav = ul.clone().appendTo($aside);
-            let vwHeight = document.body.clientHeight;
-
-            // let itemTop = anchor.position().top || anchor.offset().top;
-
-            floatingNav
-                .addClass('nav-floating')
-
-            // each item has ~40px height
-            // multiply to force space for at least N items
-            var safeOffsetValue = (40 * 5)
-            var navHeight = floatingNav.outerHeight(true) + 2; // 2px border
-            var safeOffset = navHeight < safeOffsetValue ? navHeight : safeOffsetValue;
-
-            var displacement = 25; // displacement in px from bottom
-
-            // if not enough space to show N items, use then calculated 'safeOffset'
-            var menuTop = (vwHeight - itemTop > safeOffset) ? itemTop : (vwHeight - safeOffset - displacement);
-
-            floatingNav
-                .removeClass('opening') // necesary for demo if switched between normal//collapsed mode
-                .css({
-                    position: this.settings.getLayoutSetting('isFixed') ? 'fixed' : 'absolute',
-                    top: menuTop,
-                    bottom: (floatingNav.outerHeight(true) + menuTop > vwHeight) ? (displacement+'px') : 'auto'
-                });
-
-            floatingNav
-                .on('mouseleave', () => { floatingNav.remove(); })
-                .find('a').on('click', function(e) {
-                    e.preventDefault(); // prevents page reload on click
-                    // get the exact route path to navigate
-                    let routeTo = $(this).attr('route');
-                    if (routeTo) self.router.navigate([routeTo]);
-                });
-
-            this.listenForExternalClicks();
-
-        }
-
-    }
-
-    listenForExternalClicks() {
-        $(document).off('click.sidebar-floating');
-        $(document).on('click.sidebar-floating', (e) => {
-            if (!$(e.target).parents('.aside-container').length) {
-                this.removeFloatingNav();
+        this.document.querySelectorAll<HTMLElement>('.sidebar-subnav:not(.nav-floating)').forEach(candidate => {
+            if (candidate !== submenu && !ancestorSubmenus.has(candidate)) {
+                this.closeMenu(candidate);
             }
         });
+        submenu.querySelectorAll<HTMLElement>('.sidebar-subnav').forEach(child => this.closeMenu(child));
+
+        const isOpen = submenu.classList.contains('opening')
+            || this.document.defaultView?.getComputedStyle(submenu).height === 'auto'
+            || parseFloat(submenu.style.height) > 0;
+        if (isOpen) {
+            this.closeMenu(submenu);
+            return;
+        }
+
+        submenu.style.height = `${submenu.scrollHeight}px`;
+        submenu.classList.add('opening');
+        submenu.addEventListener('transitionend', () => {
+            if (submenu.classList.contains('opening')) {
+                submenu.style.height = 'auto';
+            }
+        }, { once: true });
     }
 
-    removeFloatingNav() {
-        $('.nav-floating').remove();
-        $(document).off('click.sidebar-floating');
+    public toggleSubmenuHover(event: MouseEvent): void {
+        if (!this.usesFloatingNavigation()) {
+            return;
+        }
+
+        const submenu = this.getSubmenu(event);
+        if (!submenu) {
+            return;
+        }
+
+        event.preventDefault();
+        this.openFloatingNav(event, submenu);
     }
 
-    isSidebarCollapsed() {
+    public isSidebarCollapsed(): boolean {
         return this.settings.getLayoutSetting('isCollapsed');
     }
-    isSidebarCollapsedText() {
+
+    public isSidebarCollapsedText(): boolean {
         return this.settings.getLayoutSetting('isCollapsedText');
     }
-    isEnabledHover() {
+
+    public isEnabledHover(): boolean {
         return this.settings.getLayoutSetting('asideHover');
     }
 
@@ -233,4 +152,89 @@ export class SidebarComponent implements OnInit, OnDestroy {
         await this.router.navigate(['/home']);
     }
 
+    private openFloatingNav(event: MouseEvent, submenu: HTMLElement): void {
+        const anchor = event.currentTarget;
+        const aside = this.document.querySelector<HTMLElement>('.aside-container');
+        const asideInner = aside?.querySelector<HTMLElement>(':scope > .aside-inner');
+        const sidebar = asideInner?.querySelector<HTMLElement>(':scope > .sidebar');
+        if (!(anchor instanceof HTMLElement) || !aside || !asideInner || !sidebar) {
+            return;
+        }
+
+        this.removeFloatingNav();
+        const floatingNav = submenu.cloneNode(true) as HTMLElement;
+        floatingNav.classList.add('nav-floating');
+        floatingNav.classList.remove('opening');
+        aside.appendChild(floatingNav);
+
+        const asideStyles = this.document.defaultView?.getComputedStyle(aside);
+        const innerStyles = this.document.defaultView?.getComputedStyle(asideInner);
+        const paddingTop = this.pixelValue(asideStyles?.paddingTop) + this.pixelValue(innerStyles?.paddingTop);
+        const itemTop = (anchor.parentElement?.offsetTop || 0) + paddingTop - sidebar.scrollTop;
+        const viewportHeight = this.document.documentElement.clientHeight || this.document.body.clientHeight;
+        const navHeight = this.outerHeight(floatingNav) + 2;
+        const safeOffset = Math.min(navHeight, 200);
+        const displacement = 25;
+        const menuTop = viewportHeight - itemTop > safeOffset
+            ? itemTop
+            : viewportHeight - safeOffset - displacement;
+
+        floatingNav.style.position = this.settings.getLayoutSetting('isFixed') ? 'fixed' : 'absolute';
+        floatingNav.style.top = `${menuTop}px`;
+        floatingNav.style.bottom = navHeight + menuTop > viewportHeight ? `${displacement}px` : 'auto';
+        floatingNav.addEventListener('mouseleave', () => {
+            if (this.floatingNav === floatingNav) {
+                this.removeFloatingNav();
+            }
+        });
+
+        this.floatingNav = floatingNav;
+    }
+
+    private closeMenu(submenu: HTMLElement): void {
+        submenu.style.height = `${submenu.scrollHeight}px`;
+        void submenu.offsetHeight;
+        submenu.style.height = '0px';
+        submenu.classList.remove('opening');
+    }
+
+    private removeFloatingNav(): void {
+        this.floatingNav?.remove();
+        this.floatingNav = null;
+        this.document.querySelectorAll('.nav-floating').forEach(element => element.remove());
+    }
+
+    private getSubmenu(event: MouseEvent): HTMLElement | null {
+        const anchor = event.currentTarget;
+        const submenu = anchor instanceof HTMLElement ? anchor.nextElementSibling : null;
+        return submenu instanceof HTMLElement && submenu.classList.contains('sidebar-subnav')
+            ? submenu
+            : null;
+    }
+
+    private getAncestors(element: HTMLElement): HTMLElement[] {
+        const ancestors: HTMLElement[] = [];
+        let current = element.parentElement;
+        while (current) {
+            ancestors.push(current);
+            current = current.parentElement;
+        }
+        return ancestors;
+    }
+
+    private usesFloatingNavigation(): boolean {
+        return this.isSidebarCollapsed() || this.isSidebarCollapsedText() || this.isEnabledHover();
+    }
+
+    private outerHeight(element: HTMLElement): number {
+        const styles = this.document.defaultView?.getComputedStyle(element);
+        return element.getBoundingClientRect().height
+            + this.pixelValue(styles?.marginTop)
+            + this.pixelValue(styles?.marginBottom);
+    }
+
+    private pixelValue(value?: string): number {
+        const parsed = parseFloat(value || '0');
+        return Number.isFinite(parsed) ? parsed : 0;
+    }
 }
