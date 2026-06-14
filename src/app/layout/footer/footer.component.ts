@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { SettingsService } from '../../core/settings/settings.service';
 import { TranslatorService } from '../../core/translator/translator.service';
 
@@ -6,7 +6,8 @@ import { TranslatorService } from '../../core/translator/translator.service';
     selector: '[app-footer]',
     standalone: false,
     templateUrl: './footer.component.html',
-    styleUrls: ['./footer.component.scss']
+    styleUrls: ['./footer.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class FooterComponent implements OnInit {
     public selectedLanguage: string;

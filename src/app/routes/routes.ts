@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 import { LayoutComponent } from '../layout/layout.component';
-import { AuthGuard } from '../core/auth/auth.guard';
+import { authGuard } from '../core/auth/auth.guard';
 
 export const routes: Routes = [
     {
@@ -10,7 +10,7 @@ export const routes: Routes = [
     {
         path: '',
         component: LayoutComponent,
-        canActivate: [AuthGuard],
+        canActivate: [authGuard],
         children: [
             { path: '', redirectTo: 'home', pathMatch: 'full' },
             { path: 'home', loadChildren: () => import('./home/home.module').then(m => m.HomeModule) },

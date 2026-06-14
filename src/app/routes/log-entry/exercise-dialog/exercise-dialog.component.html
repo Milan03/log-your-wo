@@ -15,7 +15,7 @@
             #strExerciseName type="text" matInput [matAutocomplete]="strengthAuto" formControlName="exerciseName">
         }
         <mat-autocomplete #strengthAuto="matAutocomplete" [displayWith]="displayExerciseName">
-          @for (exercise of filteredExercises | async; track exercise) {
+          @for (exercise of filteredExercises | async; track exercise.name) {
             <mat-option [value]="exercise.name">
               {{ exercise.localizedName }}
             </mat-option>
@@ -27,7 +27,7 @@
             #carExerciseName type="text" matInput [matAutocomplete]="cardioAuto" formControlName="exerciseName">
         }
         <mat-autocomplete #cardioAuto="matAutocomplete" [displayWith]="displayExerciseName">
-          @for (exercise of filteredCardioExercises | async; track exercise) {
+          @for (exercise of filteredCardioExercises | async; track exercise.name) {
             <mat-option [value]="exercise.name">
               {{ exercise.localizedName }}
             </mat-option>

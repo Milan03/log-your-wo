@@ -12,7 +12,7 @@ export interface RegistrationResult {
     providedIn: 'root'
 })
 export class AuthService implements OnDestroy {
-    private readonly sessionSource = new BehaviorSubject<Session>(undefined);
+    private readonly sessionSource = new BehaviorSubject<Session | null>(null);
     private readonly initialized: Promise<void>;
     private readonly authStateSubscription: { unsubscribe(): void };
 
@@ -21,7 +21,7 @@ export class AuthService implements OnDestroy {
     constructor(private supabase: SupabaseClientService) {
         this.initialized = this.initialize();
         const { data } = this.supabase.client.auth.onAuthStateChange((_event, session) => {
-            this.sessionSource.next(session || undefined);
+            this.sessionSource.next(session ?? null);
         });
         this.authStateSubscription = data.subscription;
     }
@@ -30,11 +30,11 @@ export class AuthService implements OnDestroy {
         this.authStateSubscription.unsubscribe();
     }
 
-    public get currentUser(): User {
-        return this.sessionSource.value ? this.sessionSource.value.user : undefined;
+    public get currentUser(): User | null {
+        return this.sessionSource.value ? this.sessionSource.value.user : null;
     }
 
-    public async getSession(): Promise<Session> {
+    public async getSession(): Promise<Session | null> {
         await this.initialized;
         return this.sessionSource.value;
     }
@@ -80,7 +80,7 @@ export class AuthService implements OnDestroy {
     private async initialize(): Promise<void> {
         const { data, error } = await this.supabase.client.auth.getSession();
         this.throwIfError(error);
-        this.sessionSource.next(data.session || undefined);
+        this.sessionSource.next(data.session ?? null);
     }
 
     private authCallbackUrl(): string {

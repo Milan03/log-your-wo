@@ -25,7 +25,7 @@ export class SimpleLogService {
     public readonly logs$ = this.logsSource.asObservable();
 
     constructor(
-        private cloudData?: SupabaseDataService,
+        private cloudData: SupabaseDataService,
         @Optional() private syncStatus?: CloudSyncStatusService
     ) { }
 

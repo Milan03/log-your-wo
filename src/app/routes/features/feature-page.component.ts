@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 
 import { FEATURE_CONTENT, FeatureContent } from './feature-content';
@@ -7,7 +7,8 @@ import { FEATURE_CONTENT, FeatureContent } from './feature-content';
     selector: 'app-feature-page',
     standalone: false,
     templateUrl: './feature-page.component.html',
-    styleUrls: ['./feature-page.component.scss']
+    styleUrls: ['./feature-page.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class FeaturePageComponent implements OnInit {
     public content: FeatureContent;
