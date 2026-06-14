@@ -22,6 +22,10 @@ import { SharedService } from '../../../shared/services/shared.service';
 import { TranslatorService } from '../../../core/translator/translator.service';
 import { ProgramImportService } from '../../../shared/services/program-import.service';
 import { MeasureConversionService } from '../../../shared/services/measure-conversion.service';
+import {
+    WorkoutTimerService,
+    WorkoutTimingSnapshot
+} from '../../../shared/services/workout-timer.service';
 import { SimpleLogService } from '../../../shared/services/simple-log.service';
 import { ImportedProgramDay, ImportedProgramWeek, ImportedWorkoutState } from '../../../shared/models/imported-program.model';
 import { ProfileService } from '../../../shared/services/profile.service';
@@ -62,7 +66,6 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     public distanceMeasure: DistanceMeasure = 'km';
 
     private readonly destroyRef = inject(DestroyRef);
-    private elapsedTimerId: ReturnType<typeof setInterval>;
     private strengthGroupSource: Exercise[];
     private strengthGroups: ExerciseGroup[] = [];
     private cardioGroupSource: Exercise[];
@@ -95,6 +98,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     private _dialog = inject(MatDialog);
     private _programImportService = inject(ProgramImportService);
     private _measureConversionService = inject(MeasureConversionService);
+    private _workoutTimerService = inject(WorkoutTimerService);
     private _simpleLogService = inject(SimpleLogService);
     private _workoutExportService = inject(WorkoutExportService);
     private _activatedRoute = inject(ActivatedRoute);
@@ -132,7 +136,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
 
     ngOnDestroy(): void {
         this.pauseActiveWorkoutForNavigation();
-        this.stopElapsedTimer();
+        this._workoutTimerService.stop();
     }
 
     /**
@@ -385,7 +389,11 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             return;
         }
 
-        this.totalPausedMs += Date.now() - new Date(this.workoutPausedAt).getTime();
+        this.totalPausedMs = this._workoutTimerService.accumulatePauseMs(
+            this.totalPausedMs,
+            this.workoutPausedAt,
+            new Date().toISOString()
+        );
         this.workoutPausedAt = undefined;
         this.refreshElapsedMs();
         this.syncElapsedTimer();
@@ -1024,7 +1032,11 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     private completeWorkout(): void {
         const completedAt = new Date().toISOString();
         if (this.workoutPausedAt) {
-            this.totalPausedMs += new Date(completedAt).getTime() - new Date(this.workoutPausedAt).getTime();
+            this.totalPausedMs = this._workoutTimerService.accumulatePauseMs(
+                this.totalPausedMs,
+                this.workoutPausedAt,
+                completedAt
+            );
         }
         this.workoutCompletedAt = completedAt;
         this.workoutPausedAt = undefined;
@@ -1049,42 +1061,28 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         this.totalPausedMs = 0;
         this.elapsedMs = 0;
 
-        this.stopElapsedTimer();
+        this._workoutTimerService.stop();
     }
 
-    private startElapsedTimer(): void {
-        if (this.elapsedTimerId) {
-            clearInterval(this.elapsedTimerId);
-        }
-
-        this.elapsedTimerId = setInterval(() => this.refreshElapsedMs(), 1000);
-    }
-
-    private stopElapsedTimer(): void {
-        if (this.elapsedTimerId) {
-            clearInterval(this.elapsedTimerId);
-            this.elapsedTimerId = undefined;
-        }
+    private timingSnapshot(): WorkoutTimingSnapshot {
+        return {
+            startedAt: this.workoutStartedAt,
+            completedAt: this.workoutCompletedAt,
+            pausedAt: this.workoutPausedAt,
+            totalPausedMs: this.totalPausedMs
+        };
     }
 
     private syncElapsedTimer(): void {
-        if (this.workoutStartedAt && !this.workoutPausedAt && !this.workoutCompletedAt) {
-            this.startElapsedTimer();
+        if (this._workoutTimerService.isRunning(this.timingSnapshot())) {
+            this._workoutTimerService.start(() => this.refreshElapsedMs());
         } else {
-            this.stopElapsedTimer();
+            this._workoutTimerService.stop();
         }
     }
 
     private refreshElapsedMs(nowIso?: string): void {
-        if (!this.workoutStartedAt) {
-            this.elapsedMs = 0;
-            return;
-        }
-
-        const now = nowIso ? new Date(nowIso).getTime() : Date.now();
-        const endTime = this.workoutCompletedAt ? new Date(this.workoutCompletedAt).getTime() : now;
-        const pausedWindowMs = this.workoutPausedAt && !this.workoutCompletedAt ? now - new Date(this.workoutPausedAt).getTime() : 0;
-        this.elapsedMs = Math.max(endTime - new Date(this.workoutStartedAt).getTime() - this.totalPausedMs - pausedWindowMs, 0);
+        this.elapsedMs = this._workoutTimerService.elapsedMs(this.timingSnapshot(), nowIso);
     }
 
     /**
