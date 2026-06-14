@@ -1,4 +1,15 @@
-import { AfterViewInit, Component, DestroyRef, ElementRef, inject, OnDestroy, OnInit, QueryList, ViewChildren } from '@angular/core';
+import {
+    AfterViewInit,
+    ChangeDetectorRef,
+    Component,
+    DestroyRef,
+    ElementRef,
+    inject,
+    OnDestroy,
+    OnInit,
+    QueryList,
+    ViewChildren
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs';
@@ -69,6 +80,7 @@ export class ProgramImportComponent implements OnInit, AfterViewInit, OnDestroy 
     private _activatedRoute = inject(ActivatedRoute);
     private _translatorService = inject(TranslatorService, { optional: true });
     private _profileService = inject(ProfileService, { optional: true });
+    private _cdr = inject(ChangeDetectorRef);
 
     ngOnInit(): void {
         this._sharedService.emitLogType(undefined);
@@ -154,6 +166,7 @@ export class ProgramImportComponent implements OnInit, AfterViewInit, OnDestroy 
         } finally {
             this.isImporting = false;
             input.value = '';
+            this._cdr.markForCheck();
         }
     }
 
@@ -224,7 +237,7 @@ export class ProgramImportComponent implements OnInit, AfterViewInit, OnDestroy 
         this.pendingTrainingMaxes = [];
     }
 
-    public continueToImportReview(): void {
+    public async continueToImportReview(): Promise<void> {
         if (!this.importPreview?.setup || !this.workbookSetupValid) {
             this.setupError = this.t(
                 'program-import.SetupValidation',
@@ -238,7 +251,7 @@ export class ProgramImportComponent implements OnInit, AfterViewInit, OnDestroy 
             result[input.id] = Number(input.value);
             return result;
         }, {} as { [inputId: string]: number });
-        this.importPreview = this._programImportService.applyWorkbookInputs(this.importPreview, values);
+        this.importPreview = await this._programImportService.applyWorkbookInputs(this.importPreview, values);
         this.importPreview.program.weightMeasure = this.workbookWeightMeasure;
         this.importReviewStep = 'review';
         this.setupError = '';
@@ -250,6 +263,7 @@ export class ProgramImportComponent implements OnInit, AfterViewInit, OnDestroy 
                 value: Number(input.value)
             }));
         }
+        this._cdr.markForCheck();
     }
 
     public editWorkbookMaxes(): void {

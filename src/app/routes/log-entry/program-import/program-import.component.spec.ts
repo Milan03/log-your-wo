@@ -1,4 +1,4 @@
-import { ElementRef, QueryList } from '@angular/core';
+import { ChangeDetectorRef, ElementRef, QueryList } from '@angular/core';
 import { fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, Event as RouterEvent, NavigationEnd, ParamMap, Router } from '@angular/router';
 import { BehaviorSubject, Subject } from 'rxjs';
@@ -14,6 +14,7 @@ describe('ProgramImportComponent', () => {
     let routeParams: BehaviorSubject<ParamMap>;
     let routerEvents: Subject<RouterEvent>;
     let router: jasmine.SpyObj<Router>;
+    let changeDetectorRef: jasmine.SpyObj<ChangeDetectorRef>;
 
     beforeEach(() => {
         localStorage.clear();
@@ -22,6 +23,7 @@ describe('ProgramImportComponent', () => {
         router = jasmine.createSpyObj<Router>('Router', ['navigate'], {
             events: routerEvents.asObservable()
         });
+        changeDetectorRef = jasmine.createSpyObj<ChangeDetectorRef>('ChangeDetectorRef', ['markForCheck']);
         programImportService = new ProgramImportService();
         programImportService.saveProgram(createProgram());
         TestBed.configureTestingModule({
@@ -29,7 +31,8 @@ describe('ProgramImportComponent', () => {
                 { provide: ProgramImportService, useValue: programImportService },
                 { provide: SharedService, useValue: new SharedService() },
                 { provide: Router, useValue: router },
-                { provide: ActivatedRoute, useValue: { queryParamMap: routeParams.asObservable() } }
+                { provide: ActivatedRoute, useValue: { queryParamMap: routeParams.asObservable() } },
+                { provide: ChangeDetectorRef, useValue: changeDetectorRef }
             ]
         });
         component = TestBed.runInInjectionContext(() => new ProgramImportComponent());
@@ -178,6 +181,7 @@ describe('ProgramImportComponent', () => {
         await component.onFileSelected({ target: input } as unknown as Event);
 
         expect(component.importPreview.program.id).toBe('draft-program');
+        expect(changeDetectorRef.markForCheck).toHaveBeenCalled();
         expect(programImportService.getPrograms().some(program => program.id === 'draft-program')).toBeFalse();
 
         component.confirmImport();
@@ -332,7 +336,7 @@ describe('ProgramImportComponent', () => {
         expect(component.importPreview.setup.inputs[0].value).toBe(120);
         expect(component.workbookWeightUnit).toBe('kg');
 
-        component.continueToImportReview();
+        await component.continueToImportReview();
 
         expect(component.importReviewStep).toBe('review');
         expect(exercise.weight).toBe('108');
@@ -342,7 +346,7 @@ describe('ProgramImportComponent', () => {
 
         component.editWorkbookMaxes();
         expect(component.importReviewStep).toBe('setup');
-        component.continueToImportReview();
+        await component.continueToImportReview();
         await component.confirmImport();
 
         expect(programImportService.getProgram().weeks[0].days[0].exercises[0].workbookCalculation)
@@ -359,7 +363,7 @@ describe('ProgramImportComponent', () => {
         ]);
     });
 
-    it('does not save workbook maxes when the import review is cancelled', () => {
+    it('does not save workbook maxes when the import review is cancelled', async () => {
         const profileService = {
             profile: { unitSystem: 'metric' },
             findTrainingMax: jasmine.createSpy('findTrainingMax'),
@@ -387,7 +391,7 @@ describe('ProgramImportComponent', () => {
             }
         };
 
-        component.continueToImportReview();
+        await component.continueToImportReview();
         component.cancelImportReview();
 
         expect(profileService.saveTrainingMaxes).not.toHaveBeenCalled();
