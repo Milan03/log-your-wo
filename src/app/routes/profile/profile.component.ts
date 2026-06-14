@@ -1,6 +1,14 @@
 import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { AbstractControl, FormArray, FormBuilder, FormGroup, ValidationErrors, Validators } from '@angular/forms';
+import {
+    AbstractControl,
+    FormArray,
+    FormBuilder,
+    FormControl,
+    FormGroup,
+    ValidationErrors,
+    Validators
+} from '@angular/forms';
 import { Router } from '@angular/router';
 
 import { AuthService } from '../../core/auth/auth.service';
@@ -16,6 +24,31 @@ import { SharedService } from '../../shared/services/shared.service';
 import { ThemesService } from '../../core/themes/themes.service';
 import { TranslatorService } from '../../core/translator/translator.service';
 
+interface TrainingMaxForm {
+    id: FormControl<string>;
+    exerciseName: FormControl<string>;
+    value: FormControl<number | undefined>;
+    updatedAt: FormControl<string | undefined>;
+}
+
+interface ProfileForm {
+    firstName: FormControl<string>;
+    lastName: FormControl<string>;
+    username: FormControl<string>;
+    bio: FormControl<string>;
+    birthDate: FormControl<string>;
+    gender: FormControl<string>;
+    height: FormControl<number | undefined>;
+    bodyWeight: FormControl<number | undefined>;
+    unitSystem: FormControl<UnitSystem>;
+    preferredLanguage: FormControl<PreferredLanguage>;
+    fitnessGoal: FormControl<string>;
+    experienceLevel: FormControl<UserProfile['experienceLevel']>;
+    workoutsPerWeek: FormControl<number>;
+    trainingMaxes: FormArray<FormGroup<TrainingMaxForm>>;
+    emailUpdates: FormControl<boolean>;
+}
+
 @Component({
     selector: 'app-profile',
     standalone: false,
@@ -23,7 +56,7 @@ import { TranslatorService } from '../../core/translator/translator.service';
     styleUrls: ['./profile.component.scss']
 })
 export class ProfileComponent implements OnInit {
-    public form: FormGroup;
+    public form: FormGroup<ProfileForm>;
     public signedIn = false;
     public email = '';
     public saved = false;
@@ -65,22 +98,28 @@ export class ProfileComponent implements OnInit {
     private translator = inject(TranslatorService, { optional: true });
 
     constructor() {
-        this.form = this.formBuilder.group({
-            firstName: ['', Validators.maxLength(50)],
-            lastName: ['', Validators.maxLength(50)],
-            username: ['', [Validators.maxLength(30), Validators.pattern(/^[a-zA-Z0-9_.-]*$/)]],
-            bio: ['', Validators.maxLength(300)],
-            birthDate: ['', this.notFutureDate],
-            gender: [''],
-            height: [undefined, [Validators.min(1), Validators.max(300)]],
-            bodyWeight: [undefined, [Validators.min(1), Validators.max(1000)]],
-            unitSystem: ['imperial', Validators.required],
-            preferredLanguage: ['en-ca', Validators.required],
-            fitnessGoal: [''],
-            experienceLevel: [''],
-            workoutsPerWeek: [3, [Validators.min(1), Validators.max(14)]],
-            trainingMaxes: this.formBuilder.array([]),
-            emailUpdates: [false]
+        this.form = this.formBuilder.group<ProfileForm>({
+            firstName: this.formBuilder.nonNullable.control('', Validators.maxLength(50)),
+            lastName: this.formBuilder.nonNullable.control('', Validators.maxLength(50)),
+            username: this.formBuilder.nonNullable.control('', [
+                Validators.maxLength(30),
+                Validators.pattern(/^[a-zA-Z0-9_.-]*$/)
+            ]),
+            bio: this.formBuilder.nonNullable.control('', Validators.maxLength(300)),
+            birthDate: this.formBuilder.nonNullable.control('', this.notFutureDate),
+            gender: this.formBuilder.nonNullable.control(''),
+            height: this.formBuilder.control<number | undefined>(undefined, [Validators.min(1), Validators.max(300)]),
+            bodyWeight: this.formBuilder.control<number | undefined>(
+                undefined,
+                [Validators.min(1), Validators.max(1000)]
+            ),
+            unitSystem: this.formBuilder.nonNullable.control<UnitSystem>('imperial', Validators.required),
+            preferredLanguage: this.formBuilder.nonNullable.control<PreferredLanguage>('en-ca', Validators.required),
+            fitnessGoal: this.formBuilder.nonNullable.control(''),
+            experienceLevel: this.formBuilder.nonNullable.control<UserProfile['experienceLevel']>(''),
+            workoutsPerWeek: this.formBuilder.nonNullable.control(3, [Validators.min(1), Validators.max(14)]),
+            trainingMaxes: this.formBuilder.array<FormGroup<TrainingMaxForm>>([]),
+            emailUpdates: this.formBuilder.nonNullable.control(false)
         });
     }
 
@@ -118,20 +157,13 @@ export class ProfileComponent implements OnInit {
         this.saveError = '';
 
         try {
+            const formValue = this.form.getRawValue();
             await this.profileService.saveProfile({
                 ...createDefaultProfile(),
-                ...this.form.value,
+                ...formValue,
                 trainingMaxes: this.trainingMaxes.controls
-                    .map(control => {
-                        const trainingMax = control.value as TrainingMax;
-                        return {
-                            id: trainingMax.id,
-                            exerciseName: trainingMax.exerciseName,
-                            value: trainingMax.value,
-                            ...(trainingMax.updatedAt ? { updatedAt: trainingMax.updatedAt } : {})
-                        };
-                    })
-                    .filter(trainingMax => trainingMax.exerciseName?.trim() && Number(trainingMax.value) > 0),
+                    .map(control => this.toTrainingMax(control.getRawValue()))
+                    .filter((trainingMax): trainingMax is TrainingMax => !!trainingMax),
                 preferredTraining: this.preferredTraining,
                 darkMode: this.darkMode
             });
@@ -165,17 +197,12 @@ export class ProfileComponent implements OnInit {
         this.currentUnitSystem = unitSystem;
     }
 
-    public get trainingMaxes(): FormArray {
-        return this.form.get('trainingMaxes') as FormArray;
+    public get trainingMaxes(): FormArray<FormGroup<TrainingMaxForm>> {
+        return this.form.controls.trainingMaxes;
     }
 
     public addTrainingMax(trainingMax?: Partial<TrainingMax>): void {
-        this.trainingMaxes.push(this.formBuilder.group({
-            id: [trainingMax?.id || this.createTrainingMaxId()],
-            exerciseName: [trainingMax?.exerciseName || '', Validators.maxLength(80)],
-            value: [trainingMax?.value, [Validators.min(0.5), Validators.max(5000)]],
-            updatedAt: [trainingMax?.updatedAt]
-        }));
+        this.trainingMaxes.push(this.createTrainingMaxForm(trainingMax));
         this.saved = false;
     }
 
@@ -204,7 +231,7 @@ export class ProfileComponent implements OnInit {
     }
 
     public setLanguage(language: PreferredLanguage): void {
-        this.form.get('preferredLanguage').setValue(language);
+        this.form.controls.preferredLanguage.setValue(language);
         if (this.translator) {
             void this.translator.useLanguage(language);
         }
@@ -227,7 +254,7 @@ export class ProfileComponent implements OnInit {
 
         if (this.loadedProfile && this.isPreferenceOnlyUpdate(this.loadedProfile, loadedProfile)) {
             this.loadedProfile = loadedProfile;
-            this.form.get('preferredLanguage').setValue(loadedProfile.preferredLanguage, { emitEvent: false });
+            this.form.controls.preferredLanguage.setValue(loadedProfile.preferredLanguage, { emitEvent: false });
             return;
         }
 
@@ -242,12 +269,7 @@ export class ProfileComponent implements OnInit {
         }, { emitEvent: false });
         this.trainingMaxes.clear({ emitEvent: false });
         (trainingMaxes || []).forEach(trainingMax => {
-            this.trainingMaxes.push(this.formBuilder.group({
-                id: [trainingMax.id],
-                exerciseName: [trainingMax.exerciseName, Validators.maxLength(80)],
-                value: [trainingMax.value, [Validators.min(0.5), Validators.max(5000)]],
-                updatedAt: [trainingMax.updatedAt]
-            }), { emitEvent: false });
+            this.trainingMaxes.push(this.createTrainingMaxForm(trainingMax), { emitEvent: false });
         });
         this.preferredTraining = profile && profile.preferredTraining
             ? [...profile.preferredTraining]
@@ -300,5 +322,38 @@ export class ProfileComponent implements OnInit {
 
     private createTrainingMaxId(): string {
         return `max-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    }
+
+    private createTrainingMaxForm(trainingMax?: Partial<TrainingMax>): FormGroup<TrainingMaxForm> {
+        return this.formBuilder.group<TrainingMaxForm>({
+            id: this.formBuilder.nonNullable.control(trainingMax?.id || this.createTrainingMaxId()),
+            exerciseName: this.formBuilder.nonNullable.control(
+                trainingMax?.exerciseName || '',
+                Validators.maxLength(80)
+            ),
+            value: this.formBuilder.control<number | undefined>(
+                trainingMax?.value,
+                [Validators.min(0.5), Validators.max(5000)]
+            ),
+            updatedAt: this.formBuilder.control<string | undefined>(trainingMax?.updatedAt)
+        });
+    }
+
+    private toTrainingMax(value: {
+        id: string;
+        exerciseName: string;
+        value: number | undefined;
+        updatedAt: string | undefined;
+    }): TrainingMax | undefined {
+        if (!value.exerciseName.trim() || !value.value || value.value <= 0) {
+            return undefined;
+        }
+
+        return {
+            id: value.id,
+            exerciseName: value.exerciseName,
+            value: value.value,
+            ...(value.updatedAt ? { updatedAt: value.updatedAt } : {})
+        };
     }
 }

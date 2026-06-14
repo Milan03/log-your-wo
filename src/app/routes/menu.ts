@@ -33,10 +33,11 @@ const headingMain = {
     translate: 'global.MainNavigation'
 };
 
-export const menu = [
+export const menu: MenuItem[] = [
     headingMain,
     //Home,
     SimpleLog,
     ImportProgram,
     Profile
 ];
+import { MenuItem } from '../core/menu/menu.service';

@@ -18,12 +18,13 @@ export class TranslatorService {
 
     public languageChangeEmitted$ = this.currentLanguage.asObservable();
     public languageLoading$ = this.languageLoading.asObservable();
+    public readonly initialized: Promise<void>;
 
     constructor(public translate: TranslateService) {
         if (!translate.getDefaultLang())
             translate.setDefaultLang(this.defaultLanguage);
 
-        void this.useLanguage(this.currentLanguage.value);
+        this.initialized = this.useLanguage(this.currentLanguage.value);
     }
 
     public get language(): string {
