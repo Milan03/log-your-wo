@@ -257,9 +257,10 @@ describe('SimpleLogComponent', () => {
     simpleLogService.saveLog(second, '2026-06-07');
 
     component.workoutDate = '2026-06-06';
+    (component as any).refreshSelectedDateLogs();
 
-    expect(component.getSelectedDateLogs().length).toBe(1);
-    expect(component.getSelectedDateLogs()[0].workoutDate).toBe('2026-06-06');
+    expect(component.selectedDateLogs.length).toBe(1);
+    expect(component.selectedDateLogs[0].workoutDate).toBe('2026-06-06');
   });
 
   it('reports saved log progress states', () => {

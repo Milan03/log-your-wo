@@ -95,6 +95,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     public elapsedMs = 0;
     public completionStyles: { [key: string]: string } = {};
     public savedLogs: SavedSimpleLog[] = [];
+    public selectedDateLogs: SavedSimpleLog[] = [];
     public workoutDate = '';
     public workoutDateTime = '';
     public calendarMonth = new Date();
@@ -599,6 +600,8 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         // open until the user opens a specific workout or starts a new log.
         if (!this.savedLogs.some(savedLog => savedLog.workoutDate === day.dateValue)) {
             this.createNewSimpleLog(day.dateValue);
+        } else {
+            this.refreshSelectedDateLogs();
         }
     }
 
@@ -696,8 +699,8 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         return (log.exercises || []).length + (log.cardioExercises || []).length;
     }
 
-    public getSelectedDateLogs(): SavedSimpleLog[] {
-        return this.savedLogs.filter(log => log.workoutDate === this.workoutDate);
+    private refreshSelectedDateLogs(): void {
+        this.selectedDateLogs = this.savedLogs.filter(log => log.workoutDate === this.workoutDate);
     }
 
     public getSimpleLogStatus(log: SavedSimpleLog): 'completed' | 'in-progress' | 'not-started' {
@@ -1270,6 +1273,8 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
                 hasWorkout: this.savedLogs.some(log => log.workoutDate === dateValue)
             };
         });
+
+        this.refreshSelectedDateLogs();
     }
 
     private toDateInputValue(date: Date): string {
