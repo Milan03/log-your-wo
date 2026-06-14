@@ -1,31 +1,27 @@
 import { Injectable } from '@angular/core';
 
+export interface MenuItem {
+    text: string;
+    heading?: boolean;
+    link?: string;
+    elink?: string;
+    target?: string;
+    icon?: string;
+    alert?: string;
+    label?: string;
+    translate?: string;
+    submenu?: MenuItem[];
+}
+
 @Injectable()
 export class MenuService {
+    private readonly menuItems: MenuItem[] = [];
 
-    menuItems: Array<any>;
-
-    constructor() {
-        this.menuItems = [];
+    public addMenu(items: MenuItem[]): void {
+        this.menuItems.push(...items);
     }
 
-    addMenu(items: Array<{
-        text: string,
-        heading?: boolean,
-        link?: string,     // internal route links
-        elink?: string,    // used only for external links
-        target?: string,   // anchor target="_blank|_self|_parent|_top|framename"
-        icon?: string,
-        alert?: string,
-        submenu?: Array<any>
-    }>) {
-        items.forEach((item) => {
-            this.menuItems.push(item);
-        });
-    }
-
-    getMenu() {
+    public getMenu(): MenuItem[] {
         return this.menuItems;
     }
-
 }

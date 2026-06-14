@@ -1,11 +1,8 @@
-/* tslint:disable:no-unused-variable */
-
-import { Injector } from '@angular/core';
-import { TranslateService, TranslateModule, TranslateLoader } from '@ngx-translate/core';
+import { TranslateModule, TranslateLoader } from '@ngx-translate/core';
 import { HttpClientModule } from '@angular/common/http';
-import { provideRouter, Router } from '@angular/router';
+import { provideRouter } from '@angular/router';
 import { TRANSLATE_HTTP_LOADER_CONFIG, TranslateHttpLoader } from '@ngx-translate/http-loader';
-import { TestBed, inject, waitForAsync } from '@angular/core/testing';
+import { TestBed } from '@angular/core/testing';
 import { HeaderComponent } from './header.component';
 
 import { SettingsService } from '../../core/settings/settings.service';
@@ -34,56 +31,47 @@ describe('Component: Header', () => {
                 SharedService,
                 TranslatorService,
                 ThemesService,
-                Injector,
                 provideRouter([]),
                 {
                     provide: TRANSLATE_HTTP_LOADER_CONFIG,
                     useValue: {}
                 }
             ]
-        }).compileComponents();
+        });
     });
 
-    it('should create an instance', waitForAsync(
-        inject(
-            [MenuService, UserblockService, SettingsService, Injector, Router, SharedService, TranslatorService, ThemesService],
-            (menuService, userblockService, settingsService, injector, router, sharedService, translator, themes) => {
-                let component = TestBed.runInInjectionContext(() => new HeaderComponent());
-                expect(component).toBeTruthy();
-            }
-        )
-    ));
+    it('should create an instance', () => {
+        const component = TestBed.runInInjectionContext(() => new HeaderComponent());
 
-    it('should expand on desktop, use compact labels on tablet, and use a full mobile drawer', inject(
-        [MenuService, UserblockService, SettingsService, Injector, Router, SharedService, TranslatorService, ThemesService],
-        (menuService, userblockService, settingsService, injector, router, sharedService, translator, themes) => {
-            const component = TestBed.runInInjectionContext(() => new HeaderComponent());
+        expect(component).toBeTruthy();
+    });
 
-            const widthSpy = spyOnProperty(window, 'innerWidth').and.returnValue(1200);
-            component.syncSidebarForViewport();
-            expect(settingsService.getLayoutSetting('isCollapsed')).toBeFalse();
+    it('should expand on desktop, use compact labels on tablet, and use a full mobile drawer', () => {
+        const settingsService = TestBed.inject(SettingsService);
+        const component = TestBed.runInInjectionContext(() => new HeaderComponent());
 
-            widthSpy.and.returnValue(800);
-            component.syncSidebarForViewport();
-            expect(settingsService.getLayoutSetting('isCollapsed')).toBeFalse();
-            expect(settingsService.getLayoutSetting('isCollapsedText')).toBeTrue();
+        const widthSpy = spyOnProperty(window, 'innerWidth').and.returnValue(1200);
+        component.syncSidebarForViewport();
+        expect(settingsService.getLayoutSetting('isCollapsed')).toBeFalse();
 
-            widthSpy.and.returnValue(500);
-            component.syncSidebarForViewport();
-            expect(settingsService.getLayoutSetting('isCollapsed')).toBeFalse();
-            expect(settingsService.getLayoutSetting('isCollapsedText')).toBeFalse();
-        }
-    ));
+        widthSpy.and.returnValue(800);
+        component.syncSidebarForViewport();
+        expect(settingsService.getLayoutSetting('isCollapsed')).toBeFalse();
+        expect(settingsService.getLayoutSetting('isCollapsedText')).toBeTrue();
 
-    it('toggles the shared dark mode preference', inject(
-        [MenuService, UserblockService, SettingsService, Injector, Router, SharedService, TranslatorService, ThemesService],
-        (menuService, userblockService, settingsService, injector, router, sharedService, translator, themes) => {
-            const component = TestBed.runInInjectionContext(() => new HeaderComponent());
-            spyOn(themes, 'toggleDarkMode');
+        widthSpy.and.returnValue(500);
+        component.syncSidebarForViewport();
+        expect(settingsService.getLayoutSetting('isCollapsed')).toBeFalse();
+        expect(settingsService.getLayoutSetting('isCollapsedText')).toBeFalse();
+    });
 
-            component.toggleDarkMode();
+    it('toggles the shared dark mode preference', () => {
+        const themes = TestBed.inject(ThemesService);
+        const component = TestBed.runInInjectionContext(() => new HeaderComponent());
+        spyOn(themes, 'toggleDarkMode');
 
-            expect(themes.toggleDarkMode).toHaveBeenCalledTimes(1);
-        }
-    ));
+        component.toggleDarkMode();
+
+        expect(themes.toggleDarkMode).toHaveBeenCalledTimes(1);
+    });
 });

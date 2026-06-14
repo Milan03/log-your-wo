@@ -1,4 +1,4 @@
-import { Component, DestroyRef, ElementRef, inject, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, DestroyRef, ElementRef, inject, OnInit, ViewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
@@ -40,13 +40,13 @@ interface ExerciseForm {
     templateUrl: './exercise-dialog.component.html',
     styleUrl: './exercise-dialog.component.scss'
 })
-export class ExerciseDialogComponent {
+export class ExerciseDialogComponent implements OnInit, AfterViewInit {
     @ViewChild('strExerciseName', { read: MatAutocompleteTrigger }) strengthInputTrigger: MatAutocompleteTrigger;
     @ViewChild('carExerciseName', { read: MatAutocompleteTrigger }) cardioInputTrigger: MatAutocompleteTrigger;
-    @ViewChild('strExerciseName') strExerciseNameInput: ElementRef;
-    @ViewChild('carExerciseName') carExerciseNameInput: ElementRef;
-    @ViewChild('weight') weightInput: ElementRef;
-    @ViewChild('distance') distanceInput: ElementRef;
+    @ViewChild('strExerciseName') strExerciseNameInput: ElementRef<HTMLInputElement>;
+    @ViewChild('carExerciseName') carExerciseNameInput: ElementRef<HTMLInputElement>;
+    @ViewChild('weight') weightInput: ElementRef<HTMLInputElement>;
+    @ViewChild('distance') distanceInput: ElementRef<HTMLInputElement>;
 
     public exerciseLogForm: FormGroup<ExerciseForm>;
     private currentLanguage: string;
@@ -92,11 +92,11 @@ export class ExerciseDialogComponent {
         this.setSelectedChip(this._exerciseDialogData.measure);
     }
 
-    ngAfterViewInit() {
+    public ngAfterViewInit(): void {
         this.focusInput(this.currentExercise.exerciseName);
     }
 
-    ngOnInit(): void {
+    public ngOnInit(): void {
         this.currentExercise.duration = this.currentExercise.duration || Duration.fromMillis(0);
         this.populateForm();
         this.currentLanguage = FormValues.ENCode;
@@ -105,11 +105,9 @@ export class ExerciseDialogComponent {
         this.subToCardioExerciseDirectoryService();
     }
 
-    submitForm($ev) {
-        $ev.preventDefault();
-        for (let c in this.exerciseLogForm.controls) {
-            this.exerciseLogForm.controls[c].markAsTouched();
-        }
+    public submitForm(event: Event): void {
+        event.preventDefault();
+        this.exerciseLogForm.markAllAsTouched();
         if (this.exerciseLogForm.valid) {
             const controls = this.exerciseLogForm.controls;
             this.currentExercise.exerciseName = controls.exerciseName.value ?? undefined;
@@ -127,11 +125,11 @@ export class ExerciseDialogComponent {
         }
     }
 
-    onCancel() {
+    public onCancel(): void {
         this._dialogRef.close();
     }
 
-    onChipClick(value: string) {
+    public onChipClick(value: string): void {
         if (value === 'lbs' || value === 'kg') {
             if (value === this.selectedWeightChip) {
                 return;
@@ -302,7 +300,7 @@ export class ExerciseDialogComponent {
         control.setValue(this.roundMeasurement(numericValue * factor));
     }
 
-    private toNumericMeasurement(value: any): number | undefined {
+    private toNumericMeasurement(value: unknown): number | undefined {
         if (value === undefined || value === null || String(value).trim() === '') {
             return undefined;
         }

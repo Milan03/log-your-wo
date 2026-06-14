@@ -83,7 +83,7 @@
                     maxlength="25"
                     [attr.aria-label]="'log-entry.WorkoutTitle' | translate"
                     [value]="simpleLogTitleDraft"
-                    (input)="simpleLogTitleDraft = $any($event.target).value"
+                    (input)="updateSimpleLogTitleDraft($event)"
                     (keydown.enter)="saveSimpleLogTitle()"
                     (keydown.escape)="cancelSimpleLogTitleEdit()">
                     <button class="btn btn-primary btn-sm" type="button" (click)="saveSimpleLogTitle()">{{ 'global.SaveLabel' | translate }}</button>
@@ -94,7 +94,7 @@
               </div>
               <label class="simple-log-date">
                 <span>{{ 'log-entry.WorkoutDateTime' | translate }}</span>
-                <input type="datetime-local" [value]="workoutDateTime" (change)="onWorkoutDateTimeChange($any($event.target).value)">
+                <input type="datetime-local" [value]="workoutDateTime" (change)="onWorkoutDateTimeChangeFromEvent($event)">
               </label>
             </section>
           }

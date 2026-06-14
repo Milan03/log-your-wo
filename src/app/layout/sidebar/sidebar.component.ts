@@ -3,7 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 declare var $: any;
 
-import { MenuService } from '../../core/menu/menu.service';
+import { MenuItem, MenuService } from '../../core/menu/menu.service';
 import { SettingsService } from '../../core/settings/settings.service';
 import { AuthService } from '../../core/auth/auth.service';
 
@@ -15,7 +15,7 @@ import { AuthService } from '../../core/auth/auth.service';
 })
 export class SidebarComponent implements OnInit, OnDestroy {
 
-    menuItems: Array<any>;
+    menuItems: MenuItem[];
     router: Router;
     sbclickEvent = 'click.sidebar-toggle';
     $doc: any = null;

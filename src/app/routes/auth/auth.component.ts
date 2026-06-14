@@ -1,10 +1,15 @@
 import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { AuthService } from '../../core/auth/auth.service';
 import { TranslatorService } from '../../core/translator/translator.service';
+
+interface AuthForm {
+    email: FormControl<string>;
+    password: FormControl<string>;
+}
 
 @Component({
     selector: 'app-auth',
@@ -13,7 +18,7 @@ import { TranslatorService } from '../../core/translator/translator.service';
     styleUrls: ['./auth.component.scss']
 })
 export class AuthComponent implements OnInit {
-    public form: FormGroup;
+    public form: FormGroup<AuthForm>;
     public mode: 'login' | 'register' = 'login';
     public busy = false;
     public callbackPending = false;
@@ -30,7 +35,7 @@ export class AuthComponent implements OnInit {
     private translator = inject(TranslatorService, { optional: true });
 
     constructor() {
-        this.form = this.formBuilder.group({
+        this.form = this.formBuilder.nonNullable.group({
             email: ['', [Validators.required, Validators.email]],
             password: ['', Validators.required]
         });
@@ -72,7 +77,7 @@ export class AuthComponent implements OnInit {
         this.busy = true;
         this.errorMessage = '';
         this.successMessage = '';
-        const { email, password } = this.form.value;
+        const { email, password } = this.form.getRawValue();
 
         try {
             if (this.mode === 'register') {

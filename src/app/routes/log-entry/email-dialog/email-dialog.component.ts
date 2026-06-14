@@ -21,11 +21,9 @@ export class EmailDialogComponent {
         'emailAddress': ['', Validators.compose([Validators.required, Validators.email])]
     });
     
-    submitForm($ev, value: any) {
-        $ev.preventDefault();
-        for (let c in this.emailForm.controls) {
-            this.emailForm.controls[c].markAsTouched();
-        }
+    public submitForm(event: Event): void {
+        event.preventDefault();
+        this.emailForm.markAllAsTouched();
         if (this.emailForm.valid) {
             this._dialogRef.close(this.emailForm.get('emailAddress').value);
         }

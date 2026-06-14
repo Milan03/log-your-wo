@@ -1,4 +1,5 @@
-import { Component, HostBinding, OnInit } from '@angular/core';
+import { Component, DestroyRef, HostBinding, HostListener, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 
@@ -6,8 +7,7 @@ import { SettingsService } from './core/settings/settings.service';
 import { ThemesService } from './core/themes/themes.service';
 import { TranslatorService } from './core/translator/translator.service';
 import { SeoData, SeoService } from './core/seo/seo.service';
-
-declare let gtag: Function;
+import { GoogleAnalyticsService } from './shared/services/google-analytics.service';
 
 /** Applied to any route that does not declare its own `data.seo`. */
 const DEFAULT_SEO: SeoData = {
@@ -26,7 +26,8 @@ const DEFAULT_SEO: SeoData = {
     templateUrl: './app.component.html',
     styleUrls: ['./app.component.scss']
 })
-export class AppComponent implements OnInit {
+export class AppComponent {
+    private readonly destroyRef = inject(DestroyRef);
 
     @HostBinding('class.layout-fixed') get isFixed() { return this._settings.getLayoutSetting('isFixed'); };
     @HostBinding('class.aside-collapsed') get isCollapsed() { return this._settings.getLayoutSetting('isCollapsed'); };
@@ -44,17 +45,27 @@ export class AppComponent implements OnInit {
         public _router: Router,
         private _activatedRoute: ActivatedRoute,
         private _seo: SeoService,
+        private _googleAnalytics: GoogleAnalyticsService,
         themes: ThemesService,
         public translator: TranslatorService
     ) {
         // Construction applies the saved theme before routed content initializes.
         void themes;
         this._router.events.pipe(
-            filter((event): event is NavigationEnd => event instanceof NavigationEnd)
+            filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+            takeUntilDestroyed(this.destroyRef)
         ).subscribe(event => {
-            gtag('config', 'UA-100428382-2', { 'page_path': event.urlAfterRedirects });
+            this._googleAnalytics.pageView(event.urlAfterRedirects);
             this.applySeo(event.urlAfterRedirects);
         });
+    }
+
+    @HostListener('document:click', ['$event'])
+    public preventEmptyLinkNavigation(event: MouseEvent): void {
+        const target = event.target;
+        if (target instanceof HTMLAnchorElement && ['', '#'].includes(target.getAttribute('href') || '')) {
+            event.preventDefault();
+        }
     }
 
     /** Walk to the deepest activated route and apply its `data.seo`, or a default. */
@@ -70,14 +81,5 @@ export class AppComponent implements OnInit {
         } else {
             this._seo.update(DEFAULT_SEO);
         }
-    }
-
-    ngOnInit() {
-        // prevent empty links to reload the page
-        document.addEventListener('click', e => {
-            const target = e.target as HTMLElement;
-            if (target.tagName === 'A' && ['', '#'].indexOf(target.getAttribute('href')) > -1)
-                e.preventDefault();
-        });
     }
 }

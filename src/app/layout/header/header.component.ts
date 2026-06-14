@@ -5,7 +5,7 @@ import screenfull from 'screenfull';
 
 import { UserblockService } from '../sidebar/userblock/userblock.service';
 import { SettingsService } from '../../core/settings/settings.service';
-import { MenuService } from '../../core/menu/menu.service';
+import { MenuItem, MenuService } from '../../core/menu/menu.service';
 import { SharedService } from '../../shared/services/shared.service';
 import { filter } from 'rxjs';
 import { FormValues, LogTypes } from 'src/app/shared/common/common.constants';
@@ -27,7 +27,7 @@ export class HeaderComponent implements OnInit {
     private currentLanguage: string;
 
     public navCollapsed = true; // for horizontal layout
-    public menuItems = []; // for horizontal layout
+    public menuItems: MenuItem[] = []; // for horizontal layout
     public router: Router;
     public currentLogType: string;
     public logStartDatim: Date;

@@ -1,46 +1,57 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChange, ElementRef } from '@angular/core';
+import {
+    ChangeDetectionStrategy,
+    Component,
+    ElementRef,
+    EventEmitter,
+    HostListener,
+    Input,
+    OnChanges,
+    Output,
+    SimpleChanges
+} from '@angular/core';
 
 @Component({
     selector: 'app-navsearch',
     standalone: false,
     templateUrl: './navsearch.component.html',
-    styleUrls: ['./navsearch.component.scss']
+    styleUrls: ['./navsearch.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class NavsearchComponent implements OnInit, OnChanges {
+export class NavsearchComponent implements OnChanges {
 
     @Input() visible: boolean;
-    @Output() onclose = new EventEmitter<boolean>();
+    @Output() onclose = new EventEmitter<void>();
     term: string;
 
-    constructor(public elem: ElementRef) { }
+    constructor(public elem: ElementRef<HTMLElement>) { }
 
-    ngOnInit() {
-        document.addEventListener('keyup', event => {
-            if (event.keyCode === 27) {// ESC
-                this.closeNavSearch();
-            }
-        });
-        document.addEventListener('click', event => {
-            const contains = (this.elem.nativeElement !== event.target && this.elem.nativeElement.contains(event.target));
-            if (!contains) {
-                this.closeNavSearch();
-            }
-        });
+    @HostListener('document:keyup.escape')
+    public onEscape(): void {
+        this.closeNavSearch();
     }
 
-    closeNavSearch() {
+    @HostListener('document:click', ['$event'])
+    public onDocumentClick(event: MouseEvent): void {
+        const target = event.target;
+        const contains = target instanceof Node
+            && (this.elem.nativeElement === target || this.elem.nativeElement.contains(target));
+        if (!contains) {
+            this.closeNavSearch();
+        }
+    }
+
+    public closeNavSearch(): void {
         this.visible = false;
         this.onclose.emit();
     }
 
-    ngOnChanges(changes: { [propKey: string]: SimpleChange }) {
-        // console.log(changes['visible'].currentValue)
-        if (changes['visible'].currentValue === true) {
-            this.elem.nativeElement.querySelector('input').focus();
+    public ngOnChanges(changes: SimpleChanges): void {
+        if (changes.visible?.currentValue === true) {
+            this.elem.nativeElement.querySelector<HTMLInputElement>('input')?.focus();
         }
     }
 
-    handleForm() {
+    public handleForm(): void {
         console.log('Form submit: ' + this.term);
     }
 }

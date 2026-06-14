@@ -22,7 +22,7 @@ import { RoutesModule } from './routes/routes.module';
         BrowserAnimationsModule, // required for ng2-tag-input
         CoreModule,
         LayoutModule,
-        SharedModule.forRoot(),
+        SharedModule,
         RoutesModule,
         TranslateModule.forRoot({
             loader: {

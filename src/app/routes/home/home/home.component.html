@@ -51,7 +51,7 @@
     <h2 id="home-features-title" class="home-section-title">{{ 'home.FeaturesTitle' | translate }}</h2>
     <p class="home-section-lead">{{ 'home.FeaturesLead' | translate }}</p>
     <div class="row">
-      @for (feature of features; track feature) {
+      @for (feature of features; track feature.link) {
         <div class="col-md-6 col-lg-4">
           <a class="home-feature-card" [routerLink]="feature.link">
             <em [class]="feature.icon" aria-hidden="true"></em>
