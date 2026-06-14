@@ -1,3 +1,5 @@
+@use '../../../shared/styles/app/variables.scss';
+
 ::ng-deep .email-dialog-panel .mat-mdc-dialog-container {
     width: min(30em, calc(100vw - 24px));
 }
@@ -49,6 +51,91 @@ label {
     justify-content: flex-end;
     gap: 10px;
     margin-top: 18px;
+}
+
+/*
+ * Explicit, self-contained button colours so contrast does not depend on the
+ * mat-button x Bootstrap cascade. All pairings meet WCAG 2.1 AA (1.4.3 text
+ * >= 4.5:1, 1.4.11 non-text/boundary >= 3:1) in light and dark themes.
+ */
+.button-container .btn-primary,
+.button-container .btn-secondary {
+    min-height: 40px;
+    padding: 7px 18px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+/* Send: #fff on #3F51B5 = 6.6:1 text; fill vs #fff dialog = 6.6:1 boundary. */
+.button-container .btn-primary {
+    color: #fff;
+    background-color: variables.$primary;
+    border-color: variables.$primary;
+}
+
+.button-container .btn-primary:hover,
+.button-container .btn-primary:focus {
+    color: #fff;
+    background-color: variables.$primary-dark;
+    border-color: variables.$primary-dark;
+}
+
+/* Cancel: #333 on #fff = 12.6:1 text; border #6c757d vs #fff = 4.7:1 boundary. */
+.button-container .btn-secondary {
+    color: #333;
+    background-color: #fff;
+    border-color: #6c757d;
+}
+
+.button-container .btn-secondary:hover,
+.button-container .btn-secondary:focus {
+    color: #1f2933;
+    background-color: #f1f3f5;
+    border-color: #495057;
+}
+
+/* Visible keyboard focus ring (2.4.7 / 1.4.11). */
+.button-container .btn-primary:focus-visible,
+.button-container .btn-secondary:focus-visible {
+    outline: 2px solid variables.$primary;
+    outline-offset: 2px;
+}
+
+:host-context(html.app-dark-mode) {
+    /* Send: #fff on #5C6BC0 = 4.8:1 text; fill vs #1b2635 surface = 3.2:1 boundary. */
+    .button-container .btn-primary {
+        color: #fff;
+        background-color: #5c6bc0;
+        border-color: #5c6bc0;
+    }
+
+    .button-container .btn-primary:hover,
+    .button-container .btn-primary:focus {
+        color: #fff;
+        background-color: #6b79c9;
+        border-color: #6b79c9;
+    }
+
+    /* Cancel: #f1f5f9 on #243244 = 11.8:1 text; border #8fa2b8 vs #1b2635 = 5.9:1 boundary. */
+    .button-container .btn-secondary {
+        color: var(--dark-text);
+        background-color: var(--dark-surface-raised);
+        border-color: #8fa2b8;
+    }
+
+    .button-container .btn-secondary:hover,
+    .button-container .btn-secondary:focus {
+        color: #fff;
+        background-color: #34465b;
+        border-color: #a9b8c9;
+    }
+
+    .button-container .btn-primary:focus-visible,
+    .button-container .btn-secondary:focus-visible {
+        outline-color: #8c9eff;
+    }
 }
 
 /* phones */
