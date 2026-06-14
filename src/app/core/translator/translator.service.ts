@@ -4,11 +4,16 @@ import { BehaviorSubject, firstValueFrom } from 'rxjs';
 
 import { FormValues } from '../../shared/common/common.constants';
 
+export interface AvailableLanguage {
+    code: string;
+    text: string;
+}
+
 @Injectable()
 export class TranslatorService {
     private readonly defaultLanguage: string = FormValues.ENCode;
     private readonly languageStorageKey = 'logYourWo.language';
-    private readonly availablelangs = [
+    private readonly availableLanguages: AvailableLanguage[] = [
         { code: FormValues.ENCode, text: 'English' },
         { code: FormValues.FRCode, text: 'Français' }
     ];
@@ -74,12 +79,12 @@ export class TranslatorService {
         }
     }
 
-    public getAvailableLanguages() {
-        return this.availablelangs;
+    public getAvailableLanguages(): readonly AvailableLanguage[] {
+        return this.availableLanguages;
     }
 
     private isSupported(language: string): boolean {
-        return this.availablelangs.some(option => option.code === language);
+        return this.availableLanguages.some(option => option.code === language);
     }
 
     private readLanguage(): string {

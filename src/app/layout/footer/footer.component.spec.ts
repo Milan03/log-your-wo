@@ -15,7 +15,8 @@ describe('Component: Footer', () => {
                 {
                     provide: TranslatorService,
                     useValue: {
-                        getAvailableLanguages: () => [{ code: 'en-ca' }],
+                        language: 'en-ca',
+                        getAvailableLanguages: () => [{ code: 'en-ca', text: 'English' }],
                         useLanguage: () => {}
                     }
                 }

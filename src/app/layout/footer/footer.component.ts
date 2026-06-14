@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { SettingsService } from '../../core/settings/settings.service';
 import { TranslatorService } from '../../core/translator/translator.service';
 
@@ -9,25 +9,18 @@ import { TranslatorService } from '../../core/translator/translator.service';
     styleUrls: ['./footer.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class FooterComponent implements OnInit {
+export class FooterComponent {
     public selectedLanguage: string;
+    public readonly languages = this._translatorService.getAvailableLanguages();
 
     constructor(
         public _settings: SettingsService,
         public _translatorService: TranslatorService
-    ) { 
-        this.selectedLanguage = this.getLangs()[0].code;
+    ) {
+        this.selectedLanguage = this._translatorService.language;
     }
 
-    ngOnInit() {
-
-    }
-
-    getLangs() {
-        return this._translatorService.getAvailableLanguages();
-    }
-
-    setLang(lang) {
-        this._translatorService.useLanguage(lang.value);
+    public setLang(language: string): void {
+        void this._translatorService.useLanguage(language);
     }
 }

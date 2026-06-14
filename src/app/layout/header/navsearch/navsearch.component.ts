@@ -1,10 +1,21 @@
-import { Component, ElementRef, EventEmitter, HostListener, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import {
+    ChangeDetectionStrategy,
+    Component,
+    ElementRef,
+    EventEmitter,
+    HostListener,
+    Input,
+    OnChanges,
+    Output,
+    SimpleChanges
+} from '@angular/core';
 
 @Component({
     selector: 'app-navsearch',
     standalone: false,
     templateUrl: './navsearch.component.html',
-    styleUrls: ['./navsearch.component.scss']
+    styleUrls: ['./navsearch.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class NavsearchComponent implements OnChanges {
 

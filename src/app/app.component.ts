@@ -7,8 +7,7 @@ import { SettingsService } from './core/settings/settings.service';
 import { ThemesService } from './core/themes/themes.service';
 import { TranslatorService } from './core/translator/translator.service';
 import { SeoData, SeoService } from './core/seo/seo.service';
-
-declare let gtag: Function;
+import { GoogleAnalyticsService } from './shared/services/google-analytics.service';
 
 /** Applied to any route that does not declare its own `data.seo`. */
 const DEFAULT_SEO: SeoData = {
@@ -46,6 +45,7 @@ export class AppComponent {
         public _router: Router,
         private _activatedRoute: ActivatedRoute,
         private _seo: SeoService,
+        private _googleAnalytics: GoogleAnalyticsService,
         themes: ThemesService,
         public translator: TranslatorService
     ) {
@@ -55,7 +55,7 @@ export class AppComponent {
             filter((event): event is NavigationEnd => event instanceof NavigationEnd),
             takeUntilDestroyed(this.destroyRef)
         ).subscribe(event => {
-            gtag('config', 'UA-100428382-2', { 'page_path': event.urlAfterRedirects });
+            this._googleAnalytics.pageView(event.urlAfterRedirects);
             this.applySeo(event.urlAfterRedirects);
         });
     }

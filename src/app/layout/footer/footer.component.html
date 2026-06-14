@@ -2,8 +2,8 @@
   <span id="app-info">&copy; {{_settings.getAppSetting('year')}} - {{ _settings.getAppSetting('name') }}</span>
   <div class="language-select">
     <mat-form-field>
-      <mat-select placeholder="{{ 'global.Language' | translate }}" (selectionChange)="setLang($event)" [(ngModel)]="selectedLanguage">
-        @for (lang of getLangs(); track lang) {
+      <mat-select placeholder="{{ 'global.Language' | translate }}" (selectionChange)="setLang($event.value)" [(ngModel)]="selectedLanguage">
+        @for (lang of languages; track lang.code) {
           <mat-option [value]="lang.code">
             {{ lang.text }}
           </mat-option>

@@ -241,7 +241,7 @@ export class ProfileComponent implements OnInit {
         this.setLanguage((event.target as HTMLSelectElement).value as PreferredLanguage);
     }
 
-    public get languages(): Array<{ code: string, text: string }> {
+    public get languages(): ReadonlyArray<{ code: string, text: string }> {
         return this.translator ? this.translator.getAvailableLanguages() : [];
     }
 

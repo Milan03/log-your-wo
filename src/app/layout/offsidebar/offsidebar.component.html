@@ -19,7 +19,7 @@
   <div class="p-2">
     <h4 class="text-muted text-thin">{{ 'global.Language' | translate }}</h4>
     <select class="form-control" [ngModel]="selectedLanguage" (ngModelChange)="setLang($event)">
-      @for (lang of getLangs(); track lang) {
+      @for (lang of languages; track lang.code) {
         <option [value]="lang.code">{{ lang.text }}</option>
       }
     </select>

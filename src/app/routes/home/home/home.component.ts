@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { SharedService } from '../../../shared/services/shared.service';
 
@@ -6,7 +6,8 @@ import { SharedService } from '../../../shared/services/shared.service';
     selector: 'app-home',
     standalone: false,
     templateUrl: './home.component.html',
-    styleUrls: ['./home.component.scss']
+    styleUrls: ['./home.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class HomeComponent implements OnInit {
 
@@ -48,7 +49,7 @@ export class HomeComponent implements OnInit {
         private _sharedService: SharedService
     ) { }
 
-    ngOnInit() {
+    public ngOnInit(): void {
         this._sharedService.emitLogType(undefined);
     }
 
