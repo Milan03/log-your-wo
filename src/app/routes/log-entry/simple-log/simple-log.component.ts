@@ -17,22 +17,18 @@ import {
     SimpleLogTimingState,
     WeightMeasure
 } from '../../../shared/models/simple-log.model';
-import { EmailRequest } from '../../../shared/models/email-request.model';
 import { ExerciseDialogData } from '../../../shared/interfaces/exercise-dialog-data';
 import { SharedService } from '../../../shared/services/shared.service';
 import { TranslatorService } from '../../../core/translator/translator.service';
-import { EmailService } from '../../../shared/services/email.service';
-import { GoogleAnalyticsService } from '../../../shared/services/google-analytics.service';
 import { ProgramImportService } from '../../../shared/services/program-import.service';
 import { MeasureConversionService } from '../../../shared/services/measure-conversion.service';
 import { SimpleLogService } from '../../../shared/services/simple-log.service';
 import { ImportedProgramDay, ImportedProgramWeek, ImportedWorkoutState } from '../../../shared/models/imported-program.model';
 import { ProfileService } from '../../../shared/services/profile.service';
 import {
-    WorkoutPdfData,
-    WorkoutPdfLabels,
-    WorkoutPdfService
-} from '../../../shared/services/workout-pdf.service';
+    WorkoutExportContext,
+    WorkoutExportService
+} from '../../../shared/services/workout-export.service';
 
 import { LogTypes, FormValues } from '../../../shared/common/common.constants';
 
@@ -54,7 +50,6 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     public simpleLogForm: FormGroup<SimpleLogForm>;
     public currentLanguage: string;
     public currentLog: SimpleLog;
-    private currentPDF: string;
     public sbIsCollapsed: boolean;
 
     public readonly exerciseNameCharLimit: number = 50;
@@ -98,12 +93,10 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     private _sharedService = inject(SharedService);
     private _translatorService = inject(TranslatorService);
     private _dialog = inject(MatDialog);
-    private _emailService = inject(EmailService);
-    private _googleAnalyticsService = inject(GoogleAnalyticsService);
     private _programImportService = inject(ProgramImportService);
     private _measureConversionService = inject(MeasureConversionService);
     private _simpleLogService = inject(SimpleLogService);
-    private _workoutPdfService = inject(WorkoutPdfService);
+    private _workoutExportService = inject(WorkoutExportService);
     private _activatedRoute = inject(ActivatedRoute);
     private _router = inject(Router);
     private _profileService = inject(ProfileService, { optional: true });
@@ -147,73 +140,26 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
      * @param submitType - 'save' or 'email'
      */
     public submit(submitType: string): void {
-        if (submitType == 'save')
-            this.savePDFSubmit();
-        else
-            this.emailPDFSubmit();
-    }
-
-    private async savePDFSubmit(): Promise<void> {
         for (let c in this.simpleLogForm.controls) {
             this.simpleLogForm.controls[c].markAsTouched();
         }
-        if (this.simpleLogForm.valid) {
-            try {
-                const createdPDF = await this._workoutPdfService.create(this.getWorkoutPdfData());
-                createdPDF.save(this._workoutPdfService.getFileName(this.currentLog));
-            } catch {
-                this.swalPDFError();
-                return;
-            }
-            this._googleAnalyticsService.eventEmitter(`pdf_saved_success`, 'general', 'engagement');
+        if (!this.simpleLogForm.valid) {
+            return;
         }
-    }
-
-    private emailPDFSubmit(): void {
-        for (let c in this.simpleLogForm.controls) {
-            this.simpleLogForm.controls[c].markAsTouched();
-        }
-        if (this.simpleLogForm.valid) {
+        if (submitType == 'save') {
+            this._workoutExportService.savePdf(this.buildExportContext());
+        } else {
             this.openEmailDialog();
         }
     }
 
-    /**
-     * Using the email address retrieved from email dialog, create an email request and 
-     * initiate call the email service.
-     * @param recipientEmailAddress 
-     */
-    public async emailAsPDF(recipientEmailAddress: string): Promise<void> {
-        try {
-            const createdPDF = await this._workoutPdfService.create(this.getWorkoutPdfData());
-            this.currentPDF = createdPDF.output('datauristring').split(',')[1];
-        } catch {
-            this.swalPDFError();
-            return;
-        }
-        let request = this.createEmailRequest(recipientEmailAddress);
-        this._emailService.sendMail(request).subscribe({
-            next: () => {
-                this.swalEmailSent();
-                this._googleAnalyticsService.eventEmitter('email_sent_success', 'general', 'engagement');
-            },
-            error: () => {
-                this.swalEmailError();
-            }
-        });
-    }
-
-    private getWorkoutPdfData(): WorkoutPdfData {
-        const locale = this._translatorService.translate.currentLang
-            || this._translatorService.translate.getDefaultLang()
-            || this.currentLanguage;
+    private buildExportContext(): WorkoutExportContext {
         return {
             log: this.currentLog,
             weightMeasure: this.weightMeasure,
             distanceMeasure: this.distanceMeasure,
             elapsedTimeLabel: this.getElapsedTimeLabel(),
-            locale,
-            labels: this.getWorkoutPdfLabels(),
+            language: this.currentLanguage,
             startedAt: this.workoutStartedAt,
             completedAt: this.workoutCompletedAt,
             pausedAt: this.workoutPausedAt,
@@ -224,101 +170,6 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
                 }
                 : undefined
         };
-    }
-
-    private getWorkoutPdfLabels(): WorkoutPdfLabels {
-        const translate = (key: string) => this._translatorService.translate.instant(key);
-        return {
-            workoutLog: translate('pdf.WorkoutLog'),
-            simpleWorkoutLog: translate('pdf.SimpleWorkoutLog'),
-            importedWorkout: translate('pdf.ImportedWorkout'),
-            strength: translate('pdf.Strength'),
-            cardio: translate('pdf.Cardio'),
-            exercise: translate('pdf.Exercise'),
-            prescription: translate('pdf.Prescription'),
-            weight: translate('pdf.Weight'),
-            reps: translate('pdf.Reps'),
-            sets: translate('pdf.Sets'),
-            distance: translate('pdf.Distance'),
-            duration: translate('pdf.Duration'),
-            intensity: translate('pdf.Intensity'),
-            status: translate('pdf.Status'),
-            workoutDate: translate('pdf.WorkoutDate'),
-            elapsedTime: translate('pdf.ElapsedTime'),
-            units: translate('pdf.Units'),
-            programWeek: translate('pdf.ProgramWeek'),
-            programDay: translate('pdf.ProgramDay'),
-            complete: translate('pdf.Complete'),
-            incomplete: translate('pdf.Incomplete'),
-            completed: translate('pdf.Completed'),
-            paused: translate('pdf.Paused'),
-            inProgress: translate('pdf.InProgress'),
-            notStarted: translate('pdf.NotStarted'),
-            notAvailable: translate('pdf.NotAvailable'),
-            generatedBy: translate('pdf.GeneratedBy'),
-            page: translate('pdf.Page'),
-            of: translate('pdf.Of'),
-            intensityNames: {
-                1: translate('pdf.Easy'),
-                2: translate('pdf.Moderate'),
-                3: translate('pdf.Hard'),
-                4: translate('pdf.Maximal')
-            }
-        };
-    }
-
-    /**
-     * Create the email request to be sent to the server depending on if log title is present and
-     * the current language.
-     * @param recipientEmailAddress - email to send to
-     */
-    private createEmailRequest(recipientEmailAddress: string): EmailRequest {
-        const options: Intl.DateTimeFormatOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-        if (this.currentLanguage == FormValues.ENCode) {
-            if (this.currentLog.title) {
-                return new EmailRequest(
-                    FormValues.NoReplyEmailAddress,
-                    recipientEmailAddress,
-                    `${this.currentLog.title} - ${this.currentLog.startDatim.toLocaleDateString(FormValues.ENCode, options)}`,
-                    [this.currentPDF],
-                    FormValues.EmailBody,
-                    this.currentLog.startDatim.toDateString(),
-                    this._workoutPdfService.getFileName(this.currentLog)
-                );
-            } else {
-                return new EmailRequest(
-                    FormValues.NoReplyEmailAddress,
-                    recipientEmailAddress,
-                    `${FormValues.LogYourWorkout} - ${this.currentLog.startDatim.toLocaleDateString(FormValues.ENCode, options)}`,
-                    [this.currentPDF],
-                    FormValues.EmailBody,
-                    this.currentLog.startDatim.toDateString(),
-                    this._workoutPdfService.getFileName(this.currentLog)
-                );
-            }
-        } else {
-            if (this.currentLog.title) {
-                return new EmailRequest(
-                    FormValues.NoReplyEmailAddress,
-                    recipientEmailAddress,
-                    `${this.currentLog.title} - ${this.currentLog.startDatim.toLocaleDateString(FormValues.FRCode, options)}`,
-                    [this.currentPDF],
-                    FormValues.EmailBodyFR,
-                    this.currentLog.startDatim.toDateString(),
-                    this._workoutPdfService.getFileName(this.currentLog)
-                );
-            } else {
-                return new EmailRequest(
-                    FormValues.NoReplyEmailAddress,
-                    recipientEmailAddress,
-                    `${FormValues.LogYourWorkout} - ${this.currentLog.startDatim.toLocaleDateString(FormValues.FRCode, options)}`,
-                    [this.currentPDF],
-                    FormValues.EmailBodyFR,
-                    this.currentLog.startDatim.toDateString(),
-                    this._workoutPdfService.getFileName(this.currentLog)
-                );
-            }
-        }
     }
 
     public checkForTitleValue(): void {
@@ -334,8 +185,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         });
         dialogRef.afterClosed().subscribe(result => {
             if (result) {
-                this.swalEmailSending();
-                this.emailAsPDF(result);
+                this._workoutExportService.emailPdf(result, this.buildExportContext());
             }
         });
     }
@@ -1240,44 +1090,6 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     /**
      * Sweet alert prompts.
      */
-    private swalEmailSending(): void {
-        swal({
-            title: this.t('log-entry.SendingEmail'),
-            text: this.t('log-entry.PleaseWait'),
-            icon: 'info',
-            buttons: false,
-            closeOnClickOutside: false
-        });
-    }
-
-    private swalEmailSent(): void {
-        swal({
-            title: this.t('log-entry.EmailSent'),
-            text: this.t('log-entry.EmailSentDescription'),
-            icon: 'success',
-            buttons: false,
-            timer: 1500
-        });
-    }
-
-    private swalEmailError(): void {
-        swal({
-            title: this.t('log-entry.EmailError'),
-            text: this.t('log-entry.EmailErrorDescription'),
-            icon: 'error',
-            showConfirmButton: true
-        });
-    }
-
-    private swalPDFError(): void {
-        swal({
-            title: this.t('log-entry.PdfError'),
-            text: this.t('log-entry.PdfErrorDescription'),
-            icon: 'error',
-            showConfirmButton: true
-        });
-    }
-
     private getCalendarWeekdays(): string[] {
         const formatter = new Intl.DateTimeFormat(this.currentLanguage, { weekday: 'short' });
         const sunday = new Date(2026, 0, 4);
