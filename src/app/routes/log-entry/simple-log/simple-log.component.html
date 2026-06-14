@@ -5,7 +5,7 @@
         <div class="simple-log-library__header">
           <div>
             <span>{{ 'log-entry.WorkoutHistory' | translate }}</span>
-            <strong>{{ 'log-entry.OnThisDay' | translate:{ count: getSelectedDateLogs().length } }}</strong>
+            <strong>{{ 'log-entry.OnThisDay' | translate:{ count: selectedDateLogs.length } }}</strong>
           </div>
           <div class="simple-log-library__header-actions">
             <button class="simple-log-library__toggle" type="button"
@@ -49,9 +49,9 @@
               }
             </div>
           </div>
-          @if (getSelectedDateLogs().length) {
+          @if (selectedDateLogs.length) {
             <div class="simple-log-library__list">
-              @for (log of getSelectedDateLogs(); track log.id) {
+              @for (log of selectedDateLogs; track log.id) {
                 <div
                   class="simple-log-library__item"
                   [class.simple-log-library__item--active]="currentLog?.logId?.toString() === log.id">
@@ -76,7 +76,7 @@
               }
             </div>
           }
-          @if (!getSelectedDateLogs().length) {
+          @if (!selectedDateLogs.length) {
             <div class="simple-log-library__empty-day">
               {{ 'log-entry.NoWorkoutsForDay' | translate }}
             </div>
