@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, ElementRef, QueryList } from '@angular/core';
+import { ChangeDetectorRef, ElementRef } from '@angular/core';
 import { fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, Event as RouterEvent, NavigationEnd, ParamMap, Router } from '@angular/router';
 import { BehaviorSubject, Subject } from 'rxjs';
@@ -106,17 +106,12 @@ describe('ProgramImportComponent', () => {
         dayElement.scrollIntoView = jasmine.createSpy('dayScrollIntoView');
         spyOn(dayElement, 'focus');
 
-        const weekTabs = new QueryList<ElementRef<HTMLElement>>();
-        const dayCards = new QueryList<ElementRef<HTMLElement>>();
-        weekTabs.reset([new ElementRef(weekElement)]);
-        dayCards.reset([new ElementRef(dayElement)]);
         const viewQueries = component as unknown as {
-            weekTabElements: QueryList<ElementRef<HTMLElement>>;
-            dayCardElements: QueryList<ElementRef<HTMLElement>>;
+            weekTabElements: () => readonly ElementRef<HTMLElement>[];
+            dayCardElements: () => readonly ElementRef<HTMLElement>[];
         };
-        viewQueries.weekTabElements = weekTabs;
-        viewQueries.dayCardElements = dayCards;
-        component.ngAfterViewInit();
+        viewQueries.weekTabElements = () => [new ElementRef(weekElement)];
+        viewQueries.dayCardElements = () => [new ElementRef(dayElement)];
 
         routeParams.next(convertToParamMap({
             programId: 'program-1',

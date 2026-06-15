@@ -4,6 +4,7 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
 import { TRANSLATE_HTTP_LOADER_CONFIG, TranslateHttpLoader } from '@ngx-translate/http-loader';
+import { of } from 'rxjs';
 
 import { ExerciseDialogComponent } from './exercise-dialog.component';
 import { TranslatorService } from '../../../core/translator/translator.service';
@@ -36,7 +37,8 @@ describe('ExerciseDialogComponent', () => {
         {
           provide: MatDialogRef,
           useValue: {
-            close: () => {}
+            close: () => {},
+            afterOpened: () => of(undefined)
           }
         },
         {
