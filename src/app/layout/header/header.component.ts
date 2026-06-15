@@ -12,6 +12,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router } from '@angular/router';
+import { MatMenuModule } from '@angular/material/menu';
 import { filter } from 'rxjs';
 
 import { AuthService } from '../../core/auth/auth.service';
@@ -22,10 +23,15 @@ import { UserDataSyncService } from '../../shared/services/user-data-sync.servic
 import { SettingsService } from '../../core/settings/settings.service';
 import { ThemesService } from '../../core/themes/themes.service';
 import { TranslatorService } from '../../core/translator/translator.service';
+import { SharedModule } from '../../shared/shared.module';
 
 @Component({
     selector: 'app-header',
-    standalone: false,
+    standalone: true,
+    imports: [
+        SharedModule,
+        MatMenuModule
+    ],
     templateUrl: './header.component.html',
     styleUrls: ['./header.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush

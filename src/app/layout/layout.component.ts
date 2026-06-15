@@ -4,10 +4,20 @@ import { Router } from '@angular/router';
 
 import { AppInstallService } from '../core/app-install/app-install.service';
 import { AuthService } from '../core/auth/auth.service';
+import { SharedModule } from '../shared/shared.module';
+import { HeaderComponent } from './header/header.component';
+import { OffsidebarComponent } from './offsidebar/offsidebar.component';
+import { SidebarComponent } from './sidebar/sidebar.component';
 
 @Component({
     selector: 'app-layout',
-    standalone: false,
+    standalone: true,
+    imports: [
+        SharedModule,
+        HeaderComponent,
+        SidebarComponent,
+        OffsidebarComponent
+    ],
     templateUrl: './layout.component.html',
     styleUrls: ['./layout.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush

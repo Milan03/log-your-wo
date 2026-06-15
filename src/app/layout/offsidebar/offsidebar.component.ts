@@ -4,10 +4,12 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { SettingsService } from '../../core/settings/settings.service';
 import { ThemesService } from '../../core/themes/themes.service';
 import { TranslatorService } from '../../core/translator/translator.service';
+import { SharedModule } from '../../shared/shared.module';
 
 @Component({
     selector: 'app-offsidebar',
-    standalone: false,
+    standalone: true,
+    imports: [SharedModule],
     templateUrl: './offsidebar.component.html',
     styleUrls: ['./offsidebar.component.scss']
 })
