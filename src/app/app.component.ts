@@ -8,6 +8,7 @@ import { ThemesService } from './core/themes/themes.service';
 import { TranslatorService } from './core/translator/translator.service';
 import { SeoData, SeoService } from './core/seo/seo.service';
 import { GoogleAnalyticsService } from './shared/services/google-analytics.service';
+import { SharedModule } from './shared/shared.module';
 
 /** Applied to any route that does not declare its own `data.seo`. */
 const DEFAULT_SEO: SeoData = {
@@ -22,7 +23,8 @@ const DEFAULT_SEO: SeoData = {
 
 @Component({
     selector: 'app-root',
-    standalone: false,
+    standalone: true,
+    imports: [SharedModule],
     templateUrl: './app.component.html',
     styleUrls: ['./app.component.scss']
 })

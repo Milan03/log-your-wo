@@ -1,15 +1,14 @@
 /* tslint:disable:no-unused-variable */
 
+import { provideHttpClient } from '@angular/common/http';
 import { TestBed, waitForAsync } from '@angular/core/testing';
-import { AppComponent } from './app.component';
-import { TranslateModule } from '@ngx-translate/core';
-import { TRANSLATE_HTTP_LOADER_CONFIG } from '@ngx-translate/http-loader';
+import { provideRouter } from '@angular/router';
+import { provideTranslateService } from '@ngx-translate/core';
 
-import { CoreModule } from './core/core.module';
-import { LayoutModule } from './layout/layout.module';
-import { SharedModule } from './shared/shared.module';
-import { RoutesModule } from './routes/routes.module';
-import { APP_BASE_HREF } from '@angular/common';
+import { AppComponent } from './app.component';
+import { SettingsService } from './core/settings/settings.service';
+import { ThemesService } from './core/themes/themes.service';
+import { TranslatorService } from './core/translator/translator.service';
 
 describe('App: log-your-wo', () => {
     beforeEach(() => {
@@ -17,29 +16,23 @@ describe('App: log-your-wo', () => {
         jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
 
         TestBed.configureTestingModule({
-            declarations: [
+            imports: [
                 AppComponent
             ],
-            imports: [
-                TranslateModule.forRoot(),
-                CoreModule,
-                LayoutModule,
-                SharedModule,
-                RoutesModule
-            ],
             providers: [
-                { provide: APP_BASE_HREF, useValue: '/' },
-                {
-                    provide: TRANSLATE_HTTP_LOADER_CONFIG,
-                    useValue: {}
-                }
+                provideHttpClient(),
+                provideRouter([]),
+                provideTranslateService(),
+                SettingsService,
+                ThemesService,
+                TranslatorService
             ]
         });
     });
 
     it('should create the app', waitForAsync(() => {
-        let fixture = TestBed.createComponent(AppComponent);
-        let app = fixture.debugElement.componentInstance;
+        const fixture = TestBed.createComponent(AppComponent);
+        const app = fixture.debugElement.componentInstance;
         expect(app).toBeTruthy();
     }));
 
