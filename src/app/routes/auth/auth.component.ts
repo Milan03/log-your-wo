@@ -5,6 +5,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 
 import { AuthService } from '../../core/auth/auth.service';
 import { TranslatorService } from '../../core/translator/translator.service';
+import { SharedModule } from '../../shared/shared.module';
 
 interface AuthForm {
     email: FormControl<string>;
@@ -13,7 +14,8 @@ interface AuthForm {
 
 @Component({
     selector: 'app-auth',
-    standalone: false,
+    standalone: true,
+    imports: [SharedModule],
     templateUrl: './auth.component.html',
     styleUrls: ['./auth.component.scss']
 })

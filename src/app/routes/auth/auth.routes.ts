@@ -1,9 +1,7 @@
-import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
+import { Routes } from '@angular/router';
 
-import { SharedModule } from '../../shared/shared.module';
-import { AuthComponent } from './auth.component';
 import { SeoData } from '../../core/seo/seo.service';
+import { AuthComponent } from './auth.component';
 
 const AUTH_SEO: SeoData = {
     title: 'Sign In or Register',
@@ -12,16 +10,7 @@ const AUTH_SEO: SeoData = {
     noindex: true
 };
 
-const routes: Routes = [
+export const AUTH_ROUTES: Routes = [
     { path: '', component: AuthComponent, data: { seo: AUTH_SEO } },
     { path: 'callback', component: AuthComponent, data: { callback: true, seo: { ...AUTH_SEO, path: '/auth/callback' } } }
 ];
-
-@NgModule({
-    imports: [
-        RouterModule.forChild(routes),
-        SharedModule
-    ],
-    declarations: [AuthComponent]
-})
-export class AuthModule { }

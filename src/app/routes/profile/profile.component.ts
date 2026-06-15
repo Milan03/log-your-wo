@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
     AbstractControl,
@@ -23,6 +23,7 @@ import { ProfileService } from '../../shared/services/profile.service';
 import { SharedService } from '../../shared/services/shared.service';
 import { ThemesService } from '../../core/themes/themes.service';
 import { TranslatorService } from '../../core/translator/translator.service';
+import { SharedModule } from '../../shared/shared.module';
 
 interface TrainingMaxForm {
     id: FormControl<string>;
@@ -51,7 +52,8 @@ interface ProfileForm {
 
 @Component({
     selector: 'app-profile',
-    standalone: false,
+    standalone: true,
+    imports: [SharedModule],
     templateUrl: './profile.component.html',
     styleUrls: ['./profile.component.scss']
 })
@@ -90,6 +92,7 @@ export class ProfileComponent implements OnInit {
     private loadedProfile: UserProfile;
 
     private readonly formBuilder = inject(FormBuilder);
+    private readonly changeDetector = inject(ChangeDetectorRef);
     private auth = inject(AuthService);
     private profileService = inject(ProfileService);
     private sharedService = inject(SharedService);
@@ -174,6 +177,7 @@ export class ProfileComponent implements OnInit {
                 : 'Your profile is saved on this device, but cloud sync failed. Please try again.';
         } finally {
             this.saving = false;
+            this.changeDetector.markForCheck();
         }
     }
 
