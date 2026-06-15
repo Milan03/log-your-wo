@@ -24,17 +24,17 @@ describe('ProgramImportComponent', () => {
             events: routerEvents.asObservable()
         });
         changeDetectorRef = jasmine.createSpyObj<ChangeDetectorRef>('ChangeDetectorRef', ['markForCheck']);
-        programImportService = new ProgramImportService();
-        programImportService.saveProgram(createProgram());
         TestBed.configureTestingModule({
             providers: [
-                { provide: ProgramImportService, useValue: programImportService },
+                ProgramImportService,
                 { provide: SharedService, useValue: new SharedService() },
                 { provide: Router, useValue: router },
                 { provide: ActivatedRoute, useValue: { queryParamMap: routeParams.asObservable() } },
                 { provide: ChangeDetectorRef, useValue: changeDetectorRef }
             ]
         });
+        programImportService = TestBed.inject(ProgramImportService);
+        programImportService.saveProgram(createProgram());
         component = TestBed.runInInjectionContext(() => new ProgramImportComponent());
         component.ngOnInit();
     });

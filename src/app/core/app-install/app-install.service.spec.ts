@@ -1,3 +1,5 @@
+import { TestBed } from '@angular/core/testing';
+
 import { AppInstallService } from './app-install.service';
 
 describe('AppInstallService', () => {
@@ -72,6 +74,7 @@ describe('AppInstallService', () => {
     });
 
     function createService(): void {
-        service = new AppInstallService(document);
+        TestBed.configureTestingModule({});
+        service = TestBed.inject(AppInstallService);
     }
 });

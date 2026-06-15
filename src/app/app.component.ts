@@ -30,6 +30,12 @@ const DEFAULT_SEO: SeoData = {
 })
 export class AppComponent {
     private readonly destroyRef = inject(DestroyRef);
+    public _settings = inject(SettingsService);
+    public _router = inject(Router);
+    private _activatedRoute = inject(ActivatedRoute);
+    private _seo = inject(SeoService);
+    private _googleAnalytics = inject(GoogleAnalyticsService);
+    public translator = inject(TranslatorService);
 
     @HostBinding('class.layout-fixed') get isFixed() { return this._settings.getLayoutSetting('isFixed'); };
     @HostBinding('class.aside-collapsed') get isCollapsed() { return this._settings.getLayoutSetting('isCollapsed'); };
@@ -42,17 +48,9 @@ export class AppComponent {
     @HostBinding('class.aside-toggled') get asideToggled() { return this._settings.getLayoutSetting('asideToggled'); };
     @HostBinding('class.aside-collapsed-text') get isCollapsedText() { return this._settings.getLayoutSetting('isCollapsedText'); };
 
-    constructor(
-        public _settings: SettingsService,
-        public _router: Router,
-        private _activatedRoute: ActivatedRoute,
-        private _seo: SeoService,
-        private _googleAnalytics: GoogleAnalyticsService,
-        themes: ThemesService,
-        public translator: TranslatorService
-    ) {
+    constructor() {
         // Construction applies the saved theme before routed content initializes.
-        void themes;
+        inject(ThemesService);
         this._router.events.pipe(
             filter((event): event is NavigationEnd => event instanceof NavigationEnd),
             takeUntilDestroyed(this.destroyRef)

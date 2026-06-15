@@ -6,6 +6,7 @@ import { ImportedProgram, ImportedWorkoutState } from '../models/imported-progra
 import { Exercise } from '../models/exercise.model';
 import { Duration } from 'luxon';
 import { SupabaseDataService } from './supabase-data.service';
+import { CloudSyncStatusService } from './cloud-sync-status.service';
 
 describe('ProgramImportService', () => {
     let service: ProgramImportService;
@@ -181,7 +182,7 @@ describe('ProgramImportService', () => {
         localStorage.setItem('logYourWo.importedProgram', JSON.stringify(program));
         localStorage.removeItem('logYourWo.importedPrograms');
 
-        const storedProgram = new ProgramImportService().getProgram();
+        const storedProgram = createService().getProgram();
 
         expect(storedProgram.weeks[0].days[0].exercises.map(exercise => exercise.exerciseName)).toEqual([
             'Clean + Front Squat + Jerk',
@@ -419,7 +420,7 @@ describe('ProgramImportService', () => {
             writeOrder.push('states');
         });
         cloud.savePreferences.and.resolveTo();
-        const migratingService = new ProgramImportService(cloud);
+        const migratingService = createService(cloud);
         const program = createProgram();
         migratingService.saveProgram(program);
         migratingService.saveWorkoutState({
@@ -460,7 +461,7 @@ describe('ProgramImportService', () => {
         cloud.savePrograms.and.resolveTo();
         cloud.saveWorkoutStates.and.resolveTo();
         cloud.savePreferences.and.resolveTo();
-        const syncingService = new ProgramImportService(cloud);
+        const syncingService = createService(cloud);
         syncingService.setUserContext('user-1');
         localStorage.setItem('logYourWo.user-1.importedWorkoutStates', JSON.stringify([localState]));
 
@@ -494,7 +495,7 @@ describe('ProgramImportService', () => {
         cloud.savePrograms.and.resolveTo();
         cloud.saveWorkoutStates.and.resolveTo();
         cloud.savePreferences.and.resolveTo();
-        const syncingService = new ProgramImportService(cloud);
+        const syncingService = createService(cloud);
         localStorage.setItem(
             'logYourWo.importedWorkoutStates',
             JSON.stringify([legacyState])
@@ -539,7 +540,7 @@ describe('ProgramImportService', () => {
             }
             remotePrograms = [];
         });
-        const syncingService = new ProgramImportService(cloud);
+        const syncingService = createService(cloud);
         syncingService.setUserContext('user-1');
         localStorage.setItem('logYourWo.user-1.importedPrograms', JSON.stringify([program]));
         localStorage.setItem('logYourWo.user-1.importedProgram', JSON.stringify(program));
@@ -576,7 +577,7 @@ describe('ProgramImportService', () => {
         cloud.saveWorkoutStates.and.resolveTo();
         cloud.savePreferences.and.resolveTo();
         cloud.deleteProgram.and.resolveTo();
-        const syncingService = new ProgramImportService(cloud);
+        const syncingService = createService(cloud);
         syncingService.setUserContext('user-1');
         localStorage.setItem(
             'logYourWo.user-1.importedPrograms',
@@ -600,6 +601,18 @@ describe('ProgramImportService', () => {
         );
     });
 });
+
+function createService(cloud: SupabaseDataService | null = null): ProgramImportService {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+        providers: [
+            ProgramImportService,
+            { provide: SupabaseDataService, useValue: cloud },
+            { provide: CloudSyncStatusService, useValue: null }
+        ]
+    });
+    return TestBed.inject(ProgramImportService);
+}
 
 function workoutState(completed: boolean, updatedAt?: string): ImportedWorkoutState {
     return {

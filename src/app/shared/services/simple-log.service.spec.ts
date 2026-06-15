@@ -5,6 +5,7 @@ import { Exercise } from '../models/exercise.model';
 import { SavedSimpleLog, SimpleLog } from '../models/simple-log.model';
 import { SimpleLogService } from './simple-log.service';
 import { SupabaseDataService } from './supabase-data.service';
+import { CloudSyncStatusService } from './cloud-sync-status.service';
 
 describe('SimpleLogService', () => {
     let service: SimpleLogService;
@@ -97,7 +98,7 @@ describe('SimpleLogService', () => {
         );
         cloud.getSimpleLogs.and.resolveTo([]);
         cloud.saveSimpleLogs.and.resolveTo();
-        const migratingService = new SimpleLogService(cloud);
+        const migratingService = createSyncingService(cloud);
         const log = new SimpleLog();
         log.exercises = [new Exercise()];
         migratingService.saveLog(log, '2026-06-06');
@@ -121,7 +122,7 @@ describe('SimpleLogService', () => {
         const remoteResult = deferred<SavedSimpleLog[]>();
         cloud.getSimpleLogs.and.returnValue(remoteResult.promise);
         cloud.saveSimpleLogs.and.resolveTo();
-        const syncingService = new SimpleLogService(cloud);
+        const syncingService = createSyncingService(cloud);
         syncingService.setUserContext('user-1');
 
         const sync = syncingService.syncWithCloud();
@@ -150,7 +151,7 @@ describe('SimpleLogService', () => {
             }
             remoteLogs = [];
         });
-        const syncingService = new SimpleLogService(cloud);
+        const syncingService = createSyncingService(cloud);
         syncingService.setUserContext('user-1');
         localStorage.setItem('logYourWo.user-1.simpleLogs', JSON.stringify(remoteLogs));
 
@@ -173,7 +174,7 @@ describe('SimpleLogService', () => {
         cloud.getSimpleLogs.and.returnValue(remoteResult.promise);
         cloud.saveSimpleLogs.and.resolveTo();
         cloud.deleteSimpleLog.and.resolveTo();
-        const syncingService = new SimpleLogService(cloud);
+        const syncingService = createSyncingService(cloud);
         syncingService.setUserContext('user-1');
         localStorage.setItem(
             'logYourWo.user-1.simpleLogs',
@@ -204,6 +205,17 @@ describe('SimpleLogService', () => {
         expect(hydrated.cardioExercises[0].duration.toMillis()).toBe(750000);
     });
 });
+
+function createSyncingService(cloud: SupabaseDataService): SimpleLogService {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+        providers: [
+            { provide: SupabaseDataService, useValue: cloud },
+            { provide: CloudSyncStatusService, useValue: null }
+        ]
+    });
+    return TestBed.inject(SimpleLogService);
+}
 
 function savedLog(id: string): SavedSimpleLog {
     return {

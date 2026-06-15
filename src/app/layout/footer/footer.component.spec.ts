@@ -1,6 +1,6 @@
 /* tslint:disable:no-unused-variable */
 
-import { TestBed, inject, waitForAsync } from '@angular/core/testing';
+import { TestBed } from '@angular/core/testing';
 import { FooterComponent } from './footer.component';
 
 import { SettingsService } from '../../core/settings/settings.service';
@@ -24,8 +24,8 @@ describe('Component: Footer', () => {
         }).compileComponents();
     });
 
-    it('should create an instance', waitForAsync(inject([SettingsService, TranslatorService], (settingsService, translatorService) => {
-        let component = new FooterComponent(settingsService, translatorService);
+    it('should create an instance', () => {
+        const component = TestBed.runInInjectionContext(() => new FooterComponent());
         expect(component).toBeTruthy();
-    })));
+    });
 });

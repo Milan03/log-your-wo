@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 
@@ -47,10 +47,8 @@ export class HomeComponent implements OnInit {
         }
     ];
 
-    constructor(
-        private _router: Router,
-        private _sharedService: SharedService
-    ) { }
+    private _router = inject(Router);
+    private _sharedService = inject(SharedService);
 
     public ngOnInit(): void {
         this._sharedService.emitLogType(undefined);

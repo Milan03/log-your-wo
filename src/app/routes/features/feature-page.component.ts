@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 
 import { FEATURE_CONTENT, FeatureContent } from './feature-content';
@@ -14,7 +14,7 @@ import { FEATURE_CONTENT, FeatureContent } from './feature-content';
 export class FeaturePageComponent implements OnInit {
     public content: FeatureContent;
 
-    constructor(private route: ActivatedRoute) { }
+    private route = inject(ActivatedRoute);
 
     ngOnInit(): void {
         const key = this.route.snapshot.data['featureKey'] as string;

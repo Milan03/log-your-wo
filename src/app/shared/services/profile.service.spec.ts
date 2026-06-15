@@ -1,16 +1,18 @@
+import { TestBed } from '@angular/core/testing';
 import { UserProfile } from '../models/profile.model';
 import { Subject } from 'rxjs';
 import { ThemesService } from '../../core/themes/themes.service';
 import { TranslatorService } from '../../core/translator/translator.service';
 import { ProfileService } from './profile.service';
 import { SupabaseDataService } from './supabase-data.service';
+import { CloudSyncStatusService } from './cloud-sync-status.service';
 
 describe('ProfileService', () => {
     beforeEach(() => localStorage.clear());
     afterEach(() => localStorage.clear());
 
     it('stores a guest profile in local storage without cloud access', () => {
-        const service = new ProfileService();
+        const service = createProfileService();
 
         service.saveProfile(profileWith({ firstName: 'Milan', username: 'milanlifts' }));
 
@@ -19,7 +21,7 @@ describe('ProfileService', () => {
     });
 
     it('stores and finds reusable training maxes by common exercise aliases', async () => {
-        const service = new ProfileService();
+        const service = createProfileService();
 
         await service.saveTrainingMaxes([{
             id: 'clean-jerk',
@@ -35,7 +37,7 @@ describe('ProfileService', () => {
     });
 
     it('updates an existing training max instead of duplicating its alias', async () => {
-        const service = new ProfileService();
+        const service = createProfileService();
         await service.saveTrainingMaxes([{
             id: 'clean-jerk',
             exerciseName: 'Clean & Jerk',
@@ -59,7 +61,7 @@ describe('ProfileService', () => {
             trainingMaxes: undefined
         }));
 
-        const service = new ProfileService();
+        const service = createProfileService();
 
         expect(service.profile.trainingMaxes).toEqual([]);
     });
@@ -71,7 +73,7 @@ describe('ProfileService', () => {
         );
         cloud.getProfile.and.resolveTo(undefined);
         cloud.saveProfile.and.resolveTo();
-        const service = new ProfileService(cloud);
+        const service = createProfileService({ cloud });
         service.saveProfile(profileWith({
             firstName: 'Milan',
             fitnessGoal: 'strength',
@@ -113,7 +115,7 @@ describe('ProfileService', () => {
             firstName: 'Guest',
             updatedAt: '2026-06-06T12:00:00.000Z'
         })));
-        const service = new ProfileService(cloud);
+        const service = createProfileService({ cloud });
 
         service.setUserContext('user-1');
         await service.syncWithCloud();
@@ -130,7 +132,7 @@ describe('ProfileService', () => {
         );
         cloud.getProfile.and.returnValue(remoteResult.promise);
         cloud.saveProfile.and.resolveTo();
-        const service = new ProfileService(cloud);
+        const service = createProfileService({ cloud });
         service.setUserContext('user-1');
 
         const sync = service.syncWithCloud();
@@ -159,7 +161,7 @@ describe('ProfileService', () => {
             updatedAt: '2026-06-07T12:00:00.000Z'
         }));
         cloud.saveProfile.and.resolveTo();
-        const service = new ProfileService(cloud, undefined, themes);
+        const service = createProfileService({ cloud, themes });
 
         service.setUserContext('user-1');
         await service.syncWithCloud();
@@ -174,7 +176,7 @@ describe('ProfileService', () => {
             ...profileWith({ updatedAt: '2026-06-07T12:00:00.000Z' }),
             darkMode: undefined
         }));
-        const service = new ProfileService();
+        const service = createProfileService();
 
         service.setUserContext('user-1');
 
@@ -193,7 +195,7 @@ describe('ProfileService', () => {
             { darkMode$: themeChanges.asObservable() }
         );
         cloud.saveProfile.and.resolveTo();
-        const service = new ProfileService(cloud, undefined, themes);
+        const service = createProfileService({ cloud, themes });
         service.setUserContext('user-1');
 
         themeChanges.next(true);
@@ -223,7 +225,7 @@ describe('ProfileService', () => {
             darkMode: true,
             updatedAt: '2026-06-07T12:00:00.000Z'
         })));
-        const service = new ProfileService(cloud, undefined, themes);
+        const service = createProfileService({ cloud, themes });
         service.setUserContext('user-1');
         await new Promise(resolve => setTimeout(resolve, 0));
 
@@ -249,7 +251,7 @@ describe('ProfileService', () => {
             }
         );
         cloud.saveProfile.and.resolveTo();
-        const service = new ProfileService(cloud, undefined, undefined, translator);
+        const service = createProfileService({ cloud, translator });
         service.setUserContext('user-1');
 
         languageChanges.next('fr-ca');
@@ -281,7 +283,7 @@ describe('ProfileService', () => {
             updatedAt: '2026-06-07T12:00:00.000Z'
         }));
         cloud.saveProfile.and.resolveTo();
-        const service = new ProfileService(cloud, undefined, undefined, translator);
+        const service = createProfileService({ cloud, translator });
 
         service.setUserContext('user-1');
         await service.syncWithCloud();
@@ -289,6 +291,23 @@ describe('ProfileService', () => {
         expect(translator.useLanguage).toHaveBeenCalledWith('fr-ca');
     });
 });
+
+function createProfileService(deps: {
+    cloud?: SupabaseDataService;
+    themes?: ThemesService;
+    translator?: TranslatorService;
+} = {}): ProfileService {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+        providers: [
+            { provide: SupabaseDataService, useValue: deps.cloud ?? null },
+            { provide: CloudSyncStatusService, useValue: null },
+            { provide: ThemesService, useValue: deps.themes ?? null },
+            { provide: TranslatorService, useValue: deps.translator ?? null }
+        ]
+    });
+    return TestBed.inject(ProfileService);
+}
 
 function profileWith(values: Partial<UserProfile>): UserProfile {
     return {

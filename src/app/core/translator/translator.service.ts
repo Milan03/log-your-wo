@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { BehaviorSubject, firstValueFrom } from 'rxjs';
 
@@ -11,6 +11,8 @@ export interface AvailableLanguage {
 
 @Injectable()
 export class TranslatorService {
+    public translate = inject(TranslateService);
+
     private readonly defaultLanguage: string = FormValues.ENCode;
     private readonly languageStorageKey = 'logYourWo.language';
     private readonly availableLanguages: AvailableLanguage[] = [
@@ -25,9 +27,9 @@ export class TranslatorService {
     public languageLoading$ = this.languageLoading.asObservable();
     public readonly initialized: Promise<void>;
 
-    constructor(public translate: TranslateService) {
-        if (!translate.getDefaultLang())
-            translate.setDefaultLang(this.defaultLanguage);
+    constructor() {
+        if (!this.translate.getDefaultLang())
+            this.translate.setDefaultLang(this.defaultLanguage);
 
         this.initialized = this.useLanguage(this.currentLanguage.value);
     }

@@ -1,5 +1,5 @@
 import { DOCUMENT } from '@angular/common';
-import { Inject, Injectable, OnDestroy, signal } from '@angular/core';
+import { inject, Injectable, OnDestroy, signal } from '@angular/core';
 import { fromEvent, Subscription } from 'rxjs';
 
 export type AppInstallDevice = 'android' | 'ios';
@@ -32,7 +32,8 @@ export class AppInstallService implements OnDestroy {
 
     public readonly notice = this.noticeState.asReadonly();
 
-    constructor(@Inject(DOCUMENT) document: Document) {
+    constructor() {
+        const document = inject(DOCUMENT);
         this.browserWindow = document.defaultView;
         if (!this.browserWindow) {
             return;
