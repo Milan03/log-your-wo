@@ -1,15 +1,14 @@
 import { NgClass, NgStyle, PercentPipe } from '@angular/common';
 import {
-    AfterViewInit,
     ChangeDetectorRef,
     Component,
     DestroyRef,
+    effect,
     ElementRef,
     inject,
     OnDestroy,
     OnInit,
-    QueryList,
-    ViewChildren
+    viewChildren
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
@@ -50,9 +49,18 @@ const swal = require('sweetalert');
     templateUrl: './program-import.component.html',
     styleUrls: ['./program-import.component.scss']
 })
-export class ProgramImportComponent implements OnInit, AfterViewInit, OnDestroy {
-    @ViewChildren('weekTab') private weekTabElements: QueryList<ElementRef<HTMLElement>>;
-    @ViewChildren('dayCard') private dayCardElements: QueryList<ElementRef<HTMLElement>>;
+export class ProgramImportComponent implements OnInit, OnDestroy {
+    private readonly weekTabElements = viewChildren<ElementRef<HTMLElement>>('weekTab');
+    private readonly dayCardElements = viewChildren<ElementRef<HTMLElement>>('dayCard');
+
+    // Re-run focus handling whenever the rendered week tabs or day cards change.
+    // Reading the signal queries registers this effect as a dependency, replacing
+    // the former QueryList.changes subscriptions and the initial ngAfterViewInit call.
+    private readonly focusOnQueryChange = effect(() => {
+        this.weekTabElements();
+        this.dayCardElements();
+        this.queueRequestedFocus();
+    });
 
     public program: ImportedProgram;
     public programs: ImportedProgram[] = [];
@@ -127,12 +135,6 @@ export class ProgramImportComponent implements OnInit, AfterViewInit, OnDestroy 
                 this.refreshDayCards();
             });
         }
-    }
-
-    ngAfterViewInit(): void {
-        this.weekTabElements.changes.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.queueRequestedFocus());
-        this.dayCardElements.changes.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.queueRequestedFocus());
-        this.queueRequestedFocus();
     }
 
     ngOnDestroy(): void {
@@ -550,11 +552,11 @@ export class ProgramImportComponent implements OnInit, AfterViewInit, OnDestroy 
     }
 
     private focusRequestedDay(): void {
-        if (!this.pendingFocusDayId || !this.dayCardElements) {
+        if (!this.pendingFocusDayId) {
             return;
         }
 
-        const dayElement = this.dayCardElements.find(element =>
+        const dayElement = this.dayCardElements().find(element =>
             element.nativeElement.dataset.dayId === this.pendingFocusDayId
         );
 
@@ -572,11 +574,11 @@ export class ProgramImportComponent implements OnInit, AfterViewInit, OnDestroy 
     }
 
     private focusRequestedWeek(): void {
-        if (!this.pendingFocusWeekId || !this.weekTabElements) {
+        if (!this.pendingFocusWeekId) {
             return;
         }
 
-        const weekElement = this.weekTabElements.find(element =>
+        const weekElement = this.weekTabElements().find(element =>
             element.nativeElement.dataset.weekId === this.pendingFocusWeekId
         );
 

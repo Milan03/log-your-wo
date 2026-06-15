@@ -1,6 +1,5 @@
 import { AsyncPipe } from '@angular/common';
 import {
-    AfterViewInit,
     ChangeDetectionStrategy,
     Component,
     computed,
@@ -69,7 +68,7 @@ interface ExerciseForm {
     styleUrl: './exercise-dialog.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ExerciseDialogComponent implements OnInit, AfterViewInit {
+export class ExerciseDialogComponent implements OnInit {
     private readonly strengthInputTrigger = viewChild('strExerciseName', { read: MatAutocompleteTrigger });
     private readonly cardioInputTrigger = viewChild('carExerciseName', { read: MatAutocompleteTrigger });
     private readonly strExerciseNameInput = viewChild<ElementRef<HTMLInputElement>>('strExerciseName');
@@ -123,10 +122,12 @@ export class ExerciseDialogComponent implements OnInit, AfterViewInit {
         this.currentExercise.exerciseType = this._exerciseDialogData.exerciseType;
         this.currentExercise.exerciseName = this._exerciseDialogData.exerciseName || this.currentExercise.exerciseName;
         this.setSelectedChip(this._exerciseDialogData.measure);
-    }
 
-    public ngAfterViewInit(): void {
-        this.focusInput(this.currentExercise.exerciseName);
+        // Focus the relevant input once the dialog's open animation has finished
+        // so the field is reliably present and visible before we move focus to it.
+        this._dialogRef.afterOpened().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(
+            () => this.focusInput(this.currentExercise.exerciseName)
+        );
     }
 
     public ngOnInit(): void {
@@ -240,24 +241,22 @@ export class ExerciseDialogComponent implements OnInit, AfterViewInit {
     }
 
     private focusInput(exerciseName: string) {
-        setTimeout(() => {
-            if (!exerciseName) {
-                if (this.currentExercise.exerciseType === 'strength') {
-                    this.strExerciseNameInput()?.nativeElement.focus();
-                } else if (this.currentExercise.exerciseType === 'cardio') {
-                    this.carExerciseNameInput()?.nativeElement.focus();
-                }
-            } else {
-                this.preventAutocompleteOnModalOpen();
-                setTimeout(() => {
-                    if (this.currentExercise.exerciseType === 'strength') {
-                        this.weightInput()?.nativeElement.focus();
-                    } else if (this.currentExercise.exerciseType === 'cardio') {
-                        this.distanceInput()?.nativeElement.focus();
-                    }
-                });
+        if (!exerciseName) {
+            if (this.currentExercise.exerciseType === 'strength') {
+                this.strExerciseNameInput()?.nativeElement.focus();
+            } else if (this.currentExercise.exerciseType === 'cardio') {
+                this.carExerciseNameInput()?.nativeElement.focus();
             }
-        }, 250);
+        } else {
+            this.preventAutocompleteOnModalOpen();
+            setTimeout(() => {
+                if (this.currentExercise.exerciseType === 'strength') {
+                    this.weightInput()?.nativeElement.focus();
+                } else if (this.currentExercise.exerciseType === 'cardio') {
+                    this.distanceInput()?.nativeElement.focus();
+                }
+            });
+        }
     }
 
     private localizeExerciseNames(names: string[]): LocalizedExerciseOption[] {

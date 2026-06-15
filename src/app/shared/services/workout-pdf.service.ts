@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { jsPDF, jsPDFOptions } from 'jspdf';
 
@@ -73,7 +73,7 @@ export class WorkoutPdfService {
     private readonly fontFamily = 'NotoSans';
     private fontBase64Promise: Promise<string> | undefined;
 
-    constructor(private http: HttpClient) { }
+    private readonly http = inject(HttpClient);
 
     public async create(input: WorkoutPdfData): Promise<jsPDF> {
         const data = this.normalizeData(input);
