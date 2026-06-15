@@ -1,4 +1,6 @@
+import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, EventEmitter, inject, Input, Output } from '@angular/core';
+import { TranslateModule } from '@ngx-translate/core';
 
 import { SavedSimpleLog } from '../../../shared/models/simple-log.model';
 import { TranslatorService } from '../../../core/translator/translator.service';
@@ -6,7 +8,8 @@ import { CalendarDay } from '../../../shared/services/calendar.service';
 
 @Component({
     selector: 'app-simple-log-history',
-    standalone: false,
+    standalone: true,
+    imports: [CommonModule, TranslateModule],
     templateUrl: './simple-log-history.component.html',
     styleUrls: ['./simple-log-history.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush

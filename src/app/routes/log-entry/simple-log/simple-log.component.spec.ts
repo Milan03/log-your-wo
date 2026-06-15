@@ -1,7 +1,5 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { HttpClientModule } from '@angular/common/http';
-import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatDialogModule } from '@angular/material/dialog';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
 import { TRANSLATE_HTTP_LOADER_CONFIG, TranslateHttpLoader } from '@ngx-translate/http-loader';
@@ -9,9 +7,6 @@ import { ActivatedRoute, convertToParamMap, Router } from '@angular/router';
 import { BehaviorSubject, of } from 'rxjs';
 
 import { SimpleLogComponent } from './simple-log.component';
-import { SimpleLogHistoryComponent } from '../simple-log-history/simple-log-history.component';
-import { ExerciseGroupListComponent } from '../exercise-group-list/exercise-group-list.component';
-import { SharedModule } from '../../../shared/shared.module';
 import { EmailService } from '../../../shared/services/email.service';
 import { TranslatorService } from '../../../core/translator/translator.service';
 import { ProgramImportService } from '../../../shared/services/program-import.service';
@@ -37,11 +32,9 @@ describe('SimpleLogComponent', () => {
 
     TestBed.configureTestingModule({
       imports: [
+        SimpleLogComponent,
         HttpClientModule,
-        MatCheckboxModule,
-        MatDialogModule,
         NoopAnimationsModule,
-        SharedModule,
         TranslateModule.forRoot({
           loader: {
             provide: TranslateLoader,
@@ -49,7 +42,6 @@ describe('SimpleLogComponent', () => {
           }
         })
       ],
-      declarations: [ SimpleLogComponent, SimpleLogHistoryComponent, ExerciseGroupListComponent ],
       providers: [
         EmailService,
         {

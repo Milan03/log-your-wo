@@ -49,7 +49,7 @@ function breadcrumb(slug: string, name: string): Record<string, unknown> {
 
 /**
  * Content for every public feature page. Add a new entry here (and a matching
- * route in features.module.ts plus a sitemap.xml URL) to publish a new page.
+ * route in features.routes.ts plus a sitemap.xml URL) to publish a new page.
  */
 export const FEATURE_CONTENT: Record<string, FeatureContent> = {
     'workout-tracker': {

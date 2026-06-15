@@ -1,11 +1,12 @@
 import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterModule } from '@angular/router';
 
 import { FEATURE_CONTENT, FeatureContent } from './feature-content';
 
 @Component({
     selector: 'app-feature-page',
-    standalone: false,
+    standalone: true,
+    imports: [RouterModule],
     templateUrl: './feature-page.component.html',
     styleUrls: ['./feature-page.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush

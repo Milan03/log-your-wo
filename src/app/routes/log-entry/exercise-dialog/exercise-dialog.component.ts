@@ -1,8 +1,14 @@
+import { CommonModule } from '@angular/common';
 import { AfterViewInit, Component, DestroyRef, ElementRef, inject, OnInit, ViewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
+import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { MatAutocompleteModule, MatAutocompleteTrigger } from '@angular/material/autocomplete';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { TranslateModule } from '@ngx-translate/core';
 import { Observable, map, startWith } from 'rxjs';
 
 import { Exercise, Intensity } from '../../../shared/models/exercise.model';
@@ -36,7 +42,18 @@ interface ExerciseForm {
 
 @Component({
     selector: 'exercise-dialog',
-    standalone: false,
+    standalone: true,
+    imports: [
+        CommonModule,
+        ReactiveFormsModule,
+        TranslateModule,
+        MatAutocompleteModule,
+        MatButtonToggleModule,
+        MatDialogModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatSelectModule
+    ],
     templateUrl: './exercise-dialog.component.html',
     styleUrl: './exercise-dialog.component.scss'
 })

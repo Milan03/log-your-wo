@@ -1,10 +1,21 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
+import { TranslateModule } from '@ngx-translate/core';
+
 import { SettingsService } from '../../core/settings/settings.service';
 import { TranslatorService } from '../../core/translator/translator.service';
 
 @Component({
     selector: '[app-footer]',
-    standalone: false,
+    standalone: true,
+    imports: [
+        FormsModule,
+        TranslateModule,
+        MatFormFieldModule,
+        MatSelectModule
+    ],
     templateUrl: './footer.component.html',
     styleUrls: ['./footer.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush

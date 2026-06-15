@@ -1,6 +1,7 @@
+import { CommonModule } from '@angular/common';
 import { Component, DestroyRef, HostBinding, HostListener, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, Router, NavigationEnd } from '@angular/router';
+import { ActivatedRoute, NavigationEnd, Router, RouterModule } from '@angular/router';
 import { filter } from 'rxjs/operators';
 
 import { SettingsService } from './core/settings/settings.service';
@@ -22,7 +23,8 @@ const DEFAULT_SEO: SeoData = {
 
 @Component({
     selector: 'app-root',
-    standalone: false,
+    standalone: true,
+    imports: [CommonModule, RouterModule],
     templateUrl: './app.component.html',
     styleUrls: ['./app.component.scss']
 })

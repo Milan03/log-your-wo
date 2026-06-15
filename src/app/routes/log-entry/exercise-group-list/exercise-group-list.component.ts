@@ -1,8 +1,11 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { TranslateModule } from '@ngx-translate/core';
 import { Duration } from 'luxon';
 
 import { Exercise } from '../../../shared/models/exercise.model';
 import { DistanceMeasure, WeightMeasure } from '../../../shared/models/simple-log.model';
+import { IntensityFormatPipe } from '../../../shared/pipes/format-intensity.pipe';
 
 export interface ExerciseGroup {
     exerciseName: string;
@@ -11,7 +14,12 @@ export interface ExerciseGroup {
 
 @Component({
     selector: 'app-exercise-group-list',
-    standalone: false,
+    standalone: true,
+    imports: [
+        TranslateModule,
+        IntensityFormatPipe,
+        MatCheckboxModule
+    ],
     templateUrl: './exercise-group-list.component.html',
     styleUrl: './exercise-group-list.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush

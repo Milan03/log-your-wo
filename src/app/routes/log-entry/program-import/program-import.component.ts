@@ -1,3 +1,4 @@
+import { CommonModule } from '@angular/common';
 import {
     AfterViewInit,
     ChangeDetectorRef,
@@ -11,8 +12,11 @@ import {
     ViewChildren
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { TranslateModule } from '@ngx-translate/core';
 
 import {
     ImportedProgram,
@@ -34,7 +38,13 @@ const swal = require('sweetalert');
 
 @Component({
     selector: 'app-program-import',
-    standalone: false,
+    standalone: true,
+    imports: [
+        CommonModule,
+        FormsModule,
+        TranslateModule,
+        MatProgressBarModule
+    ],
     templateUrl: './program-import.component.html',
     styleUrls: ['./program-import.component.scss']
 })

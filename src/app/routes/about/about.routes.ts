@@ -1,9 +1,7 @@
-import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
+import { Routes } from '@angular/router';
 
-import { SharedModule } from '../../shared/shared.module';
-import { AboutComponent } from './about.component';
 import { SeoData } from '../../core/seo/seo.service';
+import { AboutComponent } from './about.component';
 
 const ABOUT_SEO: SeoData = {
     title: 'About & Contact',
@@ -13,16 +11,6 @@ const ABOUT_SEO: SeoData = {
     path: '/about'
 };
 
-const routes: Routes = [
+export const ABOUT_ROUTES: Routes = [
     { path: '', component: AboutComponent, data: { seo: ABOUT_SEO } }
 ];
-
-@NgModule({
-    imports: [
-        RouterModule.forChild(routes),
-        SharedModule
-    ],
-    declarations: [AboutComponent],
-    exports: [RouterModule]
-})
-export class AboutModule { }

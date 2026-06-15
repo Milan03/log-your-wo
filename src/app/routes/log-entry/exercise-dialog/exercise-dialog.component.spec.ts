@@ -1,17 +1,11 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpClientModule } from '@angular/common/http';
-import { MatAutocompleteModule } from '@angular/material/autocomplete';
-import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
 import { TRANSLATE_HTTP_LOADER_CONFIG, TranslateHttpLoader } from '@ngx-translate/http-loader';
 
 import { ExerciseDialogComponent } from './exercise-dialog.component';
-import { SharedModule } from '../../../shared/shared.module';
 import { TranslatorService } from '../../../core/translator/translator.service';
 
 describe('ExerciseDialogComponent', () => {
@@ -21,14 +15,9 @@ describe('ExerciseDialogComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [
+        ExerciseDialogComponent,
         HttpClientModule,
-        MatAutocompleteModule,
-        MatButtonToggleModule,
-        MatFormFieldModule,
-        MatInputModule,
-        MatSelectModule,
         NoopAnimationsModule,
-        SharedModule,
         TranslateModule.forRoot({
           loader: {
             provide: TranslateLoader,
@@ -36,7 +25,6 @@ describe('ExerciseDialogComponent', () => {
           }
         })
       ],
-      declarations: [ExerciseDialogComponent],
       providers: [
         {
           provide: MAT_DIALOG_DATA,

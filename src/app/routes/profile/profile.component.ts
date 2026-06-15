@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
     AbstractControl,
@@ -6,10 +6,12 @@ import {
     FormBuilder,
     FormControl,
     FormGroup,
+    ReactiveFormsModule,
     ValidationErrors,
     Validators
 } from '@angular/forms';
 import { Router } from '@angular/router';
+import { TranslateModule } from '@ngx-translate/core';
 
 import { AuthService } from '../../core/auth/auth.service';
 import {
@@ -51,7 +53,8 @@ interface ProfileForm {
 
 @Component({
     selector: 'app-profile',
-    standalone: false,
+    standalone: true,
+    imports: [ReactiveFormsModule, TranslateModule],
     templateUrl: './profile.component.html',
     styleUrls: ['./profile.component.scss']
 })
@@ -90,6 +93,7 @@ export class ProfileComponent implements OnInit {
     private loadedProfile: UserProfile;
 
     private readonly formBuilder = inject(FormBuilder);
+    private readonly changeDetector = inject(ChangeDetectorRef);
     private auth = inject(AuthService);
     private profileService = inject(ProfileService);
     private sharedService = inject(SharedService);
@@ -174,6 +178,7 @@ export class ProfileComponent implements OnInit {
                 : 'Your profile is saved on this device, but cloud sync failed. Please try again.';
         } finally {
             this.saving = false;
+            this.changeDetector.markForCheck();
         }
     }
 

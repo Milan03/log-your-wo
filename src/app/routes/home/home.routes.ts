@@ -1,9 +1,7 @@
-import { NgModule } from '@angular/core';
-import { HomeComponent } from './home/home.component';
-import { Routes, RouterModule } from '@angular/router';
+import { Routes } from '@angular/router';
 
-import { SharedModule } from '../../shared/shared.module';
 import { SeoData } from '../../core/seo/seo.service';
+import { HomeComponent } from './home/home.component';
 
 const HOME_SEO: SeoData = {
     title: 'Free Workout Tracker, Log & Program Importer',
@@ -15,18 +13,6 @@ const HOME_SEO: SeoData = {
     path: '/'
 };
 
-const routes: Routes = [
-    { path: '', component: HomeComponent, data: { seo: HOME_SEO } },
+export const HOME_ROUTES: Routes = [
+    { path: '', component: HomeComponent, data: { seo: HOME_SEO } }
 ];
-
-@NgModule({
-    imports: [
-        RouterModule.forChild(routes),
-        SharedModule
-    ],
-    declarations: [HomeComponent],
-    exports: [
-        RouterModule
-    ]
-})
-export class HomeModule { }
