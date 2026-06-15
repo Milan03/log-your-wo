@@ -1,13 +1,9 @@
-import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
+import { Routes } from '@angular/router';
 
-import { SharedModule } from '../../shared/shared.module';
-import { FeaturePageComponent } from './feature-page.component';
 import { FEATURE_CONTENT } from './feature-content';
+import { FeaturePageComponent } from './feature-page.component';
 
-// SEO data lives next to the page content so a new feature page only needs an
-// entry in feature-content.ts and a route here (plus a sitemap.xml line).
-const routes: Routes = [
+export const FEATURE_ROUTES: Routes = [
     {
         path: 'workout-tracker',
         component: FeaturePageComponent,
@@ -35,13 +31,3 @@ const routes: Routes = [
     },
     { path: '', redirectTo: 'workout-tracker', pathMatch: 'full' }
 ];
-
-@NgModule({
-    imports: [
-        RouterModule.forChild(routes),
-        SharedModule
-    ],
-    declarations: [FeaturePageComponent],
-    exports: [RouterModule]
-})
-export class FeaturesModule { }
