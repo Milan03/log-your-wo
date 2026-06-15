@@ -16,7 +16,7 @@ export const routes: Routes = [
             { path: 'home', loadChildren: () => import('./home/home.routes').then(m => m.HOME_ROUTES) },
             { path: 'features', loadChildren: () => import('./features/features.routes').then(m => m.FEATURE_ROUTES) },
             { path: 'about', loadChildren: () => import('./about/about.routes').then(m => m.ABOUT_ROUTES) },
-            { path: 'log-entry', loadChildren: () => import('./log-entry/log-entry.module').then(m => m.LogEntryModule) },
+            { path: 'log-entry', loadChildren: () => import('./log-entry/log-entry.routes').then(m => m.LOG_ENTRY_ROUTES) },
             { path: 'profile', loadChildren: () => import('./profile/profile.routes').then(m => m.PROFILE_ROUTES) }
         ]
     },

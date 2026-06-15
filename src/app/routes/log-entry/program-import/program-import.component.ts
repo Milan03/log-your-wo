@@ -13,6 +13,7 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 
 import {
     ImportedProgram,
@@ -29,12 +30,17 @@ import { ProgramImportService } from '../../../shared/services/program-import.se
 import { ProfileService } from '../../../shared/services/profile.service';
 import { SharedService } from '../../../shared/services/shared.service';
 import { TranslatorService } from '../../../core/translator/translator.service';
+import { SharedModule } from '../../../shared/shared.module';
 
 const swal = require('sweetalert');
 
 @Component({
     selector: 'app-program-import',
-    standalone: false,
+    standalone: true,
+    imports: [
+        SharedModule,
+        MatProgressBarModule
+    ],
     templateUrl: './program-import.component.html',
     styleUrls: ['./program-import.component.scss']
 })

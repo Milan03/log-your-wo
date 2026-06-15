@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, inject, OnDestroy, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-import { MatDialog } from '@angular/material/dialog';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { ExerciseDialogComponent } from '../exercise-dialog/exercise-dialog.component';
@@ -35,6 +35,9 @@ import {
 } from '../../../shared/services/workout-export.service';
 
 import { LogTypes, FormValues } from '../../../shared/common/common.constants';
+import { SharedModule } from '../../../shared/shared.module';
+import { ExerciseGroupListComponent } from '../exercise-group-list/exercise-group-list.component';
+import { SimpleLogHistoryComponent } from '../simple-log-history/simple-log-history.component';
 
 import { Duration } from 'luxon';
 
@@ -46,7 +49,13 @@ interface SimpleLogForm {
 
 @Component({
     selector: 'app-simple-log',
-    standalone: false,
+    standalone: true,
+    imports: [
+        SharedModule,
+        MatDialogModule,
+        ExerciseGroupListComponent,
+        SimpleLogHistoryComponent
+    ],
     templateUrl: './simple-log.component.html',
     styleUrls: ['./simple-log.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush
