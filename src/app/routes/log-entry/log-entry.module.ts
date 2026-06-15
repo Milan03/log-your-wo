@@ -54,14 +54,14 @@ const routes: Routes = [
         MatFormFieldModule,
         MatInputModule,
         MatProgressBarModule,
-        MatSelectModule
-    ],
-    declarations: [
-        SimpleLogComponent,
+        MatSelectModule,
         EmailDialogComponent,
         ExerciseDialogComponent,
         ExerciseGroupListComponent,
-        SimpleLogHistoryComponent,
+        SimpleLogHistoryComponent
+    ],
+    declarations: [
+        SimpleLogComponent,
         ProgramImportComponent
     ],
     exports: [

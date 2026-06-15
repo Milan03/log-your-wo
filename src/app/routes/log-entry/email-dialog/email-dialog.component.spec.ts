@@ -1,11 +1,8 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
-import { MatButtonModule } from '@angular/material/button';
-import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatDialogRef } from '@angular/material/dialog';
 import { TranslateModule } from '@ngx-translate/core';
 
 import { EmailDialogComponent } from './email-dialog.component';
-import { SharedModule } from '../../../shared/shared.module';
 
 describe('EmailDialogComponent', () => {
   let component: EmailDialogComponent;
@@ -14,13 +11,9 @@ describe('EmailDialogComponent', () => {
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       imports: [
-        MatButtonModule,
-        MatDialogModule,
-        MatFormFieldModule,
-        SharedModule,
+        EmailDialogComponent,
         TranslateModule.forRoot()
       ],
-      declarations: [ EmailDialogComponent ],
       providers: [
         {
           provide: MatDialogRef,

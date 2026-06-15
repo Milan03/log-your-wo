@@ -3,10 +3,12 @@ import { ChangeDetectionStrategy, Component, EventEmitter, inject, Input, Output
 import { SavedSimpleLog } from '../../../shared/models/simple-log.model';
 import { TranslatorService } from '../../../core/translator/translator.service';
 import { CalendarDay } from '../../../shared/services/calendar.service';
+import { SharedModule } from '../../../shared/shared.module';
 
 @Component({
     selector: 'app-simple-log-history',
-    standalone: false,
+    standalone: true,
+    imports: [SharedModule],
     templateUrl: './simple-log-history.component.html',
     styleUrls: ['./simple-log-history.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush

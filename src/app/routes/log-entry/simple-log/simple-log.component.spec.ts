@@ -42,6 +42,8 @@ describe('SimpleLogComponent', () => {
         MatDialogModule,
         NoopAnimationsModule,
         SharedModule,
+        SimpleLogHistoryComponent,
+        ExerciseGroupListComponent,
         TranslateModule.forRoot({
           loader: {
             provide: TranslateLoader,
@@ -49,7 +51,7 @@ describe('SimpleLogComponent', () => {
           }
         })
       ],
-      declarations: [ SimpleLogComponent, SimpleLogHistoryComponent, ExerciseGroupListComponent ],
+      declarations: [SimpleLogComponent],
       providers: [
         EmailService,
         {
