@@ -1,4 +1,4 @@
-import { Injectable, Optional } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { Duration } from 'luxon';
 
@@ -36,10 +36,8 @@ export class ProgramImportService {
     public program$ = this.programSource.asObservable();
     public programs$ = this.programsSource.asObservable();
 
-    constructor(
-        private cloudData?: SupabaseDataService,
-        @Optional() private syncStatus?: CloudSyncStatusService
-    ) { }
+    private cloudData = inject(SupabaseDataService, { optional: true });
+    private syncStatus = inject(CloudSyncStatusService, { optional: true });
 
     public setUserContext(userId: string): void {
         this.activeUserId = userId;

@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
@@ -11,9 +11,7 @@ import { environment } from 'src/environments/environment';
 export class EmailService {
     private readonly sendMailAppend: string = 'sendmail';
 
-    constructor(
-        private _http: HttpClient
-    ) { }
+    private _http = inject(HttpClient);
 
     public sendMail(body: EmailRequest): Observable<string> {
         const reqHeader = new HttpHeaders({ 'Content-Type': 'application/json' });

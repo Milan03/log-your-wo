@@ -1,4 +1,4 @@
-import { Injectable, Optional } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { Duration } from 'luxon';
 
@@ -24,10 +24,8 @@ export class SimpleLogService {
 
     public readonly logs$ = this.logsSource.asObservable();
 
-    constructor(
-        private cloudData: SupabaseDataService,
-        @Optional() private syncStatus?: CloudSyncStatusService
-    ) { }
+    private cloudData = inject(SupabaseDataService);
+    private syncStatus = inject(CloudSyncStatusService, { optional: true });
 
     public setUserContext(userId: string): void {
         this.activeUserId = userId;

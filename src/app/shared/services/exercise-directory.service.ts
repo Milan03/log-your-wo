@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
@@ -21,7 +21,7 @@ export interface ExerciseDirectory {
 })
 export class ExerciseDirectoryService {
 
-    constructor(private http: HttpClient) { }
+    private http = inject(HttpClient);
 
     public getExercises(): Observable<ExerciseDirectory> {
         return this.http.get<ExerciseDirectory>('/assets/exercises.json');

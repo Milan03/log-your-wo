@@ -1,4 +1,4 @@
-import { Injectable, OnDestroy, Optional } from '@angular/core';
+import { inject, Injectable, OnDestroy } from '@angular/core';
 import { BehaviorSubject, Subscription } from 'rxjs';
 
 import { createDefaultProfile, PreferredLanguage, TrainingMax, UserProfile } from '../models/profile.model';
@@ -11,6 +11,11 @@ import { CloudSyncStatusService } from './cloud-sync-status.service';
     providedIn: 'root'
 })
 export class ProfileService implements OnDestroy {
+    private cloudData = inject(SupabaseDataService, { optional: true });
+    private syncStatus = inject(CloudSyncStatusService, { optional: true });
+    private themes = inject(ThemesService, { optional: true });
+    private translator = inject(TranslatorService, { optional: true });
+
     private readonly guestStorageKey = 'logYourWo.profile';
     private activeUserId: string;
     private applyingProfileTheme = false;
@@ -21,12 +26,7 @@ export class ProfileService implements OnDestroy {
 
     public readonly profile$ = this.profileSource.asObservable();
 
-    constructor(
-        private cloudData?: SupabaseDataService,
-        @Optional() private syncStatus?: CloudSyncStatusService,
-        @Optional() private themes?: ThemesService,
-        @Optional() private translator?: TranslatorService
-    ) {
+    constructor() {
         this.applyProfilePreferences(this.profile);
         this.themeSubscription = this.themes?.darkMode$?.subscribe(enabled => {
             this.persistDarkModePreference(enabled);

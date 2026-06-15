@@ -1,5 +1,5 @@
 import { DOCUMENT } from '@angular/common';
-import { Inject, Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { Meta, Title } from '@angular/platform-browser';
 
 /**
@@ -33,11 +33,9 @@ export class SeoService {
     private static readonly DEFAULT_IMAGE = '/assets/img/log-your-wo-logo-single.png';
     private static readonly JSON_LD_ID = 'seo-page-jsonld';
 
-    constructor(
-        private readonly title: Title,
-        private readonly meta: Meta,
-        @Inject(DOCUMENT) private readonly document: Document
-    ) { }
+    private readonly title = inject(Title);
+    private readonly meta = inject(Meta);
+    private readonly document = inject(DOCUMENT);
 
     /** Apply a full set of metadata for the current page. */
     public update(data: SeoData): void {

@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 
 import { ImportedProgram, ImportedWorkoutState } from '../models/imported-program.model';
 import { SavedSimpleLog } from '../models/simple-log.model';
@@ -14,7 +14,7 @@ export interface UserPreferences {
     providedIn: 'root'
 })
 export class SupabaseDataService {
-    constructor(private supabase: SupabaseClientService) { }
+    private supabase = inject(SupabaseClientService);
 
     public async getSimpleLogs(userId: string): Promise<SavedSimpleLog[]> {
         const { data, error } = await this.supabase.client

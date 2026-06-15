@@ -1,4 +1,4 @@
-import { Injectable, OnDestroy, Signal } from '@angular/core';
+import { inject, Injectable, OnDestroy, Signal } from '@angular/core';
 import { fromEvent, Subscription } from 'rxjs';
 
 import { AuthService } from '../../core/auth/auth.service';
@@ -11,6 +11,11 @@ import { CloudSyncStatusService } from './cloud-sync-status.service';
     providedIn: 'root'
 })
 export class UserDataSyncService implements OnDestroy {
+    private simpleLogs = inject(SimpleLogService);
+    private programs = inject(ProgramImportService);
+    private profile = inject(ProfileService);
+    private syncStatus = inject(CloudSyncStatusService);
+
     private initializedUserId: string;
     private initializingUserId: string;
     private initializationPromise: Promise<void>;
@@ -22,13 +27,8 @@ export class UserDataSyncService implements OnDestroy {
         return this.syncStatus.error;
     }
 
-    constructor(
-        auth: AuthService,
-        private simpleLogs: SimpleLogService,
-        private programs: ProgramImportService,
-        private profile: ProfileService,
-        private syncStatus: CloudSyncStatusService
-    ) {
+    constructor() {
+        const auth = inject(AuthService);
         this.sessionSubscription = auth.session$.subscribe(session => {
             if (session) {
                 this.currentUserId = session.user.id;

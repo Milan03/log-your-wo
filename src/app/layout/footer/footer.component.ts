@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
@@ -21,13 +21,13 @@ import { TranslatorService } from '../../core/translator/translator.service';
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class FooterComponent {
+    public _settings = inject(SettingsService);
+    public _translatorService = inject(TranslatorService);
+
     public selectedLanguage: string;
     public readonly languages = this._translatorService.getAvailableLanguages();
 
-    constructor(
-        public _settings: SettingsService,
-        public _translatorService: TranslatorService
-    ) {
+    constructor() {
         this.selectedLanguage = this._translatorService.language;
     }
 
