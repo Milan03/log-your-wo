@@ -5,7 +5,7 @@
       <span>{{ 'global.LogYourWorkout' | translate }}</span>
     </div>
 
-    @if (callbackPending) {
+    @if (callbackPending()) {
       <div class="auth-shell__callback" role="status" aria-live="polite">
         <div class="spinner-border text-primary" aria-hidden="true"></div>
         <h1 id="auth-title">{{ 'auth.FinishingSignIn' | translate }}</h1>
@@ -14,22 +14,22 @@
     } @else {
       <div class="auth-shell__heading">
         <span class="auth-shell__eyebrow">{{ 'auth.Eyebrow' | translate }}</span>
-        <h1 id="auth-title">{{ (mode === 'login' ? 'auth.WelcomeBack' : 'auth.RegisterTitle') | translate }}</h1>
+        <h1 id="auth-title">{{ (mode() === 'login' ? 'auth.WelcomeBack' : 'auth.RegisterTitle') | translate }}</h1>
         <p>
-          {{ (mode === 'login' ? 'auth.LoginDescription' : 'auth.RegisterDescription') | translate }}
+          {{ (mode() === 'login' ? 'auth.LoginDescription' : 'auth.RegisterDescription') | translate }}
         </p>
       </div>
       <div class="auth-tabs" [attr.aria-label]="'auth.AccountAction' | translate">
-        <button class="auth-tabs__button" type="button" [attr.aria-pressed]="mode === 'login'"
-          [class.auth-tabs__button--active]="mode === 'login'" (click)="setMode('login')">
+        <button class="auth-tabs__button" type="button" [attr.aria-pressed]="mode() === 'login'"
+          [class.auth-tabs__button--active]="mode() === 'login'" (click)="setMode('login')">
           {{ 'auth.SignIn' | translate }}
         </button>
-        <button class="auth-tabs__button" type="button" [attr.aria-pressed]="mode === 'register'"
-          [class.auth-tabs__button--active]="mode === 'register'" (click)="setMode('register')">
+        <button class="auth-tabs__button" type="button" [attr.aria-pressed]="mode() === 'register'"
+          [class.auth-tabs__button--active]="mode() === 'register'" (click)="setMode('register')">
           {{ 'auth.Register' | translate }}
         </button>
       </div>
-      <button class="auth-shell__google" type="button" [disabled]="busy" (click)="continueWithGoogle()">
+      <button class="auth-shell__google" type="button" [disabled]="busy()" (click)="continueWithGoogle()">
         <span aria-hidden="true">G</span>
         {{ 'auth.ContinueGoogle' | translate }}
       </button>
@@ -49,29 +49,29 @@
           <div class="form-group">
             <label for="auth-password">{{ 'auth.Password' | translate }}</label>
             <input id="auth-password" class="form-control" type="password" formControlName="password"
-              [autocomplete]="mode === 'login' ? 'current-password' : 'new-password'"
+              [autocomplete]="mode() === 'login' ? 'current-password' : 'new-password'"
               aria-describedby="auth-password-help auth-password-error"
               [attr.aria-invalid]="form.get('password').invalid && form.get('password').touched">
-              @if (mode === 'register') {
+              @if (mode() === 'register') {
                 <small id="auth-password-help" class="form-text text-muted">{{ 'auth.PasswordHelp' | translate }}</small>
               }
               @if (form.get('password').invalid && form.get('password').touched) {
                 <small id="auth-password-error" class="text-danger">
-                  {{ (mode === 'register' ? 'auth.PasswordRegisterInvalid' : 'auth.PasswordLoginInvalid') | translate }}
+                  {{ (mode() === 'register' ? 'auth.PasswordRegisterInvalid' : 'auth.PasswordLoginInvalid') | translate }}
                 </small>
               }
             </div>
-            @if (errorMessage) {
-              <div class="auth-message auth-message--error" role="alert">{{ errorMessage }}</div>
+            @if (errorMessage()) {
+              <div class="auth-message auth-message--error" role="alert">{{ errorMessage() }}</div>
             }
-            @if (successMessage) {
-              <div class="auth-message auth-message--success" role="status">{{ successMessage }}</div>
+            @if (successMessage()) {
+              <div class="auth-message auth-message--success" role="status">{{ successMessage() }}</div>
             }
-            <button class="btn btn-primary btn-block auth-shell__submit" type="submit" [disabled]="busy">
-              @if (busy) {
+            <button class="btn btn-primary btn-block auth-shell__submit" type="submit" [disabled]="busy()">
+              @if (busy()) {
                 <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
               }
-              {{ (mode === 'login' ? 'auth.SignIn' : 'auth.CreateAccount') | translate }}
+              {{ (mode() === 'login' ? 'auth.SignIn' : 'auth.CreateAccount') | translate }}
             </button>
           </form>
           <div class="auth-shell__guest">

@@ -1,4 +1,4 @@
-import { Component, DestroyRef, ElementRef, HostListener, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, HostListener, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
@@ -12,7 +12,8 @@ import { TranslatorService } from '../../core/translator/translator.service';
     standalone: true,
     imports: [FormsModule, TranslateModule],
     templateUrl: './offsidebar.component.html',
-    styleUrls: ['./offsidebar.component.scss']
+    styleUrls: ['./offsidebar.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class OffsidebarComponent implements OnInit {
     private readonly destroyRef = inject(DestroyRef);
@@ -21,19 +22,15 @@ export class OffsidebarComponent implements OnInit {
     public readonly translator = inject(TranslatorService);
     public readonly elem = inject<ElementRef<HTMLElement>>(ElementRef);
     public readonly languages = this.translator.getAvailableLanguages();
-    public selectedLanguage: string;
+    public readonly selectedLanguage = signal<string>(this.translator.language);
 
     public get darkMode(): boolean {
         return this.themes.darkMode();
     }
 
-    constructor() {
-        this.selectedLanguage = this.translator.language;
-    }
-
     public ngOnInit(): void {
         this.translator.languageChangeEmitted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(language => {
-            this.selectedLanguage = language;
+            this.selectedLanguage.set(language);
         });
     }
 

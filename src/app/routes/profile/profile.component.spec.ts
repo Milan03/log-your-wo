@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, signal } from '@angular/core';
+import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { FormBuilder } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -19,7 +19,6 @@ describe('ProfileComponent', () => {
         TestBed.configureTestingModule({
             providers: [
                 FormBuilder,
-                { provide: ChangeDetectorRef, useValue: jasmine.createSpyObj('ChangeDetectorRef', ['markForCheck']) },
                 { provide: AuthService, useValue: jasmine.createSpyObj('AuthService', [], { session$: { subscribe: () => undefined } }) },
                 {
                     provide: ProfileService,
@@ -84,17 +83,15 @@ describe('ProfileComponent', () => {
         );
     });
 
-    it('refreshes the view when saving finishes', async () => {
+    it('reflects saved state when saving finishes', async () => {
         const component = createComponent();
         const profileService = (component as any).profileService;
-        const changeDetector = (component as any).changeDetector;
         profileService.saveProfile.and.resolveTo();
 
         await component.save();
 
-        expect(component.saving).toBeFalse();
-        expect(component.saved).toBeTrue();
-        expect(changeDetector.markForCheck).toHaveBeenCalled();
+        expect(component.saving()).toBeFalse();
+        expect(component.saved()).toBeTrue();
     });
 
     it('includes concise training max rows when saving the profile', async () => {

@@ -112,7 +112,7 @@
         </mat-form-field>
         <mat-form-field appearance="outline" subscriptSizing="dynamic">
           <mat-select formControlName="intensity">
-            @for (intensity of intensities; track intensity.value) {
+            @for (intensity of intensities(); track intensity.value) {
               <mat-option [value]="intensity.value">
                 {{ intensity.viewValue }}
               </mat-option>

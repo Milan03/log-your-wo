@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -17,15 +17,16 @@ interface AuthForm {
     standalone: true,
     imports: [ReactiveFormsModule, TranslateModule],
     templateUrl: './auth.component.html',
-    styleUrls: ['./auth.component.scss']
+    styleUrls: ['./auth.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AuthComponent implements OnInit {
     public form: FormGroup<AuthForm>;
-    public mode: 'login' | 'register' = 'login';
-    public busy = false;
-    public callbackPending = false;
-    public errorMessage = '';
-    public successMessage = '';
+    public readonly mode = signal<'login' | 'register'>('login');
+    public readonly busy = signal(false);
+    public readonly callbackPending = signal(false);
+    public readonly errorMessage = signal('');
+    public readonly successMessage = signal('');
 
     private readonly destroyRef = inject(DestroyRef);
     private returnUrl = '/home';
@@ -44,9 +45,9 @@ export class AuthComponent implements OnInit {
     }
 
     public ngOnInit(): void {
-        this.callbackPending = !!this.route.snapshot.data.callback;
+        this.callbackPending.set(!!this.route.snapshot.data.callback);
         this.returnUrl = this.safeReturnUrl(this.route.snapshot.queryParamMap.get('returnUrl'));
-        if (this.callbackPending) {
+        if (this.callbackPending()) {
             this.returnUrl = this.safeReturnUrl(sessionStorage.getItem('logYourWo.authReturnUrl'));
         }
         this.auth.session$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(session => {
@@ -59,9 +60,9 @@ export class AuthComponent implements OnInit {
     }
 
     public setMode(mode: 'login' | 'register'): void {
-        this.mode = mode;
-        this.errorMessage = '';
-        this.successMessage = '';
+        this.mode.set(mode);
+        this.errorMessage.set('');
+        this.successMessage.set('');
         const password = this.form.get('password');
         password.setValidators(mode === 'register'
             ? [Validators.required, Validators.minLength(8)]
@@ -72,20 +73,20 @@ export class AuthComponent implements OnInit {
     public async submit(): Promise<void> {
         this.form.markAllAsTouched();
 
-        if (this.form.invalid || this.busy) {
+        if (this.form.invalid || this.busy()) {
             return;
         }
 
-        this.busy = true;
-        this.errorMessage = '';
-        this.successMessage = '';
+        this.busy.set(true);
+        this.errorMessage.set('');
+        this.successMessage.set('');
         const { email, password } = this.form.getRawValue();
 
         try {
-            if (this.mode === 'register') {
+            if (this.mode() === 'register') {
                 const result = await this.auth.register(email, password);
                 if (result.confirmationRequired) {
-                    this.successMessage = this.t('auth.ConfirmationRequired');
+                    this.successMessage.set(this.t('auth.ConfirmationRequired'));
                     this.form.get('password').reset();
                 } else {
                     await this.router.navigateByUrl(this.returnUrl);
@@ -95,26 +96,26 @@ export class AuthComponent implements OnInit {
                 await this.router.navigateByUrl(this.returnUrl);
             }
         } catch (error) {
-            this.errorMessage = this.authErrorMessage(error);
+            this.errorMessage.set(this.authErrorMessage(error));
         } finally {
-            this.busy = false;
+            this.busy.set(false);
         }
     }
 
     public async continueWithGoogle(): Promise<void> {
-        if (this.busy) {
+        if (this.busy()) {
             return;
         }
 
-        this.busy = true;
-        this.errorMessage = '';
+        this.busy.set(true);
+        this.errorMessage.set('');
 
         try {
             sessionStorage.setItem('logYourWo.authReturnUrl', this.returnUrl);
             await this.auth.signInWithGoogle();
         } catch (error) {
-            this.errorMessage = this.authErrorMessage(error);
-            this.busy = false;
+            this.errorMessage.set(this.authErrorMessage(error));
+            this.busy.set(false);
         }
     }
 
@@ -127,9 +128,9 @@ export class AuthComponent implements OnInit {
             const session = await this.auth.getSession();
 
             if (!session) {
-                if (this.callbackPending) {
-                    this.callbackPending = false;
-                    this.errorMessage = this.t('auth.InvalidLink');
+                if (this.callbackPending()) {
+                    this.callbackPending.set(false);
+                    this.errorMessage.set(this.t('auth.InvalidLink'));
                 }
                 return;
             }
@@ -137,8 +138,8 @@ export class AuthComponent implements OnInit {
             sessionStorage.removeItem('logYourWo.authReturnUrl');
             await this.router.navigateByUrl(this.returnUrl);
         } catch (error) {
-            this.callbackPending = false;
-            this.errorMessage = this.authErrorMessage(error);
+            this.callbackPending.set(false);
+            this.errorMessage.set(this.authErrorMessage(error));
         }
     }
 

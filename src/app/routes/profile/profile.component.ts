@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
     AbstractControl,
@@ -56,17 +56,18 @@ interface ProfileForm {
     standalone: true,
     imports: [ReactiveFormsModule, TranslateModule],
     templateUrl: './profile.component.html',
-    styleUrls: ['./profile.component.scss']
+    styleUrls: ['./profile.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ProfileComponent implements OnInit {
     public form: FormGroup<ProfileForm>;
-    public signedIn = false;
-    public email = '';
-    public saved = false;
-    public saveError = '';
-    public saving = false;
+    public readonly signedIn = signal(false);
+    public readonly email = signal('');
+    public readonly saved = signal(false);
+    public readonly saveError = signal('');
+    public readonly saving = signal(false);
     public readonly today = this.localDateValue(new Date());
-    public preferredTraining: string[] = [];
+    public readonly preferredTraining = signal<string[]>([]);
     public readonly trainingOptions = [
         'Strength',
         'Olympic lifting',
@@ -93,7 +94,6 @@ export class ProfileComponent implements OnInit {
     private loadedProfile: UserProfile;
 
     private readonly formBuilder = inject(FormBuilder);
-    private readonly changeDetector = inject(ChangeDetectorRef);
     private auth = inject(AuthService);
     private profileService = inject(ProfileService);
     private sharedService = inject(SharedService);
@@ -131,22 +131,22 @@ export class ProfileComponent implements OnInit {
         this.sharedService.emitLogType(undefined);
         this.profileService.profile$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(profile => this.loadProfile(profile));
         this.auth.session$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(session => {
-            this.signedIn = !!session;
-            this.email = session && session.user ? session.user.email || '' : '';
+            this.signedIn.set(!!session);
+            this.email.set(session && session.user ? session.user.email || '' : '');
         });
-        this.form.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.saved = false);
+        this.form.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.saved.set(false));
     }
 
     public toggleTraining(option: string): void {
-        this.saved = false;
-        this.saveError = '';
-        this.preferredTraining = this.preferredTraining.includes(option)
-            ? this.preferredTraining.filter(value => value !== option)
-            : [...this.preferredTraining, option];
+        this.saved.set(false);
+        this.saveError.set('');
+        this.preferredTraining.update(current => current.includes(option)
+            ? current.filter(value => value !== option)
+            : [...current, option]);
     }
 
     public isTrainingSelected(option: string): boolean {
-        return this.preferredTraining.includes(option);
+        return this.preferredTraining().includes(option);
     }
 
     public async save(): Promise<void> {
@@ -156,9 +156,9 @@ export class ProfileComponent implements OnInit {
             return;
         }
 
-        this.saving = true;
-        this.saved = false;
-        this.saveError = '';
+        this.saving.set(true);
+        this.saved.set(false);
+        this.saveError.set('');
 
         try {
             const formValue = this.form.getRawValue();
@@ -168,17 +168,16 @@ export class ProfileComponent implements OnInit {
                 trainingMaxes: this.trainingMaxes.controls
                     .map(control => this.toTrainingMax(control.getRawValue()))
                     .filter((trainingMax): trainingMax is TrainingMax => !!trainingMax),
-                preferredTraining: this.preferredTraining,
+                preferredTraining: this.preferredTraining(),
                 darkMode: this.darkMode
             });
-            this.saved = true;
+            this.saved.set(true);
         } catch {
-            this.saveError = this.translator
+            this.saveError.set(this.translator
                 ? this.translator.translate.instant('profile.SyncError')
-                : 'Your profile is saved on this device, but cloud sync failed. Please try again.';
+                : 'Your profile is saved on this device, but cloud sync failed. Please try again.');
         } finally {
-            this.saving = false;
-            this.changeDetector.markForCheck();
+            this.saving.set(false);
         }
     }
 
@@ -208,12 +207,12 @@ export class ProfileComponent implements OnInit {
 
     public addTrainingMax(trainingMax?: Partial<TrainingMax>): void {
         this.trainingMaxes.push(this.createTrainingMaxForm(trainingMax));
-        this.saved = false;
+        this.saved.set(false);
     }
 
     public removeTrainingMax(index: number): void {
         this.trainingMaxes.removeAt(index);
-        this.saved = false;
+        this.saved.set(false);
     }
 
     public changeUnitSystemFromEvent(event: Event): void {
@@ -280,9 +279,9 @@ export class ProfileComponent implements OnInit {
         (trainingMaxes || []).forEach(trainingMax => {
             this.trainingMaxes.push(this.createTrainingMaxForm(trainingMax), { emitEvent: false });
         });
-        this.preferredTraining = profile && profile.preferredTraining
+        this.preferredTraining.set(profile && profile.preferredTraining
             ? [...profile.preferredTraining]
-            : [];
+            : []);
     }
 
     private isPreferenceOnlyUpdate(previous: UserProfile, current: UserProfile): boolean {
