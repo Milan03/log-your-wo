@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, signal, WritableSignal } from '@angular/core';
+import { signal, WritableSignal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { NavigationEnd, Router } from '@angular/router';
 import { Session } from '@supabase/supabase-js';
@@ -17,7 +17,6 @@ import { HeaderComponent } from './header.component';
 
 describe('HeaderComponent', () => {
     let authSession: BehaviorSubject<Session | null>;
-    let changeDetector: jasmine.SpyObj<ChangeDetectorRef>;
     let profile: BehaviorSubject<UserProfile>;
     let router: jasmine.SpyObj<Router>;
     let routerEvents: Subject<NavigationEnd>;
@@ -30,7 +29,6 @@ describe('HeaderComponent', () => {
         routerEvents = new Subject<NavigationEnd>();
         syncError = signal('');
         language = new BehaviorSubject(FormValues.ENCode);
-        changeDetector = jasmine.createSpyObj<ChangeDetectorRef>('ChangeDetectorRef', ['markForCheck']);
         router = jasmine.createSpyObj<Router>('Router', ['navigate'], {
             events: routerEvents.asObservable(),
             url: '/home'
@@ -42,7 +40,6 @@ describe('HeaderComponent', () => {
                 SettingsService,
                 SharedService,
                 ThemesService,
-                { provide: ChangeDetectorRef, useValue: changeDetector },
                 { provide: Router, useValue: router },
                 { provide: AuthService, useValue: { session$: authSession.asObservable(), signOut: () => Promise.resolve() } },
                 {
@@ -98,9 +95,8 @@ describe('HeaderComponent', () => {
         shared.emitLogStartDatim(startDate);
         language.next(FormValues.FRCode);
 
-        expect(component.currentLogType).toBe(LogTypes.SimpleLogFR);
-        expect(component.logStartDatim).toBe(startDate);
-        expect(changeDetector.markForCheck).toHaveBeenCalled();
+        expect(component.currentLogType()).toBe(LogTypes.SimpleLogFR);
+        expect(component.logStartDatim()).toBe(startDate);
     });
 
     it('updates route actions and sync warnings from observable state', () => {
@@ -109,7 +105,7 @@ describe('HeaderComponent', () => {
         routerEvents.next(new NavigationEnd(1, '/home', '/log-entry/simple-log'));
         syncError.set('Offline');
 
-        expect(component.showLogActions).toBeTrue();
+        expect(component.showLogActions()).toBeTrue();
         expect(component.syncError()).toBe('Offline');
     });
 

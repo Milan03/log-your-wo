@@ -38,11 +38,11 @@
     </li>
     <!-- END Offsidebar menu END -->
 </ul>
-@if (showLogActions && currentLogType) {
+@if (showLogActions() && currentLogType()) {
   <ul class="navbar-nav mr-auto flex-row">
     <li class="nav-item d-none d-md-block">
       <div id="log-header" class="nav-link">
-        <span>{{ currentLogType }} - {{ logStartDatim | date:'MM/dd/yyyy h:mm a' }}</span>
+        <span>{{ currentLogType() }} - {{ logStartDatim() | date:'MM/dd/yyyy h:mm a' }}</span>
       </div>
     </li>
   </ul>
@@ -59,16 +59,16 @@
   }
   <li class="nav-item header-account-menu">
     <button class="nav-link header-account" type="button" [matMenuTriggerFor]="accountMenu"
-      [attr.aria-label]="'layout.OpenAccountMenu' | translate:{ name: accountLabel }">
-      <span class="header-account__avatar" aria-hidden="true">{{ accountLabel.charAt(0) | uppercase }}</span>
-      <span class="header-account__name d-none d-sm-inline">{{ accountLabel }}</span>
-      @if (!signedIn) {
+      [attr.aria-label]="'layout.OpenAccountMenu' | translate:{ name: accountLabel() }">
+      <span class="header-account__avatar" aria-hidden="true">{{ accountLabel().charAt(0) | uppercase }}</span>
+      <span class="header-account__name d-none d-sm-inline">{{ accountLabel() }}</span>
+      @if (!signedIn()) {
         <span class="header-account__local d-none d-lg-inline">{{ 'global.Local' | translate }}</span>
       }
       <em class="fas fa-chevron-down header-account__chevron" aria-hidden="true"></em>
     </button>
     <mat-menu #accountMenu="matMenu" xPosition="before">
-      @if (!signedIn) {
+      @if (!signedIn()) {
         <button mat-menu-item type="button" (click)="openSignIn()">
           <em class="icon-login header-menu-icon" aria-hidden="true"></em>
           <span>{{ 'global.SignInOrRegister' | translate }}</span>
@@ -87,7 +87,7 @@
           <em class="fas fa-check header-menu-check" aria-hidden="true"></em>
         }
       </button>
-      @if (signedIn) {
+      @if (signedIn()) {
         <button mat-menu-item type="button" (click)="signOut()">
           <em class="icon-logout header-menu-icon" aria-hidden="true"></em>
           <span>{{ 'global.LogOut' | translate }}</span>
@@ -96,7 +96,7 @@
     </mat-menu>
   </li>
   <!-- START Add Exercise Buttons START -->
-  @if (showLogActions) {
+  @if (showLogActions()) {
     <li class="nav-item">
       <div id="add-exercise-label">{{ 'log-entry.AddExercise' | translate }}</div>
       <div id="exercise-btns">
