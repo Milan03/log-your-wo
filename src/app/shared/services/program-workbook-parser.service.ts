@@ -7,13 +7,15 @@ import {
     ImportedProgramExercise,
     ImportedProgramWeek,
     ProgramImportPreview,
-    WorkbookExerciseCalculation,
-    WorkbookFormulaSegment,
-    WorkbookImportInput,
-    WorkbookImportSetup
+    WorkbookExerciseCalculation
 } from '../models/imported-program.model';
 import { parseHatchSquatWorkbook } from './program-workbook-parsers/hatch-squat-workbook.parser';
 import { parsePendlayWorkbook } from './program-workbook-parsers/pendlay-workbook.parser';
+import {
+    ProgramWorkbookFormulaHelper,
+    WorkbookCalculationOutput as CalculationOutput,
+    WorkbookFormulaSource as FormulaSource
+} from './program-workbook-parsers/program-workbook-formula.helper';
 import {
     NormalizedWorkbookCell as NormalizedCell,
     NormalizedWorkbookSheet as NormalizedSheet,
@@ -32,7 +34,6 @@ import {
 import {
     buildWorkbookPrescription,
     cleanWorkbookExerciseName,
-    clearWorkbookCalculatedFields,
     countWorkbookExercises,
     createWorkbookProgramDay,
     createWorkbookProgramExercise,
@@ -42,8 +43,6 @@ import {
     maximumWorkbookColumn,
     normalizeWorkbookText,
     numberFromWorkbookLabel,
-    parseWorkbookPrescription,
-    workbookExerciseCalculations,
     workbookSheetWeekName
 } from './program-workbook-parsers/program-workbook-program.mapper';
 
@@ -61,13 +60,6 @@ interface HeaderMap {
     notes?: number;
 }
 
-type CalculationOutput = WorkbookExerciseCalculation['output'];
-
-interface FormulaSource {
-    cell: NormalizedCell;
-    output: CalculationOutput;
-}
-
 @Injectable({
     providedIn: 'root'
 })
@@ -80,9 +72,7 @@ export class ProgramWorkbookParserService {
         maximumCellsPerSheet: 250000,
         maximumMergedCellsPerSheet: 50000
     };
-    private inputByReference = new Map<string, WorkbookImportInput>();
-    private unknownFormulaAddresses = new Set<string>();
-    private sheetNames = new Map<string, string>();
+    private readonly formulaHelper = new ProgramWorkbookFormulaHelper();
 
     public parse(data: ArrayBuffer, fileName: string): ProgramImportPreview {
         let workbook: XLSX.WorkBook;
@@ -118,15 +108,12 @@ export class ProgramWorkbookParserService {
             );
         }
 
-        this.sheetNames = new Map(sheets.map(sheet => [sheet.name.toLowerCase(), sheet.name]));
-        const setup = this.detectSetup(sheets);
-        this.inputByReference = new Map(setup.inputs.map(input => [input.id, input]));
-        this.unknownFormulaAddresses.clear();
+        const setup = this.formulaHelper.prepareForSheets(sheets);
         const results = [
             parseHatchSquatWorkbook(sheets),
             parsePendlayWorkbook(
                 sheets,
-                (cell, sheetName) => this.calculationFromCell(cell, sheetName, 'weight')
+                (cell, sheetName) => this.formulaHelper.calculationFromCell(cell, sheetName, 'weight')
             ),
             this.parseLegacy(sheets),
             this.parseVerticalSections(sheets),
@@ -159,9 +146,9 @@ export class ProgramWorkbookParserService {
             return createLowConfidenceProgramPreview(confidence);
         }
         if (best.formulasFullyHandled) {
-            this.unknownFormulaAddresses.clear();
+            this.formulaHelper.clearUnknownFormulaAddresses();
         }
-        setup.unknownFormulaCount = this.unknownFormulaAddresses.size;
+        setup.unknownFormulaCount = this.formulaHelper.unknownFormulaCount();
         const { warnings, warningDetails } = createUnknownFormulaWarnings(setup.unknownFormulaCount);
 
         return {
@@ -187,44 +174,7 @@ export class ProgramWorkbookParserService {
         preview: ProgramImportPreview,
         values: { [inputId: string]: number }
     ): ProgramImportPreview {
-        if (!preview?.program || !preview.setup) {
-            return preview;
-        }
-
-        preview.setup.inputs.forEach(input => {
-            const value = Number(values[input.id]);
-            if (Number.isFinite(value) && value > 0) {
-                input.value = value;
-            }
-        });
-        const inputValues = new Map(preview.setup.inputs.map(input => [input.id, input.value]));
-        preview.program.weeks.forEach(week => week.days.forEach(day => day.exercises.forEach(exercise => {
-            const calculations = workbookExerciseCalculations(exercise);
-            if (!calculations.length) {
-                return;
-            }
-            calculations.forEach(calculation => {
-                const calculated = this.evaluateCalculation(calculation, inputValues);
-                if (calculated === undefined) {
-                    return;
-                }
-                if (calculation.output !== 'prescription') {
-                    exercise[calculation.output] = calculated;
-                    if (calculation.output === 'weight') {
-                        exercise.percentage1Rm = undefined;
-                    }
-                    return;
-                }
-                const detected = parseWorkbookPrescription(calculated, true);
-                exercise.prescription = calculated;
-                clearWorkbookCalculatedFields(exercise);
-                Object.assign(exercise, detected);
-            });
-            if (!calculations.some(calculation => calculation.output === 'prescription')) {
-                exercise.prescription = buildWorkbookPrescription(exercise);
-            }
-        })));
-        return preview;
+        return this.formulaHelper.applyInputs(preview, values);
     }
 
     private parseLegacy(sheets: NormalizedSheet[]): ParserResult {
@@ -293,7 +243,7 @@ export class ProgramWorkbookParserService {
                                 {},
                                 `week-${weekNumber}-day-${dayIndex + 1}-exercise-${rowIndex}`,
                                 true,
-                                this.formulaSources(
+                                this.formulaHelper.formulaSources(
                                     sheet.cells[rowIndex]?.[section.prescriptionColumn],
                                     'prescription'
                                 ),
@@ -371,7 +321,7 @@ export class ProgramWorkbookParserService {
                     {},
                     `${currentDay.id}-exercise-${rowIndex}`,
                     false,
-                    this.firstFormulaSources(
+                    this.formulaHelper.firstFormulaSources(
                         sheet.cells[rowIndex]?.slice(firstColumn + 1),
                         'prescription'
                     ),
@@ -445,7 +395,7 @@ export class ProgramWorkbookParserService {
                             {},
                             `week-${weekNumber}-day-${dayIndex + 1}-exercise-${exerciseRow}`,
                             false,
-                            this.firstFormulaSources(
+                            this.formulaHelper.firstFormulaSources(
                                 sheet.cells[exerciseRow]?.slice(entry.column + 1, endColumn),
                                 'prescription'
                             ),
@@ -538,7 +488,7 @@ export class ProgramWorkbookParserService {
             .map(match => ({ sets: match[1], reps: match[2] }));
         const percentageRuns = setCells.reduce((runs, cell) => {
             const value = cell.text;
-            const calculation = this.calculationFromCell(cell, sheetName, 'weight');
+            const calculation = this.formulaHelper.calculationFromCell(cell, sheetName, 'weight');
             const weight = calculation
                 ? value
                 : `${value.replace(/%?\+?$/, '')}%${value.endsWith('+') ? '+' : ''}`;
@@ -746,7 +696,7 @@ export class ProgramWorkbookParserService {
         rowIndex: number,
         map: HeaderMap
     ): FormulaSource[] {
-        const columns: Array<{ column: number | undefined, output: CalculationOutput }> = [
+        return this.formulaHelper.formulaSourcesFromColumns(sheet, rowIndex, [
             { column: map.weight, output: 'weight' },
             { column: map.percentage1Rm, output: 'percentage1Rm' },
             { column: map.sets, output: 'sets' },
@@ -755,36 +705,7 @@ export class ProgramWorkbookParserService {
             { column: map.tempo, output: 'tempo' },
             { column: map.rpe, output: 'rpe' },
             { column: map.notes, output: 'notes' }
-        ];
-        return columns
-            .filter(candidate =>
-                candidate.column !== undefined
-                && sheet.cells[rowIndex]?.[candidate.column]?.formula
-            )
-            .map(source => this.formulaSource(sheet.cells[rowIndex][source.column], source.output))
-            .filter((source): source is FormulaSource => Boolean(source));
-    }
-
-    private formulaSource(
-        cell: NormalizedCell,
-        output: CalculationOutput
-    ): FormulaSource | undefined {
-        return cell?.formula ? { cell, output } : undefined;
-    }
-
-    private formulaSources(
-        cell: NormalizedCell,
-        output: CalculationOutput
-    ): FormulaSource[] {
-        const source = this.formulaSource(cell, output);
-        return source ? [source] : [];
-    }
-
-    private firstFormulaSources(
-        cells: NormalizedCell[],
-        output: CalculationOutput
-    ): FormulaSource[] {
-        return this.formulaSources(cells?.find(cell => cell?.formula), output);
+        ]);
     }
 
     private createExercise(
@@ -803,299 +724,9 @@ export class ProgramWorkbookParserService {
             fields,
             legacyLayout,
             workbookCalculations: sheetName
-                ? this.calculationsFromSources(formulaSources, sheetName)
+                ? this.formulaHelper.calculationsFromSources(formulaSources, sheetName)
                 : undefined
         });
-    }
-
-    private calculationsFromSources(
-        sources: FormulaSource[],
-        sheetName: string
-    ): WorkbookExerciseCalculation[] | undefined {
-        const calculations = sources
-            .map(source => this.calculationFromCell(source.cell, sheetName, source.output))
-            .filter((calculation): calculation is WorkbookExerciseCalculation => Boolean(calculation));
-        return calculations.length ? calculations : undefined;
-    }
-
-    private detectSetup(sheets: NormalizedSheet[]): WorkbookImportSetup {
-        const referencedCells = new Set<string>();
-
-        sheets.forEach(sheet => sheet.cells.forEach(row => row.forEach(cell => {
-            if (!cell.formula) {
-                return;
-            }
-            this.formulaReferenceIds(cell.formula, sheet.name)
-                .forEach(id => referencedCells.add(id));
-        })));
-
-        const inputs: WorkbookImportInput[] = [];
-        sheets.forEach(sheet => sheet.cells.forEach(row => row.forEach((cell, column) => {
-            const id = this.inputId(sheet.name, cell.address);
-            const numericValue = Number(cell.value);
-            if (
-                !referencedCells.has(id)
-                || cell.formula
-                || !Number.isFinite(numericValue)
-                || /%$/.test(cell.text)
-            ) {
-                return;
-            }
-
-            const labelCell = row
-                .slice(0, column)
-                .reverse()
-                .find(candidate =>
-                    candidate.text
-                    && !candidate.formula
-                    && !Number.isFinite(Number(candidate.text))
-                );
-            const sameColumnHeader = sheets.length
-                ? sheet.cells
-                    .slice(0, sheet.cells.indexOf(row))
-                    .reverse()
-                    .map(candidateRow => candidateRow[column])
-                    .find(candidate =>
-                        candidate?.text
-                        && !candidate.formula
-                        && !/^1\s*rm$/i.test(candidate.text)
-                    )
-                : undefined;
-            const inlineLabel = normalizeWorkbookText(labelCell?.text).replace(/[:：]\s*$/, '');
-            const label = (
-                /^1\s*rm$/i.test(inlineLabel)
-                    ? normalizeWorkbookText(sameColumnHeader?.text)
-                    : inlineLabel
-            )
-                .replace(/[:：]\s*$/, '')
-                || cell.address;
-            inputs.push({
-                id,
-                sheetName: sheet.name,
-                address: cell.address,
-                label,
-                exerciseName: this.inputExerciseName(label),
-                originalValue: numericValue,
-                value: numericValue
-            });
-        })));
-
-        const inputLabels = new Set(inputs.map(input => input.label.toLowerCase()));
-        const instructions = Array.from(new Set(sheets.flatMap(sheet => {
-            const firstProgramRow = sheet.rows.findIndex(row =>
-                row.some(cell => this.sectionLabel(cell)?.type === 'week')
-            );
-            const end = firstProgramRow >= 0 ? firstProgramRow : Math.min(sheet.rows.length, 30);
-            return sheet.rows.slice(0, end)
-                .flat()
-                .map(value => normalizeWorkbookText(value))
-                .filter(value =>
-                    value
-                    && !inputLabels.has(value.replace(/[:：]\s*$/, '').toLowerCase())
-                    && (
-                        value.length >= 30
-                        || /^\*/.test(value)
-                        || /^notes?\b/i.test(value)
-                        || /\bnotation\b/i.test(value)
-                    )
-                );
-        }))).slice(0, 12);
-
-        return {
-            instructions,
-            inputs,
-            unknownFormulaCount: 0
-        };
-    }
-
-    private calculationFromCell(
-        cell: NormalizedCell,
-        sheetName: string,
-        output: CalculationOutput
-    ): WorkbookExerciseCalculation | undefined {
-        if (!cell?.formula) {
-            return undefined;
-        }
-
-        const formula = cell.formula.replace(/^=/, '').trim();
-        const direct = this.directFormulaSegment(formula, sheetName);
-        if (direct) {
-            return {
-                address: cell.address,
-                formula,
-                output,
-                segments: [direct]
-            };
-        }
-
-        const concatenate = formula.match(/^CONCATENATE\((.*)\)$/i);
-        if (concatenate) {
-            const candidateSegments = this.splitFormulaArguments(concatenate[1])
-                .map(argument => this.formulaSegment(argument, sheetName));
-            if (
-                candidateSegments.length
-                && candidateSegments.every(Boolean)
-                && candidateSegments.some(segment => segment?.inputId)
-            ) {
-                return {
-                    address: cell.address,
-                    formula,
-                    output: 'prescription',
-                    segments: candidateSegments as WorkbookFormulaSegment[]
-                };
-            }
-        }
-
-        const referencesInput = this.formulaReferenceIds(formula, sheetName)
-            .some(id => this.inputByReference.has(id));
-        if (referencesInput) {
-            this.unknownFormulaAddresses.add(`${sheetName}!${cell.address}`);
-        }
-        return undefined;
-    }
-
-    private directFormulaSegment(formula: string, sheetName: string): WorkbookFormulaSegment | undefined {
-        const expression = formula.replace(/[()]/g, '').replace(/\s+/g, '');
-        const referencePattern = `(?:(?:'((?:[^']|'')+)'|([A-Za-z0-9_]+))!)?\\$?([A-Z]{1,3})\\$?(\\d+)`;
-        const referenceFirst = expression.match(
-            new RegExp(`^(${referencePattern})\\*(-?\\d+(?:\\.\\d+)?)$`, 'i')
-        );
-        const multiplierFirst = expression.match(
-            new RegExp(`^(-?\\d+(?:\\.\\d+)?)\\*(${referencePattern})$`, 'i')
-        );
-        const reference = referenceFirst?.[1] || multiplierFirst?.[2];
-        const multiplier = Number(
-            referenceFirst?.[referenceFirst.length - 1]
-            || multiplierFirst?.[1]
-        );
-        const inputId = reference ? this.formulaReferenceId(reference, sheetName) : '';
-
-        return inputId && this.inputByReference.has(inputId) && Number.isFinite(multiplier)
-            ? { inputId, multiplier }
-            : undefined;
-    }
-
-    private formulaSegment(argument: string, sheetName: string): WorkbookFormulaSegment | undefined {
-        const value = argument.trim();
-        if (/^"(?:[^"]|"")*"$/.test(value)) {
-            return { literal: value.slice(1, -1).replace(/""/g, '"') };
-        }
-
-        const round = value.match(/^ROUND\((.*),\s*(\d+)\)$/i);
-        if (!round) {
-            return undefined;
-        }
-        const calculated = this.directFormulaSegment(round[1], sheetName);
-        return calculated ? { ...calculated, decimals: Number(round[2]) } : undefined;
-    }
-
-    private splitFormulaArguments(value: string): string[] {
-        const parts: string[] = [];
-        let start = 0;
-        let depth = 0;
-        let quoted = false;
-
-        for (let index = 0; index < value.length; index++) {
-            const character = value[index];
-            if (character === '"') {
-                if (quoted && value[index + 1] === '"') {
-                    index++;
-                    continue;
-                }
-                quoted = !quoted;
-            } else if (!quoted && character === '(') {
-                depth++;
-            } else if (!quoted && character === ')') {
-                depth--;
-            } else if (!quoted && character === ',' && depth === 0) {
-                parts.push(value.slice(start, index));
-                start = index + 1;
-            }
-        }
-        parts.push(value.slice(start));
-        return parts;
-    }
-
-    private evaluateCalculation(
-        calculation: WorkbookExerciseCalculation,
-        inputValues: Map<string, number>
-    ): string | undefined {
-        let result = '';
-
-        for (const segment of calculation.segments) {
-            if (segment.literal !== undefined) {
-                result += segment.literal;
-                continue;
-            }
-            const input = inputValues.get(segment.inputId);
-            if (!Number.isFinite(input) || !Number.isFinite(segment.multiplier)) {
-                return undefined;
-            }
-            const rawValue = input * segment.multiplier;
-            const calculated = segment.decimals === undefined
-                ? Math.round(rawValue * 100) / 100
-                : Number(rawValue.toFixed(segment.decimals));
-            result += String(calculated);
-        }
-        return normalizeWorkbookText(result);
-    }
-
-    private formulaReferenceIds(formula: string, currentSheetName: string): string[] {
-        const expression = this.withoutFormulaStringLiterals(formula);
-        const references = expression.matchAll(
-            /(?:(?:'((?:[^']|'')+)'|([A-Za-z0-9_]+))!)?\$?([A-Z]{1,3})\$?(\d+)/gi
-        );
-        return Array.from(references).map(match => {
-            const referencedSheet = (match[1] || match[2] || currentSheetName).replace(/''/g, "'");
-            const sheetName = this.sheetNames.get(referencedSheet.toLowerCase()) || referencedSheet;
-            return this.inputId(sheetName, `${match[3]}${match[4]}`);
-        });
-    }
-
-    private formulaReferenceId(reference: string, currentSheetName: string): string {
-        const match = reference.match(
-            /^(?:(?:'((?:[^']|'')+)'|([A-Za-z0-9_]+))!)?\$?([A-Z]{1,3})\$?(\d+)$/i
-        );
-        if (!match) {
-            return '';
-        }
-        const referencedSheet = (match[1] || match[2] || currentSheetName).replace(/''/g, "'");
-        const sheetName = this.sheetNames.get(referencedSheet.toLowerCase()) || referencedSheet;
-        return this.inputId(sheetName, `${match[3]}${match[4]}`);
-    }
-
-    private withoutFormulaStringLiterals(formula: string): string {
-        let result = '';
-        let quoted = false;
-
-        for (let index = 0; index < formula.length; index++) {
-            const character = formula[index];
-            if (character === '"') {
-                if (quoted && formula[index + 1] === '"') {
-                    index++;
-                    continue;
-                }
-                quoted = !quoted;
-                continue;
-            }
-            if (!quoted) {
-                result += character;
-            }
-        }
-        return result;
-    }
-
-    private inputExerciseName(label: string): string {
-        return normalizeWorkbookText(label)
-            .replace(/^best\s+/i, '')
-            .replace(/\b1\s*rm\b/ig, '')
-            .replace(/[:：]\s*$/, '')
-            .replace(/\bc&j\b/ig, 'Clean & Jerk')
-            .trim();
-    }
-
-    private inputId(sheetName: string, address: string): string {
-        return `${sheetName}!${address.replace(/\$/g, '').toUpperCase()}`;
     }
 
     private sectionLabel(value: string): { type: 'week' | 'day', label: string, number?: number } | undefined {
