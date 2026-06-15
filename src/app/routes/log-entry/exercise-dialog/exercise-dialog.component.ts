@@ -1,5 +1,16 @@
 import { AsyncPipe } from '@angular/common';
-import { AfterViewInit, Component, DestroyRef, ElementRef, inject, OnInit, ViewChild } from '@angular/core';
+import {
+    AfterViewInit,
+    ChangeDetectionStrategy,
+    Component,
+    computed,
+    DestroyRef,
+    ElementRef,
+    inject,
+    OnInit,
+    signal,
+    viewChild
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatAutocompleteModule, MatAutocompleteTrigger } from '@angular/material/autocomplete';
@@ -55,33 +66,38 @@ interface ExerciseForm {
         MatSelectModule
     ],
     templateUrl: './exercise-dialog.component.html',
-    styleUrl: './exercise-dialog.component.scss'
+    styleUrl: './exercise-dialog.component.scss',
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ExerciseDialogComponent implements OnInit, AfterViewInit {
-    @ViewChild('strExerciseName', { read: MatAutocompleteTrigger }) strengthInputTrigger: MatAutocompleteTrigger;
-    @ViewChild('carExerciseName', { read: MatAutocompleteTrigger }) cardioInputTrigger: MatAutocompleteTrigger;
-    @ViewChild('strExerciseName') strExerciseNameInput: ElementRef<HTMLInputElement>;
-    @ViewChild('carExerciseName') carExerciseNameInput: ElementRef<HTMLInputElement>;
-    @ViewChild('weight') weightInput: ElementRef<HTMLInputElement>;
-    @ViewChild('distance') distanceInput: ElementRef<HTMLInputElement>;
+    private readonly strengthInputTrigger = viewChild('strExerciseName', { read: MatAutocompleteTrigger });
+    private readonly cardioInputTrigger = viewChild('carExerciseName', { read: MatAutocompleteTrigger });
+    private readonly strExerciseNameInput = viewChild<ElementRef<HTMLInputElement>>('strExerciseName');
+    private readonly carExerciseNameInput = viewChild<ElementRef<HTMLInputElement>>('carExerciseName');
+    private readonly weightInput = viewChild<ElementRef<HTMLInputElement>>('weight');
+    private readonly distanceInput = viewChild<ElementRef<HTMLInputElement>>('distance');
 
     public exerciseLogForm: FormGroup<ExerciseForm>;
-    private currentLanguage: string;
     public currentExercise: Exercise;
     public selectedWeightChip: string = 'lbs';
     public selectedDistanceChip: string = 'km';
 
     public readonly exerciseNameCharLimit: number = 50;
     public readonly exerciseAlphaNumericCharLimit: number = 15;
-    public intensities = FormValues.ExerciseIntensities;
-    public exerciseList: LocalizedExerciseOption[] = [];
-    public cardioExerciseList: LocalizedExerciseOption[] = [];
+
+    private readonly currentLanguage = signal<string>(FormValues.ENCode);
+    private readonly exerciseNames = signal<string[]>([]);
+    private readonly cardioExerciseNames = signal<string[]>([]);
+
+    public readonly intensities = computed(() => this.currentLanguage() === FormValues.ENCode
+        ? FormValues.ExerciseIntensities
+        : FormValues.ExerciseIntensitiesFR);
+    private readonly exerciseList = computed(() => this.localizeExerciseNames(this.exerciseNames()));
+    private readonly cardioExerciseList = computed(() => this.localizeExerciseNames(this.cardioExerciseNames()));
 
     public filteredExercises: Observable<LocalizedExerciseOption[]>;
     public filteredCardioExercises: Observable<LocalizedExerciseOption[]>;
     private readonly destroyRef = inject(DestroyRef);
-    private exerciseNames: string[] = [];
-    private cardioExerciseNames: string[] = [];
 
     public _exerciseDialogData = inject<ExerciseDialogData>(MAT_DIALOG_DATA);
     private _formBuilder = inject(FormBuilder);
@@ -116,7 +132,14 @@ export class ExerciseDialogComponent implements OnInit, AfterViewInit {
     public ngOnInit(): void {
         this.currentExercise.duration = this.currentExercise.duration || Duration.fromMillis(0);
         this.populateForm();
-        this.currentLanguage = FormValues.ENCode;
+        this.filteredExercises = this.exerciseLogForm.get('exerciseName').valueChanges.pipe(
+            startWith(''),
+            map(value => this.filterExercises(value))
+        );
+        this.filteredCardioExercises = this.exerciseLogForm.get('exerciseName').valueChanges.pipe(
+            startWith(''),
+            map(value => this.filterCardioExercises(value))
+        );
         this.subToLanguageChange();
         this.subToExerciseDirectoryService();
         this.subToCardioExerciseDirectoryService();
@@ -164,31 +187,19 @@ export class ExerciseDialogComponent implements OnInit, AfterViewInit {
     }
 
     /**
-    * Track the language currently chosen by the user.
+    * Track the language currently chosen by the user. The localized exercise
+    * lists and intensity labels are derived signals, so they update automatically.
     */
     private subToLanguageChange(): void {
         this._translatorService.languageChangeEmitted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(
-            data => {
-                this.currentLanguage = data;
-                if (this.currentLanguage == FormValues.ENCode) {
-                    this.intensities = FormValues.ExerciseIntensities;
-                } else {
-                    this.intensities = FormValues.ExerciseIntensitiesFR;
-                }
-                this.updateLocalizedExerciseLists();
-            }
+            data => this.currentLanguage.set(data)
         );
     }
 
     private subToExerciseDirectoryService(): void {
         this._exerciseDirectoryService.getExercises().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: (data) => {
-                this.exerciseNames = data.exercises.map(exercise => exercise.name);
-                this.updateLocalizedExerciseLists();
-                this.filteredExercises = this.exerciseLogForm.get('exerciseName').valueChanges.pipe(
-                    startWith(''),
-                    map(value => this.filterExercises(value))
-                );
+                this.exerciseNames.set(data.exercises.map(exercise => exercise.name));
             },
             error: (error) => {
                 console.error('Error fetching exercises:', error);
@@ -199,12 +210,7 @@ export class ExerciseDialogComponent implements OnInit, AfterViewInit {
     private subToCardioExerciseDirectoryService(): void {
         this._exerciseDirectoryService.getCardioExercises().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: (data) => {
-                this.cardioExerciseNames = data.exercises.map(exercise => exercise.name);
-                this.updateLocalizedExerciseLists();
-                this.filteredCardioExercises = this.exerciseLogForm.get('exerciseName').valueChanges.pipe(
-                    startWith(''),
-                    map(value => this.filterCardioExercises(value))
-                );
+                this.cardioExerciseNames.set(data.exercises.map(exercise => exercise.name));
             },
             error: (error) => {
                 console.error('Error fetching exercises:', error);
@@ -213,12 +219,12 @@ export class ExerciseDialogComponent implements OnInit, AfterViewInit {
     }
 
     public displayExerciseName = (name: string): string =>
-        this._exerciseNameLocalizer.localize(name, this.currentLanguage);
+        this._exerciseNameLocalizer.localize(name, this.currentLanguage());
 
     private filterExercises(value: string): LocalizedExerciseOption[] {
         if (value) {
             const filterValue = this._exerciseNameLocalizer.normalize(value);
-            return this.exerciseList.filter(option => option.searchText.includes(filterValue));
+            return this.exerciseList().filter(option => option.searchText.includes(filterValue));
         }
 
         return [];
@@ -227,7 +233,7 @@ export class ExerciseDialogComponent implements OnInit, AfterViewInit {
     private filterCardioExercises(value: string): LocalizedExerciseOption[] {
         if (value) {
             const filterValue = this._exerciseNameLocalizer.normalize(value);
-            return this.cardioExerciseList.filter(option => option.searchText.includes(filterValue));
+            return this.cardioExerciseList().filter(option => option.searchText.includes(filterValue));
         }
 
         return [];
@@ -236,32 +242,27 @@ export class ExerciseDialogComponent implements OnInit, AfterViewInit {
     private focusInput(exerciseName: string) {
         setTimeout(() => {
             if (!exerciseName) {
-                if (this.currentExercise.exerciseType === 'strength' && this.strExerciseNameInput) {
-                    this.strExerciseNameInput.nativeElement.focus();
-                } else if (this.currentExercise.exerciseType === 'cardio' && this.carExerciseNameInput) {
-                    this.carExerciseNameInput.nativeElement.focus();
+                if (this.currentExercise.exerciseType === 'strength') {
+                    this.strExerciseNameInput()?.nativeElement.focus();
+                } else if (this.currentExercise.exerciseType === 'cardio') {
+                    this.carExerciseNameInput()?.nativeElement.focus();
                 }
             } else {
                 this.preventAutocompleteOnModalOpen();
                 setTimeout(() => {
-                    if (this.currentExercise.exerciseType === 'strength' && this.weightInput) {
-                        this.weightInput.nativeElement.focus();
-                    } else if (this.currentExercise.exerciseType === 'cardio' && this.distanceInput) {
-                        this.distanceInput.nativeElement.focus();
+                    if (this.currentExercise.exerciseType === 'strength') {
+                        this.weightInput()?.nativeElement.focus();
+                    } else if (this.currentExercise.exerciseType === 'cardio') {
+                        this.distanceInput()?.nativeElement.focus();
                     }
                 });
             }
         }, 250);
     }
 
-    private updateLocalizedExerciseLists(): void {
-        this.exerciseList = this.localizeExerciseNames(this.exerciseNames);
-        this.cardioExerciseList = this.localizeExerciseNames(this.cardioExerciseNames);
-    }
-
     private localizeExerciseNames(names: string[]): LocalizedExerciseOption[] {
         return names.map(name => {
-            const localizedName = this._exerciseNameLocalizer.localize(name, this.currentLanguage);
+            const localizedName = this._exerciseNameLocalizer.localize(name, this.currentLanguage());
             return {
                 name,
                 localizedName,
@@ -272,10 +273,12 @@ export class ExerciseDialogComponent implements OnInit, AfterViewInit {
 
     private preventAutocompleteOnModalOpen() {
         setTimeout(() => {
-            if (this.currentExercise.exerciseType === 'strength' && this.strExerciseNameInput && this.strExerciseNameInput.nativeElement.value) {
-                this.strengthInputTrigger.closePanel();
-            } else if (this.currentExercise.exerciseType === 'cardio' && this.carExerciseNameInput && this.carExerciseNameInput.nativeElement.value) {
-                this.cardioInputTrigger.closePanel();
+            const strInput = this.strExerciseNameInput();
+            const carInput = this.carExerciseNameInput();
+            if (this.currentExercise.exerciseType === 'strength' && strInput && strInput.nativeElement.value) {
+                this.strengthInputTrigger()?.closePanel();
+            } else if (this.currentExercise.exerciseType === 'cardio' && carInput && carInput.nativeElement.value) {
+                this.cardioInputTrigger()?.closePanel();
             }
         });
     }

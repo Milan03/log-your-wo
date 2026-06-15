@@ -1,5 +1,5 @@
 import { DOCUMENT, NgClass } from '@angular/common';
-import { Component, DestroyRef, HostListener, inject, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, HostListener, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { MatRippleModule } from '@angular/material/core';
@@ -20,11 +20,12 @@ import { SettingsService } from '../../core/settings/settings.service';
         MatRippleModule
     ],
     templateUrl: './sidebar.component.html',
-    styleUrls: ['./sidebar.component.scss']
+    styleUrls: ['./sidebar.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SidebarComponent implements OnInit, OnDestroy {
     public readonly menuItems: MenuItem[];
-    public signedIn = false;
+    public readonly signedIn = signal(false);
 
     private readonly auth = inject(AuthService, { optional: true });
     private readonly destroyRef = inject(DestroyRef);
@@ -39,7 +40,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
         this.menuItems = this.menu.getMenu();
         this.auth?.session$
             .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe(session => this.signedIn = !!session);
+            .subscribe(session => this.signedIn.set(!!session));
     }
 
     public ngOnInit(): void {

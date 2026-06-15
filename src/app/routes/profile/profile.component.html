@@ -5,16 +5,16 @@
       <h1>{{ 'profile.Title' | translate }}</h1>
       <p>{{ 'profile.Description' | translate }}</p>
     </div>
-    <div class="profile-hero__status" [class.profile-hero__status--account]="signedIn">
-      <em [class]="signedIn ? 'icon-cloud-upload' : 'icon-screen-desktop'" aria-hidden="true"></em>
+    <div class="profile-hero__status" [class.profile-hero__status--account]="signedIn()">
+      <em [class]="signedIn() ? 'icon-cloud-upload' : 'icon-screen-desktop'" aria-hidden="true"></em>
       <div>
-        <strong>{{ (signedIn ? 'profile.SyncedAccount' : 'profile.GuestProfile') | translate }}</strong>
-        <span>{{ signedIn ? email : ('profile.BrowserOnly' | translate) }}</span>
+        <strong>{{ (signedIn() ? 'profile.SyncedAccount' : 'profile.GuestProfile') | translate }}</strong>
+        <span>{{ signedIn() ? email() : ('profile.BrowserOnly' | translate) }}</span>
       </div>
     </div>
   </header>
 
-  @if (!signedIn) {
+  @if (!signedIn()) {
     <div class="profile-account-callout">
       <div>
         <strong>{{ 'profile.AccountCalloutTitle' | translate }}</strong>
@@ -282,16 +282,16 @@
                     </div>
 
                     <div class="profile-actions">
-                      @if (saved) {
+                      @if (saved()) {
                         <span class="profile-saved" role="status">
                           <em class="icon-check" aria-hidden="true"></em> {{ 'profile.Saved' | translate }}
                         </span>
                       }
-                      @if (saveError) {
-                        <span class="text-danger" role="alert">{{ saveError }}</span>
+                      @if (saveError()) {
+                        <span class="text-danger" role="alert">{{ saveError() }}</span>
                       }
-                      <button class="btn btn-primary" type="submit" [disabled]="saving">
-                        {{ (saving ? 'profile.Saving' : 'profile.Save') | translate }}
+                      <button class="btn btn-primary" type="submit" [disabled]="saving()">
+                        {{ (saving() ? 'profile.Saving' : 'profile.Save') | translate }}
                       </button>
                     </div>
                   </form>

@@ -83,9 +83,8 @@ describe('ExerciseDialogComponent', () => {
   });
 
   it('finds French autocomplete labels while retaining canonical exercise names', () => {
-    (component as any).currentLanguage = 'fr-ca';
-    (component as any).exerciseNames = ['Barbell Bench Press - Medium Grip'];
-    (component as any).updateLocalizedExerciseLists();
+    (component as any).currentLanguage.set('fr-ca');
+    (component as any).exerciseNames.set(['Barbell Bench Press - Medium Grip']);
 
     const matches = (component as any).filterExercises('développé couché');
 

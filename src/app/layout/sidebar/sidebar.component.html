@@ -199,7 +199,7 @@
 
         <ul class="sidebar-nav sidebar-account-nav">
             <li class="nav-heading">{{ 'global.Account' | translate }}</li>
-            @if (!signedIn) {
+            @if (!signedIn()) {
             <li>
                 <button class="nav-item" type="button" (click)="openSignIn()">
                     <em class="icon-login" aria-hidden="true"></em>
@@ -207,7 +207,7 @@
                 </button>
             </li>
             }
-            @if (signedIn) {
+            @if (signedIn()) {
             <li>
                 <button class="nav-item" type="button" (click)="signOut()">
                     <em class="icon-logout" aria-hidden="true"></em>
