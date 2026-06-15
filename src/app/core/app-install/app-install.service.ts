@@ -1,6 +1,6 @@
 import { DOCUMENT } from '@angular/common';
-import { Inject, Injectable, OnDestroy } from '@angular/core';
-import { BehaviorSubject, fromEvent, Subscription } from 'rxjs';
+import { Inject, Injectable, OnDestroy, signal } from '@angular/core';
+import { fromEvent, Subscription } from 'rxjs';
 
 export type AppInstallDevice = 'android' | 'ios';
 
@@ -21,7 +21,7 @@ export class AppInstallService implements OnDestroy {
     private readonly dismissedKey = 'logYourWo.installNoticeDismissed';
     private readonly visitCountKey = 'logYourWo.installNoticeVisits';
     private readonly visitRecordedKey = 'logYourWo.installNoticeVisitRecorded';
-    private readonly noticeSource = new BehaviorSubject<AppInstallNotice>({
+    private readonly noticeState = signal<AppInstallNotice>({
         visible: false,
         device: null
     });
@@ -30,7 +30,7 @@ export class AppInstallService implements OnDestroy {
     private installPrompt: BeforeInstallPromptEvent | null = null;
     private eligible = false;
 
-    public readonly notice$ = this.noticeSource.asObservable();
+    public readonly notice = this.noticeState.asReadonly();
 
     constructor(@Inject(DOCUMENT) document: Document) {
         this.browserWindow = document.defaultView;
@@ -81,23 +81,23 @@ export class AppInstallService implements OnDestroy {
         }
 
         if (this.isIos()) {
-            this.noticeSource.next({ visible: true, device: 'ios' });
+            this.noticeState.set({ visible: true, device: 'ios' });
             return;
         }
 
         if (/Android/i.test(this.browserWindow.navigator.userAgent)) {
-            this.noticeSource.next({ visible: false, device: 'android' });
+            this.noticeState.set({ visible: false, device: 'android' });
         }
     }
 
     private captureInstallPrompt(event: Event): void {
-        if (!this.eligible || this.noticeSource.value.device !== 'android') {
+        if (!this.eligible || this.notice().device !== 'android') {
             return;
         }
 
         event.preventDefault();
         this.installPrompt = event as BeforeInstallPromptEvent;
-        this.noticeSource.next({ visible: true, device: 'android' });
+        this.noticeState.set({ visible: true, device: 'android' });
     }
 
     private recordVisit(): number {
@@ -128,9 +128,9 @@ export class AppInstallService implements OnDestroy {
 
     private hideNotice(): void {
         this.installPrompt = null;
-        this.noticeSource.next({
+        this.noticeState.set({
             visible: false,
-            device: this.noticeSource.value.device
+            device: this.notice().device
         });
     }
 }

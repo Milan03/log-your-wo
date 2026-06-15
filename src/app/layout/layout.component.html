@@ -7,7 +7,7 @@
   <app-offsidebar class="offsidebar"></app-offsidebar>
   <!-- Main section-->
   <section class="section-container">
-    @if (showGuestNotice) {
+    @if (showGuestNotice()) {
       <div class="guest-notice" role="status">
         <em class="icon-screen-desktop" aria-hidden="true"></em>
         <div class="guest-notice__copy">
@@ -21,19 +21,19 @@
         </button>
       </div>
     }
-    @if (showInstallNotice && !showGuestNotice) {
+    @if (installNotice().visible && !showGuestNotice()) {
       <div class="install-notice" role="status">
         <em class="icon-screen-smartphone" aria-hidden="true"></em>
         <div class="install-notice__copy">
           <strong>{{ 'layout.InstallTitle' | translate }}</strong>
-          @if (installDevice === 'android') {
+          @if (installNotice().device === 'android') {
             <span>{{ 'layout.InstallAndroid' | translate }}</span>
           }
-          @if (installDevice === 'ios') {
+          @if (installNotice().device === 'ios') {
             <span>{{ 'layout.InstallIos' | translate }}</span>
           }
         </div>
-        @if (installDevice === 'android') {
+        @if (installNotice().device === 'android') {
           <button class="btn btn-sm btn-outline-primary" type="button"
           (click)="installApp()">{{ 'layout.Install' | translate }}</button>
         }

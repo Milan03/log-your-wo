@@ -3,10 +3,12 @@ import {
     ChangeDetectionStrategy,
     ChangeDetectorRef,
     Component,
+    computed,
     DestroyRef,
     HostListener,
     inject,
-    OnInit
+    OnInit,
+    signal
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router } from '@angular/router';
@@ -34,7 +36,7 @@ export class HeaderComponent implements OnInit {
     public showLogActions = false;
     public signedIn = false;
     public accountLabel = 'Guest';
-    public syncError = '';
+    private readonly logoutError = signal('');
 
     private readonly authService = inject(AuthService);
     private readonly changeDetector = inject(ChangeDetectorRef);
@@ -47,6 +49,7 @@ export class HeaderComponent implements OnInit {
     private readonly translatorService = inject(TranslatorService);
     private readonly userDataSync = inject(UserDataSyncService);
     public readonly settings = inject(SettingsService);
+    public readonly syncError = computed(() => this.logoutError() || this.userDataSync.error());
 
     private sidebarViewport = '';
     private userEmail = '';
@@ -88,8 +91,7 @@ export class HeaderComponent implements OnInit {
             await this.authService.signOut();
             await this.router.navigate(['/home']);
         } catch {
-            this.syncError = this.translatorService.translate.instant('layout.LogoutError');
-            this.changeDetector.markForCheck();
+            this.logoutError.set(this.translatorService.translate.instant('layout.LogoutError'));
         }
     }
 
@@ -104,7 +106,7 @@ export class HeaderComponent implements OnInit {
     }
 
     public get darkMode(): boolean {
-        return this.themesService.isDarkMode();
+        return this.themesService.darkMode();
     }
 
     public toggleDarkMode(event?: MouseEvent): void {
@@ -169,15 +171,6 @@ export class HeaderComponent implements OnInit {
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe(() => {
                 this.updateAccountLabel();
-                this.changeDetector.markForCheck();
-            });
-        this.themesService.darkMode$
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe(() => this.changeDetector.markForCheck());
-        this.userDataSync.error$
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe(error => {
-                this.syncError = error;
                 this.changeDetector.markForCheck();
             });
     }

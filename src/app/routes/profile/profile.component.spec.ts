@@ -1,3 +1,4 @@
+import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { FormBuilder } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -12,7 +13,7 @@ import { TranslatorService } from '../../core/translator/translator.service';
 
 describe('ProfileComponent', () => {
     function createComponent(
-        themes = jasmine.createSpyObj('ThemesService', ['isDarkMode', 'setDarkMode']),
+        themes = createThemes(),
         translator?: jasmine.SpyObj<TranslatorService>
     ): ProfileComponent {
         TestBed.configureTestingModule({
@@ -60,8 +61,7 @@ describe('ProfileComponent', () => {
     });
 
     it('updates the shared dark mode preference', () => {
-        const themes = jasmine.createSpyObj('ThemesService', ['isDarkMode', 'setDarkMode']);
-        themes.isDarkMode.and.returnValue(true);
+        const themes = createThemes(true);
         const component = createComponent(themes);
 
         expect(component.darkMode).toBeTrue();
@@ -71,8 +71,7 @@ describe('ProfileComponent', () => {
     });
 
     it('includes dark mode when saving the profile', async () => {
-        const themes = jasmine.createSpyObj('ThemesService', ['isDarkMode', 'setDarkMode']);
-        themes.isDarkMode.and.returnValue(true);
+        const themes = createThemes(true);
         const component = createComponent(themes);
         const profileService = (component as any).profileService;
         profileService.saveProfile.and.resolveTo();
@@ -160,4 +159,11 @@ describe('ProfileComponent', () => {
         expect(component.form.get('preferredLanguage').value).toBe('fr-ca');
         expect(translator.useLanguage).toHaveBeenCalledOnceWith('fr-ca');
     });
+
+    function createThemes(enabled = false): jasmine.SpyObj<ThemesService> {
+        const darkMode = signal(enabled);
+        return jasmine.createSpyObj<ThemesService>('ThemesService', ['setDarkMode'], {
+            darkMode: darkMode.asReadonly()
+        });
+    }
 });
