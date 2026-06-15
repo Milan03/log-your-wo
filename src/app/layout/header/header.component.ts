@@ -1,7 +1,6 @@
 import { DatePipe, DOCUMENT, UpperCasePipe } from '@angular/common';
 import {
     ChangeDetectionStrategy,
-    ChangeDetectorRef,
     Component,
     computed,
     DestroyRef,
@@ -39,15 +38,14 @@ import { TranslatorService } from '../../core/translator/translator.service';
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class HeaderComponent implements OnInit {
-    public currentLogType?: string;
-    public logStartDatim = new Date();
-    public showLogActions = false;
-    public signedIn = false;
-    public accountLabel = 'Guest';
+    public readonly currentLogType = signal<string | undefined>(undefined);
+    public readonly logStartDatim = signal(new Date());
+    public readonly showLogActions = signal(false);
+    public readonly signedIn = signal(false);
+    public readonly accountLabel = signal('Guest');
     private readonly logoutError = signal('');
 
     private readonly authService = inject(AuthService);
-    private readonly changeDetector = inject(ChangeDetectorRef);
     private readonly destroyRef = inject(DestroyRef);
     private readonly document = inject(DOCUMENT);
     private readonly profileService = inject(ProfileService);
@@ -144,25 +142,18 @@ export class HeaderComponent implements OnInit {
     private subscribeToLogState(): void {
         this.sharedService.logTypeEmitted$
             .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe(logType => {
-                this.currentLogType = logType;
-                this.changeDetector.markForCheck();
-            });
+            .subscribe(logType => this.currentLogType.set(logType));
         this.sharedService.logStartDatimEmitted$
             .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe(startDate => {
-                this.logStartDatim = startDate;
-                this.changeDetector.markForCheck();
-            });
+            .subscribe(startDate => this.logStartDatim.set(startDate));
         this.translatorService.languageChangeEmitted$
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe(language => {
-                if (language === FormValues.ENCode && this.currentLogType === LogTypes.SimpleLogFR) {
-                    this.currentLogType = LogTypes.SimpleLog;
-                } else if (language !== FormValues.ENCode && this.currentLogType === LogTypes.SimpleLog) {
-                    this.currentLogType = LogTypes.SimpleLogFR;
+                if (language === FormValues.ENCode && this.currentLogType() === LogTypes.SimpleLogFR) {
+                    this.currentLogType.set(LogTypes.SimpleLog);
+                } else if (language !== FormValues.ENCode && this.currentLogType() === LogTypes.SimpleLog) {
+                    this.currentLogType.set(LogTypes.SimpleLogFR);
                 }
-                this.changeDetector.markForCheck();
             });
     }
 
@@ -170,17 +161,13 @@ export class HeaderComponent implements OnInit {
         this.authService.session$
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe(session => {
-                this.signedIn = !!session;
+                this.signedIn.set(!!session);
                 this.userEmail = session?.user.email || '';
                 this.updateAccountLabel();
-                this.changeDetector.markForCheck();
             });
         this.profileService.profile$
             .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe(() => {
-                this.updateAccountLabel();
-                this.changeDetector.markForCheck();
-            });
+            .subscribe(() => this.updateAccountLabel());
     }
 
     private subscribeToRouteChanges(): void {
@@ -188,18 +175,15 @@ export class HeaderComponent implements OnInit {
         this.router.events.pipe(
             filter((event): event is NavigationEnd => event instanceof NavigationEnd),
             takeUntilDestroyed(this.destroyRef)
-        ).subscribe(event => {
-            this.updateLogActionVisibility(event.urlAfterRedirects);
-            this.changeDetector.markForCheck();
-        });
+        ).subscribe(event => this.updateLogActionVisibility(event.urlAfterRedirects));
     }
 
     private updateLogActionVisibility(url: string): void {
-        this.showLogActions = url.startsWith('/log-entry/simple-log')
-            || url.startsWith('/log-entry/import-program/workout');
+        this.showLogActions.set(url.startsWith('/log-entry/simple-log')
+            || url.startsWith('/log-entry/import-program/workout'));
     }
 
     private updateAccountLabel(): void {
-        this.accountLabel = this.profileService.getDisplayName(this.signedIn ? this.userEmail : undefined);
+        this.accountLabel.set(this.profileService.getDisplayName(this.signedIn() ? this.userEmail : undefined));
     }
 }
