@@ -12,9 +12,7 @@ import { IntensityFormatPipe } from './pipes/format-intensity.pipe';
         CommonModule,
         FormsModule,
         ReactiveFormsModule,
-        TranslateModule
-    ],
-    declarations: [
+        TranslateModule,
         IntensityFormatPipe
     ],
     exports: [
