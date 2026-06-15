@@ -10,7 +10,7 @@ import { SimpleLogComponent } from './simple-log.component';
 import { EmailService } from '../../../shared/services/email.service';
 import { TranslatorService } from '../../../core/translator/translator.service';
 import { ProgramImportService } from '../../../shared/services/program-import.service';
-import { SharedService } from '../../../shared/services/shared.service';
+import { WorkoutInteractionService } from '../../../shared/services/workout-interaction.service';
 import { SimpleLogService } from '../../../shared/services/simple-log.service';
 import { ProfileService } from '../../../shared/services/profile.service';
 import { Exercise } from '../../../shared/models/exercise.model';
@@ -22,7 +22,7 @@ describe('SimpleLogComponent', () => {
   let fixture: ComponentFixture<SimpleLogComponent>;
   let routeParams: BehaviorSubject<any>;
   let programImportService: ProgramImportService;
-  let sharedService: SharedService;
+  let workoutInteraction: WorkoutInteractionService;
   let routerSpy: jasmine.SpyObj<Router>;
   let simpleLogService: SimpleLogService;
 
@@ -68,7 +68,7 @@ describe('SimpleLogComponent', () => {
   beforeEach(() => {
     localStorage.clear();
     programImportService = TestBed.inject(ProgramImportService);
-    sharedService = TestBed.inject(SharedService);
+    workoutInteraction = TestBed.inject(WorkoutInteractionService);
     simpleLogService = TestBed.inject(SimpleLogService);
     fixture = TestBed.createComponent(SimpleLogComponent);
     component = fixture.componentInstance;
@@ -331,7 +331,7 @@ describe('SimpleLogComponent', () => {
     placeholder.weight = 'x';
     component.currentLog.exercises = [numeric, range, placeholder];
 
-    sharedService.emitMeasureToggle('kg');
+    workoutInteraction.notifyMeasureChanged('kg');
 
     expect(component.currentLog.exercises[0].weight).toBe(100);
     expect(component.currentLog.exercises[1].weight).toBe('1.8-2.3');

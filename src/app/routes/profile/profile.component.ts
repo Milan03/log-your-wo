@@ -22,7 +22,7 @@ import {
     UserProfile
 } from '../../shared/models/profile.model';
 import { ProfileService } from '../../shared/services/profile.service';
-import { SharedService } from '../../shared/services/shared.service';
+import { WorkoutHeaderService } from '../../shared/services/workout-header.service';
 import { ThemesService } from '../../core/themes/themes.service';
 import { TranslatorService } from '../../core/translator/translator.service';
 
@@ -96,7 +96,7 @@ export class ProfileComponent implements OnInit {
     private readonly formBuilder = inject(FormBuilder);
     private auth = inject(AuthService);
     private profileService = inject(ProfileService);
-    private sharedService = inject(SharedService);
+    private workoutHeader = inject(WorkoutHeaderService);
     private router = inject(Router);
     private themes = inject(ThemesService);
     private translator = inject(TranslatorService, { optional: true });
@@ -128,7 +128,7 @@ export class ProfileComponent implements OnInit {
     }
 
     public ngOnInit(): void {
-        this.sharedService.emitLogType(undefined);
+        this.workoutHeader.setLogType(undefined);
         this.profileService.profile$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(profile => this.loadProfile(profile));
         this.auth.session$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(session => {
             this.signedIn.set(!!session);

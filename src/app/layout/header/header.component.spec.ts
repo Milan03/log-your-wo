@@ -8,7 +8,7 @@ import { AuthService } from '../../core/auth/auth.service';
 import { FormValues, LogTypes } from '../../shared/common/common.constants';
 import { createDefaultProfile, UserProfile } from '../../shared/models/profile.model';
 import { ProfileService } from '../../shared/services/profile.service';
-import { SharedService } from '../../shared/services/shared.service';
+import { WorkoutHeaderService } from '../../shared/services/workout-header.service';
 import { UserDataSyncService } from '../../shared/services/user-data-sync.service';
 import { SettingsService } from '../../core/settings/settings.service';
 import { ThemesService } from '../../core/themes/themes.service';
@@ -38,7 +38,7 @@ describe('HeaderComponent', () => {
         TestBed.configureTestingModule({
             providers: [
                 SettingsService,
-                SharedService,
+                WorkoutHeaderService,
                 ThemesService,
                 { provide: Router, useValue: router },
                 { provide: AuthService, useValue: { session$: authSession.asObservable(), signOut: () => Promise.resolve() } },
@@ -87,12 +87,12 @@ describe('HeaderComponent', () => {
     });
 
     it('updates log state and localizes the simple log title', () => {
-        const shared = TestBed.inject(SharedService);
+        const workoutHeader = TestBed.inject(WorkoutHeaderService);
         const component = createComponent();
         const startDate = new Date(2026, 5, 14, 18, 30);
 
-        shared.emitLogType(LogTypes.SimpleLog);
-        shared.emitLogStartDatim(startDate);
+        workoutHeader.setLogType(LogTypes.SimpleLog);
+        workoutHeader.setLogStartDate(startDate);
         language.next(FormValues.FRCode);
 
         expect(component.currentLogType()).toBe(LogTypes.SimpleLogFR);

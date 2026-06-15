@@ -5,7 +5,7 @@ import { BehaviorSubject, Subject } from 'rxjs';
 
 import { ImportedProgram } from '../../../shared/models/imported-program.model';
 import { ProgramImportService } from '../../../shared/services/program-import.service';
-import { SharedService } from '../../../shared/services/shared.service';
+import { WorkoutHeaderService } from '../../../shared/services/workout-header.service';
 import { ProgramImportComponent } from './program-import.component';
 
 describe('ProgramImportComponent', () => {
@@ -27,7 +27,7 @@ describe('ProgramImportComponent', () => {
         TestBed.configureTestingModule({
             providers: [
                 ProgramImportService,
-                { provide: SharedService, useValue: new SharedService() },
+                { provide: WorkoutHeaderService, useValue: new WorkoutHeaderService() },
                 { provide: Router, useValue: router },
                 { provide: ActivatedRoute, useValue: { queryParamMap: routeParams.asObservable() } },
                 { provide: ChangeDetectorRef, useValue: changeDetectorRef }
