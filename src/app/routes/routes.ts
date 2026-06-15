@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 import { LayoutComponent } from '../layout/layout.component';
-import { authGuard } from '../core/auth/auth.guard';
+import { userDataResolver } from '../core/auth/user-data.resolver';
 
 export const routes: Routes = [
     {
@@ -10,7 +10,7 @@ export const routes: Routes = [
     {
         path: '',
         component: LayoutComponent,
-        canActivate: [authGuard],
+        resolve: { userData: userDataResolver },
         children: [
             { path: '', redirectTo: 'home', pathMatch: 'full' },
             { path: 'home', loadChildren: () => import('./home/home.routes').then(m => m.HOME_ROUTES) },

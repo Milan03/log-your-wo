@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
 import { Component, DestroyRef, HostBinding, HostListener, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, NavigationEnd, Router, RouterModule } from '@angular/router';
@@ -24,7 +24,7 @@ const DEFAULT_SEO: SeoData = {
 @Component({
     selector: 'app-root',
     standalone: true,
-    imports: [CommonModule, RouterModule],
+    imports: [AsyncPipe, RouterModule],
     templateUrl: './app.component.html',
     styleUrls: ['./app.component.scss']
 })

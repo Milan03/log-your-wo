@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
 import { AfterViewInit, Component, DestroyRef, ElementRef, inject, OnInit, ViewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -44,7 +44,7 @@ interface ExerciseForm {
     selector: 'exercise-dialog',
     standalone: true,
     imports: [
-        CommonModule,
+        AsyncPipe,
         ReactiveFormsModule,
         TranslateModule,
         MatAutocompleteModule,
