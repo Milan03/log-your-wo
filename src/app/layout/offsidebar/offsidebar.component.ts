@@ -1,15 +1,16 @@
 import { Component, DestroyRef, ElementRef, HostListener, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FormsModule } from '@angular/forms';
+import { TranslateModule } from '@ngx-translate/core';
 
 import { SettingsService } from '../../core/settings/settings.service';
 import { ThemesService } from '../../core/themes/themes.service';
 import { TranslatorService } from '../../core/translator/translator.service';
-import { SharedModule } from '../../shared/shared.module';
 
 @Component({
     selector: 'app-offsidebar',
     standalone: true,
-    imports: [SharedModule],
+    imports: [FormsModule, TranslateModule],
     templateUrl: './offsidebar.component.html',
     styleUrls: ['./offsidebar.component.scss']
 })

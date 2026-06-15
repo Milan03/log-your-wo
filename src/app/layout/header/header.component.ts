@@ -1,4 +1,4 @@
-import { DOCUMENT } from '@angular/common';
+import { CommonModule, DOCUMENT } from '@angular/common';
 import {
     ChangeDetectionStrategy,
     ChangeDetectorRef,
@@ -13,6 +13,7 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router } from '@angular/router';
 import { MatMenuModule } from '@angular/material/menu';
+import { TranslateModule } from '@ngx-translate/core';
 import { filter } from 'rxjs';
 
 import { AuthService } from '../../core/auth/auth.service';
@@ -23,13 +24,13 @@ import { UserDataSyncService } from '../../shared/services/user-data-sync.servic
 import { SettingsService } from '../../core/settings/settings.service';
 import { ThemesService } from '../../core/themes/themes.service';
 import { TranslatorService } from '../../core/translator/translator.service';
-import { SharedModule } from '../../shared/shared.module';
 
 @Component({
     selector: 'app-header',
     standalone: true,
     imports: [
-        SharedModule,
+        CommonModule,
+        TranslateModule,
         MatMenuModule
     ],
     templateUrl: './header.component.html',

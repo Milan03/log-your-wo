@@ -1,10 +1,10 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
+import { TranslateModule } from '@ngx-translate/core';
 
 import { AppInstallService } from '../core/app-install/app-install.service';
 import { AuthService } from '../core/auth/auth.service';
-import { SharedModule } from '../shared/shared.module';
 import { HeaderComponent } from './header/header.component';
 import { OffsidebarComponent } from './offsidebar/offsidebar.component';
 import { SidebarComponent } from './sidebar/sidebar.component';
@@ -13,7 +13,8 @@ import { SidebarComponent } from './sidebar/sidebar.component';
     selector: 'app-layout',
     standalone: true,
     imports: [
-        SharedModule,
+        RouterModule,
+        TranslateModule,
         HeaderComponent,
         SidebarComponent,
         OffsidebarComponent

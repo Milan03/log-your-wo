@@ -1,16 +1,18 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
+import { TranslateModule } from '@ngx-translate/core';
 
 import { SettingsService } from '../../core/settings/settings.service';
 import { TranslatorService } from '../../core/translator/translator.service';
-import { SharedModule } from '../../shared/shared.module';
 
 @Component({
     selector: '[app-footer]',
     standalone: true,
     imports: [
-        SharedModule,
+        FormsModule,
+        TranslateModule,
         MatFormFieldModule,
         MatSelectModule
     ],

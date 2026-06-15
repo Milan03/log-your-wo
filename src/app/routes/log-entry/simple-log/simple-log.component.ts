@@ -1,8 +1,10 @@
+import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, inject, OnDestroy, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
+import { TranslateModule } from '@ngx-translate/core';
 
 import { ExerciseDialogComponent } from '../exercise-dialog/exercise-dialog.component';
 import { EmailDialogComponent } from '../email-dialog/email-dialog.component';
@@ -35,7 +37,6 @@ import {
 } from '../../../shared/services/workout-export.service';
 
 import { LogTypes, FormValues } from '../../../shared/common/common.constants';
-import { SharedModule } from '../../../shared/shared.module';
 import { ExerciseGroupListComponent } from '../exercise-group-list/exercise-group-list.component';
 import { SimpleLogHistoryComponent } from '../simple-log-history/simple-log-history.component';
 
@@ -51,7 +52,9 @@ interface SimpleLogForm {
     selector: 'app-simple-log',
     standalone: true,
     imports: [
-        SharedModule,
+        CommonModule,
+        ReactiveFormsModule,
+        TranslateModule,
         MatDialogModule,
         ExerciseGroupListComponent,
         SimpleLogHistoryComponent

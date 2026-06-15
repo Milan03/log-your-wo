@@ -1,20 +1,22 @@
-import { DOCUMENT } from '@angular/common';
+import { CommonModule, DOCUMENT } from '@angular/common';
 import { Component, DestroyRef, HostListener, inject, OnDestroy, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { NavigationEnd, Router } from '@angular/router';
+import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { MatRippleModule } from '@angular/material/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { filter } from 'rxjs';
 
 import { AuthService } from '../../core/auth/auth.service';
 import { MenuItem, MenuService } from '../../core/menu/menu.service';
 import { SettingsService } from '../../core/settings/settings.service';
-import { SharedModule } from '../../shared/shared.module';
 
 @Component({
     selector: 'app-sidebar',
     standalone: true,
     imports: [
-        SharedModule,
+        CommonModule,
+        RouterModule,
+        TranslateModule,
         MatRippleModule
     ],
     templateUrl: './sidebar.component.html',

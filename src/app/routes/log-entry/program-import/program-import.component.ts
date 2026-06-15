@@ -1,3 +1,4 @@
+import { CommonModule } from '@angular/common';
 import {
     AfterViewInit,
     ChangeDetectorRef,
@@ -11,9 +12,11 @@ import {
     ViewChildren
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { TranslateModule } from '@ngx-translate/core';
 
 import {
     ImportedProgram,
@@ -30,7 +33,6 @@ import { ProgramImportService } from '../../../shared/services/program-import.se
 import { ProfileService } from '../../../shared/services/profile.service';
 import { SharedService } from '../../../shared/services/shared.service';
 import { TranslatorService } from '../../../core/translator/translator.service';
-import { SharedModule } from '../../../shared/shared.module';
 
 const swal = require('sweetalert');
 
@@ -38,7 +40,9 @@ const swal = require('sweetalert');
     selector: 'app-program-import',
     standalone: true,
     imports: [
-        SharedModule,
+        CommonModule,
+        FormsModule,
+        TranslateModule,
         MatProgressBarModule
     ],
     templateUrl: './program-import.component.html',

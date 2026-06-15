@@ -6,10 +6,12 @@ import {
     FormBuilder,
     FormControl,
     FormGroup,
+    ReactiveFormsModule,
     ValidationErrors,
     Validators
 } from '@angular/forms';
 import { Router } from '@angular/router';
+import { TranslateModule } from '@ngx-translate/core';
 
 import { AuthService } from '../../core/auth/auth.service';
 import {
@@ -23,7 +25,6 @@ import { ProfileService } from '../../shared/services/profile.service';
 import { SharedService } from '../../shared/services/shared.service';
 import { ThemesService } from '../../core/themes/themes.service';
 import { TranslatorService } from '../../core/translator/translator.service';
-import { SharedModule } from '../../shared/shared.module';
 
 interface TrainingMaxForm {
     id: FormControl<string>;
@@ -53,7 +54,7 @@ interface ProfileForm {
 @Component({
     selector: 'app-profile',
     standalone: true,
-    imports: [SharedModule],
+    imports: [ReactiveFormsModule, TranslateModule],
     templateUrl: './profile.component.html',
     styleUrls: ['./profile.component.scss']
 })

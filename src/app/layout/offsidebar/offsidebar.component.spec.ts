@@ -10,7 +10,7 @@ import { TRANSLATE_HTTP_LOADER_CONFIG, TranslateHttpLoader } from '@ngx-translat
 import { SettingsService } from '../../core/settings/settings.service';
 import { ThemesService } from '../../core/themes/themes.service';
 import { TranslatorService } from '../../core/translator/translator.service';
-import { SharedModule } from '../../shared/shared.module';
+import { FormsModule } from '@angular/forms';
 
 export class MockElementRef extends ElementRef {
     constructor() { super(null); }
@@ -28,7 +28,7 @@ describe('Component: Offsidebar', () => {
                     }
                 }),
                 HttpClientModule,
-                SharedModule
+                FormsModule
             ],
             providers: [
                 SettingsService,

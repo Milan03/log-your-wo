@@ -1,13 +1,13 @@
 import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
+import { TranslateModule } from '@ngx-translate/core';
 
 import { SharedService } from '../../../shared/services/shared.service';
-import { SharedModule } from '../../../shared/shared.module';
 
 @Component({
     selector: 'app-home',
     standalone: true,
-    imports: [SharedModule],
+    imports: [RouterModule, TranslateModule],
     templateUrl: './home.component.html',
     styleUrls: ['./home.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush

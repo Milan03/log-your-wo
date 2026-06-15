@@ -1,11 +1,11 @@
 import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { TranslateModule } from '@ngx-translate/core';
 
 import { AuthService } from '../../core/auth/auth.service';
 import { TranslatorService } from '../../core/translator/translator.service';
-import { SharedModule } from '../../shared/shared.module';
 
 interface AuthForm {
     email: FormControl<string>;
@@ -15,7 +15,7 @@ interface AuthForm {
 @Component({
     selector: 'app-auth',
     standalone: true,
-    imports: [SharedModule],
+    imports: [ReactiveFormsModule, TranslateModule],
     templateUrl: './auth.component.html',
     styleUrls: ['./auth.component.scss']
 })
