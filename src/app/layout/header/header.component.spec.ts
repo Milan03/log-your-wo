@@ -1,4 +1,4 @@
-import { ChangeDetectorRef } from '@angular/core';
+import { ChangeDetectorRef, signal, WritableSignal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { NavigationEnd, Router } from '@angular/router';
 import { Session } from '@supabase/supabase-js';
@@ -21,14 +21,14 @@ describe('HeaderComponent', () => {
     let profile: BehaviorSubject<UserProfile>;
     let router: jasmine.SpyObj<Router>;
     let routerEvents: Subject<NavigationEnd>;
-    let syncError: BehaviorSubject<string>;
+    let syncError: WritableSignal<string>;
     let language: BehaviorSubject<string>;
 
     beforeEach(() => {
         authSession = new BehaviorSubject<Session | null>(null);
         profile = new BehaviorSubject<UserProfile>(createDefaultProfile());
         routerEvents = new Subject<NavigationEnd>();
-        syncError = new BehaviorSubject('');
+        syncError = signal('');
         language = new BehaviorSubject(FormValues.ENCode);
         changeDetector = jasmine.createSpyObj<ChangeDetectorRef>('ChangeDetectorRef', ['markForCheck']);
         router = jasmine.createSpyObj<Router>('Router', ['navigate'], {
@@ -52,7 +52,7 @@ describe('HeaderComponent', () => {
                         getDisplayName: (email?: string) => email ? email.split('@')[0] : 'Guest'
                     }
                 },
-                { provide: UserDataSyncService, useValue: { error$: syncError.asObservable() } },
+                { provide: UserDataSyncService, useValue: { error: syncError.asReadonly() } },
                 {
                     provide: TranslatorService,
                     useValue: {
@@ -107,10 +107,10 @@ describe('HeaderComponent', () => {
         const component = createComponent();
 
         routerEvents.next(new NavigationEnd(1, '/home', '/log-entry/simple-log'));
-        syncError.next('Offline');
+        syncError.set('Offline');
 
         expect(component.showLogActions).toBeTrue();
-        expect(component.syncError).toBe('Offline');
+        expect(component.syncError()).toBe('Offline');
     });
 
     it('toggles dark mode without closing the account menu', () => {

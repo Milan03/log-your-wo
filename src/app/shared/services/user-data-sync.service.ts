@@ -1,5 +1,5 @@
-import { Injectable, OnDestroy } from '@angular/core';
-import { fromEvent, Observable, Subscription } from 'rxjs';
+import { Injectable, OnDestroy, Signal } from '@angular/core';
+import { fromEvent, Subscription } from 'rxjs';
 
 import { AuthService } from '../../core/auth/auth.service';
 import { ProgramImportService } from './program-import.service';
@@ -18,8 +18,8 @@ export class UserDataSyncService implements OnDestroy {
     private readonly onlineSubscription: Subscription;
     private currentUserId: string;
 
-    public get error$(): Observable<string> {
-        return this.syncStatus.error$;
+    public get error(): Signal<string> {
+        return this.syncStatus.error;
     }
 
     constructor(

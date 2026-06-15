@@ -27,14 +27,14 @@ describe('Service: Themes', () => {
   it('applies and persists dark mode', inject([ThemesService], (service: ThemesService) => {
     service.setDarkMode(true);
 
-    expect(service.isDarkMode()).toBeTrue();
+    expect(service.darkMode()).toBeTrue();
     expect(localStorage.getItem('logYourWo.darkMode')).toBe('true');
     expect(document.documentElement.classList.contains('app-dark-mode')).toBeTrue();
     expect(document.documentElement.style.colorScheme).toBe('dark');
 
     service.toggleDarkMode();
 
-    expect(service.isDarkMode()).toBeFalse();
+    expect(service.darkMode()).toBeFalse();
     expect(localStorage.getItem('logYourWo.darkMode')).toBe('false');
     expect(document.documentElement.classList.contains('app-dark-mode')).toBeFalse();
   }));
@@ -48,19 +48,18 @@ describe('Service: Themes', () => {
 
     const service = TestBed.inject(ThemesService);
 
-    expect(service.isDarkMode()).toBeTrue();
+    expect(service.darkMode()).toBeTrue();
     expect(document.documentElement.classList.contains('app-dark-mode')).toBeTrue();
   });
 
-  it('publishes dark mode changes', inject([ThemesService], (service: ThemesService) => {
-    const changes: boolean[] = [];
-    const subscription = service.darkMode$.subscribe(enabled => changes.push(enabled));
+  it('exposes dark mode as readonly signal state', inject([ThemesService], (service: ThemesService) => {
+    expect(service.darkMode()).toBeFalse();
+    service.setDarkMode(true);
+    service.setDarkMode(true);
+    expect(service.darkMode()).toBeTrue();
 
-    service.setDarkMode(true);
-    service.setDarkMode(true);
     service.toggleDarkMode();
 
-    expect(changes).toEqual([true, false]);
-    subscription.unsubscribe();
+    expect(service.darkMode()).toBeFalse();
   }));
 });

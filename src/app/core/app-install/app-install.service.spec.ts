@@ -1,9 +1,7 @@
-import { AppInstallNotice, AppInstallService } from './app-install.service';
+import { AppInstallService } from './app-install.service';
 
 describe('AppInstallService', () => {
     let service: AppInstallService;
-    let notice: AppInstallNotice;
-    let noticeSubscription;
 
     beforeEach(() => {
         localStorage.clear();
@@ -14,7 +12,6 @@ describe('AppInstallService', () => {
     });
 
     afterEach(() => {
-        noticeSubscription?.unsubscribe();
         service?.ngOnDestroy();
         localStorage.clear();
         sessionStorage.clear();
@@ -26,7 +23,7 @@ describe('AppInstallService', () => {
 
         createService();
 
-        expect(notice).toEqual({ visible: true, device: 'ios' });
+        expect(service.notice()).toEqual({ visible: true, device: 'ios' });
     });
 
     it('captures and runs the Android install prompt', async () => {
@@ -42,13 +39,13 @@ describe('AppInstallService', () => {
         createService();
         window.dispatchEvent(installEvent);
 
-        expect(notice).toEqual({ visible: true, device: 'android' });
+        expect(service.notice()).toEqual({ visible: true, device: 'android' });
         expect(installEvent.defaultPrevented).toBeTrue();
 
         await service.install();
 
         expect(prompt).toHaveBeenCalled();
-        expect(notice).toEqual({ visible: false, device: 'android' });
+        expect(service.notice()).toEqual({ visible: false, device: 'android' });
     });
 
     it('remembers when the notice is dismissed', () => {
@@ -59,7 +56,7 @@ describe('AppInstallService', () => {
         service.dismiss();
 
         expect(localStorage.getItem('logYourWo.installNoticeDismissed')).toBe('true');
-        expect(notice.visible).toBeFalse();
+        expect(service.notice().visible).toBeFalse();
     });
 
     it('does not offer installation when running as an installed app', () => {
@@ -71,11 +68,10 @@ describe('AppInstallService', () => {
 
         createService();
 
-        expect(notice).toEqual({ visible: false, device: null });
+        expect(service.notice()).toEqual({ visible: false, device: null });
     });
 
     function createService(): void {
         service = new AppInstallService(document);
-        noticeSubscription = service.notice$.subscribe(value => notice = value);
     }
 });

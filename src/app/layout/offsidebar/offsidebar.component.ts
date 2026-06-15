@@ -21,7 +21,7 @@ export class OffsidebarComponent implements OnInit {
     public selectedLanguage: string;
 
     public get darkMode(): boolean {
-        return this.themes.isDarkMode();
+        return this.themes.darkMode();
     }
 
     constructor() {

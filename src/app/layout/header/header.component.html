@@ -50,9 +50,9 @@
 <!-- END Left navbar-->
 <!-- START Right Navbar-->
 <ul class="navbar-nav flex-row">
-  @if (syncError) {
+  @if (syncError()) {
     <li class="nav-item d-none d-md-flex align-items-center">
-      <span class="nav-link header-sync-warning" role="status" [attr.title]="syncError">
+      <span class="nav-link header-sync-warning" role="status" [attr.title]="syncError()">
         {{ 'layout.CloudUnavailable' | translate }}
       </span>
     </li>

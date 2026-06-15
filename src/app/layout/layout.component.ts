@@ -1,8 +1,8 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, inject, OnInit } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 
-import { AppInstallDevice, AppInstallService } from '../core/app-install/app-install.service';
+import { AppInstallService } from '../core/app-install/app-install.service';
 import { AuthService } from '../core/auth/auth.service';
 
 @Component({
@@ -12,31 +12,23 @@ import { AuthService } from '../core/auth/auth.service';
     styleUrls: ['./layout.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class LayoutComponent implements OnInit {
-    public showGuestNotice = false;
-    public showInstallNotice = false;
-    public installDevice: AppInstallDevice | null = null;
+export class LayoutComponent {
     private readonly appInstall = inject(AppInstallService);
     private readonly auth = inject(AuthService);
-    private readonly changeDetector = inject(ChangeDetectorRef);
-    private readonly destroyRef = inject(DestroyRef);
     private readonly router = inject(Router);
+    private readonly session = toSignal(this.auth.session$, { initialValue: null });
+    private readonly guestNoticeDismissed = signal(
+        localStorage.getItem('logYourWo.guestNoticeDismissed') === 'true'
+    );
 
-    public ngOnInit(): void {
-        this.auth.session$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(session => {
-            this.showGuestNotice = !session && localStorage.getItem('logYourWo.guestNoticeDismissed') !== 'true';
-            this.changeDetector.markForCheck();
-        });
-        this.appInstall.notice$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(notice => {
-            this.showInstallNotice = notice.visible;
-            this.installDevice = notice.device;
-            this.changeDetector.markForCheck();
-        });
-    }
+    public readonly showGuestNotice = computed(() =>
+        !this.session() && !this.guestNoticeDismissed()
+    );
+    public readonly installNotice = this.appInstall.notice;
 
     public dismissGuestNotice(): void {
         localStorage.setItem('logYourWo.guestNoticeDismissed', 'true');
-        this.showGuestNotice = false;
+        this.guestNoticeDismissed.set(true);
     }
 
     public dismissInstallNotice(): void {

@@ -1,31 +1,26 @@
-import { Injectable } from '@angular/core';
-import { Subject } from 'rxjs';
+import { Injectable, signal } from '@angular/core';
+import { toObservable } from '@angular/core/rxjs-interop';
 
 @Injectable()
 export class ThemesService {
 
     private readonly darkModeStorageKey = 'logYourWo.darkMode';
     private readonly darkModeClass = 'app-dark-mode';
-    private readonly darkModeSource = new Subject<boolean>();
-    private darkModeEnabled: boolean;
+    private readonly darkModeState = signal(this.readDarkMode());
 
-    public readonly darkMode$ = this.darkModeSource.asObservable();
+    public readonly darkMode = this.darkModeState.asReadonly();
+    public readonly darkMode$ = toObservable(this.darkMode);
 
     constructor() {
-        this.darkModeEnabled = this.readDarkMode();
-        this.applyDarkMode(this.darkModeEnabled);
-    }
-
-    public isDarkMode(): boolean {
-        return this.darkModeEnabled;
+        this.applyDarkMode(this.darkMode());
     }
 
     public setDarkMode(enabled: boolean): void {
-        if (this.darkModeEnabled === enabled) {
+        if (this.darkMode() === enabled) {
             return;
         }
 
-        this.darkModeEnabled = enabled;
+        this.darkModeState.set(enabled);
         this.applyDarkMode(enabled);
 
         try {
@@ -34,11 +29,10 @@ export class ThemesService {
             // The selected mode still applies when storage is unavailable.
         }
 
-        this.darkModeSource.next(enabled);
     }
 
     public toggleDarkMode(): void {
-        this.setDarkMode(!this.isDarkMode());
+        this.setDarkMode(!this.darkMode());
     }
 
     private readDarkMode(): boolean {

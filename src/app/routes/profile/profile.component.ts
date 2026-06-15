@@ -223,7 +223,7 @@ export class ProfileComponent implements OnInit {
     }
 
     public get darkMode(): boolean {
-        return this.themes.isDarkMode();
+        return this.themes.darkMode();
     }
 
     public setDarkMode(enabled: boolean): void {
