@@ -25,13 +25,15 @@ done.
 
 ## Architecture
 
-Angular with **NgModules** (not standalone components) and lazy-loaded routes.
+Angular with **standalone components** (no NgModules) and lazy-loaded routes.
+Bootstrap is `app.config.ts` (`ApplicationConfig` + `provide*` functions);
+prefer `inject()` over constructor parameter injection.
 
-- `src/app/core/` — singletons: `auth/` (AuthService, AuthGuard),
+- `src/app/core/` — singletons: `auth/` (AuthService, `userDataResolver`),
   `supabase/supabase-client.service.ts` (single shared SupabaseClient),
   settings, themes, translator, menu.
 - `src/app/layout/` — app shell (header, sidebar, offsidebar, footer).
-- `src/app/routes/` — feature modules, each lazy-loaded via `routes.ts`:
+- `src/app/routes/` — lazy-loaded standalone features via `routes.ts`:
   `auth/`, `home/`, `log-entry/` (simple-log, program-import, dialogs),
   `profile/`.
 - `src/app/shared/` — `models/`, `services/` (persistence, sync, PDF, email,

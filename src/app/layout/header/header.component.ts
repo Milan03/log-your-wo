@@ -1,4 +1,4 @@
-import { CommonModule, DOCUMENT } from '@angular/common';
+import { DatePipe, DOCUMENT, UpperCasePipe } from '@angular/common';
 import {
     ChangeDetectionStrategy,
     ChangeDetectorRef,
@@ -29,7 +29,8 @@ import { TranslatorService } from '../../core/translator/translator.service';
     selector: 'app-header',
     standalone: true,
     imports: [
-        CommonModule,
+        DatePipe,
+        UpperCasePipe,
         TranslateModule,
         MatMenuModule
     ],

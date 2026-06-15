@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+import { NgClass, NgStyle, PercentPipe } from '@angular/common';
 import {
     AfterViewInit,
     ChangeDetectorRef,
@@ -40,7 +40,9 @@ const swal = require('sweetalert');
     selector: 'app-program-import',
     standalone: true,
     imports: [
-        CommonModule,
+        NgClass,
+        NgStyle,
+        PercentPipe,
         FormsModule,
         TranslateModule,
         MatProgressBarModule

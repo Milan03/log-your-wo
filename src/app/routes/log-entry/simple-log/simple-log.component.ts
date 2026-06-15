@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+import { DatePipe, NgStyle } from '@angular/common';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, inject, OnDestroy, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -52,7 +52,8 @@ interface SimpleLogForm {
     selector: 'app-simple-log',
     standalone: true,
     imports: [
-        CommonModule,
+        DatePipe,
+        NgStyle,
         ReactiveFormsModule,
         TranslateModule,
         MatDialogModule,

@@ -1,4 +1,4 @@
-import { CommonModule, DOCUMENT } from '@angular/common';
+import { DOCUMENT, NgClass } from '@angular/common';
 import { Component, DestroyRef, HostListener, inject, OnDestroy, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
@@ -14,7 +14,7 @@ import { SettingsService } from '../../core/settings/settings.service';
     selector: 'app-sidebar',
     standalone: true,
     imports: [
-        CommonModule,
+        NgClass,
         RouterModule,
         TranslateModule,
         MatRippleModule
