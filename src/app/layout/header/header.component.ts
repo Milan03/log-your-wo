@@ -18,7 +18,9 @@ import { filter } from 'rxjs';
 import { AuthService } from '../../core/auth/auth.service';
 import { FormValues, LogTypes } from '../../shared/common/common.constants';
 import { ProfileService } from '../../shared/services/profile.service';
-import { SharedService } from '../../shared/services/shared.service';
+import { LayoutService } from '../../shared/services/layout.service';
+import { WorkoutHeaderService } from '../../shared/services/workout-header.service';
+import { WorkoutInteractionService } from '../../shared/services/workout-interaction.service';
 import { UserDataSyncService } from '../../shared/services/user-data-sync.service';
 import { SettingsService } from '../../core/settings/settings.service';
 import { ThemesService } from '../../core/themes/themes.service';
@@ -50,7 +52,9 @@ export class HeaderComponent implements OnInit {
     private readonly document = inject(DOCUMENT);
     private readonly profileService = inject(ProfileService);
     private readonly router = inject(Router);
-    private readonly sharedService = inject(SharedService);
+    private readonly layoutService = inject(LayoutService);
+    private readonly workoutHeader = inject(WorkoutHeaderService);
+    private readonly workoutInteraction = inject(WorkoutInteractionService);
     private readonly themesService = inject(ThemesService);
     private readonly translatorService = inject(TranslatorService);
     private readonly userDataSync = inject(UserDataSyncService);
@@ -71,7 +75,7 @@ export class HeaderComponent implements OnInit {
     }
 
     public sendOpenRequest(type: string): void {
-        this.sharedService.emitOpenExerciseDialog(type);
+        this.workoutInteraction.requestExerciseDialog(type);
     }
 
     public toggleOffsidebar(): void {
@@ -83,13 +87,13 @@ export class HeaderComponent implements OnInit {
         if (viewportWidth >= 768 && viewportWidth < 992) {
             this.settings.toggleLayoutSetting('isCollapsedText');
             this.settings.setLayoutSetting('isCollapsed', false);
-            this.sharedService.emitSidebarToggle(this.settings.getLayoutSetting('isCollapsedText'));
+            this.layoutService.setSidebarCollapsed(this.settings.getLayoutSetting('isCollapsedText'));
             return;
         }
 
         this.settings.toggleLayoutSetting('isCollapsed');
         this.settings.setLayoutSetting('isCollapsedText', false);
-        this.sharedService.emitSidebarToggle(this.settings.getLayoutSetting('isCollapsed'));
+        this.layoutService.setSidebarCollapsed(this.settings.getLayoutSetting('isCollapsed'));
     }
 
     public async signOut(): Promise<void> {
@@ -136,14 +140,14 @@ export class HeaderComponent implements OnInit {
         this.settings.setLayoutSetting('isCollapsed', false);
         this.settings.setLayoutSetting('isCollapsedText', viewport === 'tablet');
         this.settings.setLayoutSetting('asideToggled', false);
-        this.sharedService.emitSidebarToggle(viewport === 'tablet');
+        this.layoutService.setSidebarCollapsed(viewport === 'tablet');
     }
 
     private subscribeToLogState(): void {
-        this.sharedService.logTypeEmitted$
+        this.workoutHeader.logType$
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe(logType => this.currentLogType.set(logType));
-        this.sharedService.logStartDatimEmitted$
+        this.workoutHeader.logStartDate$
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe(startDate => this.logStartDatim.set(startDate));
         this.translatorService.languageChangeEmitted$

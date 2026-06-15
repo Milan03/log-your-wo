@@ -23,7 +23,7 @@ import { Observable, map, startWith } from 'rxjs';
 
 import { Exercise, Intensity } from '../../../shared/models/exercise.model';
 import { ExerciseDialogData } from 'src/app/shared/interfaces/exercise-dialog-data';
-import { SharedService } from '../../../shared/services/shared.service';
+import { WorkoutInteractionService } from '../../../shared/services/workout-interaction.service';
 import { TranslatorService } from '../../../core/translator/translator.service';
 import { ExerciseDirectoryService } from '../../../shared/services/exercise-directory.service';
 import { ExerciseNameLocalizerService } from '../../../shared/services/exercise-name-localizer.service';
@@ -101,7 +101,7 @@ export class ExerciseDialogComponent implements OnInit {
     public _exerciseDialogData = inject<ExerciseDialogData>(MAT_DIALOG_DATA);
     private _formBuilder = inject(FormBuilder);
     public _dialogRef = inject(MatDialogRef) as MatDialogRef<ExerciseDialogComponent>;
-    private _sharedService = inject(SharedService);
+    private _workoutInteraction = inject(WorkoutInteractionService);
     private _translatorService = inject(TranslatorService);
     private _exerciseDirectoryService = inject(ExerciseDirectoryService);
     private _exerciseNameLocalizer = inject(ExerciseNameLocalizerService);
@@ -184,7 +184,7 @@ export class ExerciseDialogComponent implements OnInit {
             this.convertFormMeasurement('distance', value === 'mi' ? 1 / 1.609 : 1.609);
             this.selectedDistanceChip = value;
         }
-        this._sharedService.emitMeasureToggle(value);
+        this._workoutInteraction.notifyMeasureChanged(value);
     }
 
     /**

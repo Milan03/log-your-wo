@@ -30,7 +30,7 @@ import { TrainingMax } from '../../../shared/models/profile.model';
 import { WeightMeasure } from '../../../shared/models/simple-log.model';
 import { ProgramImportService } from '../../../shared/services/program-import.service';
 import { ProfileService } from '../../../shared/services/profile.service';
-import { SharedService } from '../../../shared/services/shared.service';
+import { WorkoutHeaderService } from '../../../shared/services/workout-header.service';
 import { TranslatorService } from '../../../core/translator/translator.service';
 
 const swal = require('sweetalert');
@@ -95,7 +95,7 @@ export class ProgramImportComponent implements OnInit, OnDestroy {
     private pendingTrainingMaxes: TrainingMax[] = [];
 
     private _programImportService = inject(ProgramImportService);
-    private _sharedService = inject(SharedService);
+    private _workoutHeader = inject(WorkoutHeaderService);
     private _router = inject(Router);
     private _activatedRoute = inject(ActivatedRoute);
     private _translatorService = inject(TranslatorService, { optional: true });
@@ -103,7 +103,7 @@ export class ProgramImportComponent implements OnInit, OnDestroy {
     private _cdr = inject(ChangeDetectorRef);
 
     ngOnInit(): void {
-        this._sharedService.emitLogType(undefined);
+        this._workoutHeader.setLogType(undefined);
         this.completionColor = this._programImportService.getCompletionColor();
         this.refreshCompletionStyles();
         this._activatedRoute.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {

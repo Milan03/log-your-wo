@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/cor
 import { Router, RouterModule } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 
-import { SharedService } from '../../../shared/services/shared.service';
+import { WorkoutHeaderService } from '../../../shared/services/workout-header.service';
 
 @Component({
     selector: 'app-home',
@@ -48,10 +48,10 @@ export class HomeComponent implements OnInit {
     ];
 
     private _router = inject(Router);
-    private _sharedService = inject(SharedService);
+    private _workoutHeader = inject(WorkoutHeaderService);
 
     public ngOnInit(): void {
-        this._sharedService.emitLogType(undefined);
+        this._workoutHeader.setLogType(undefined);
     }
 
     public navigateToSimpleLogEntry(): void {

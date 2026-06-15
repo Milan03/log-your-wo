@@ -20,7 +20,9 @@ import {
     WeightMeasure
 } from '../../../shared/models/simple-log.model';
 import { ExerciseDialogData } from '../../../shared/interfaces/exercise-dialog-data';
-import { SharedService } from '../../../shared/services/shared.service';
+import { LayoutService } from '../../../shared/services/layout.service';
+import { WorkoutHeaderService } from '../../../shared/services/workout-header.service';
+import { WorkoutInteractionService } from '../../../shared/services/workout-interaction.service';
 import { TranslatorService } from '../../../core/translator/translator.service';
 import { ProgramImportService } from '../../../shared/services/program-import.service';
 import { MeasureConversionService } from '../../../shared/services/measure-conversion.service';
@@ -108,7 +110,9 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     public calendarWeekdays: string[] = [];
 
     private _formBuilder = inject(FormBuilder);
-    private _sharedService = inject(SharedService);
+    private _layoutService = inject(LayoutService);
+    private _workoutHeader = inject(WorkoutHeaderService);
+    private _workoutInteraction = inject(WorkoutInteractionService);
     private _translatorService = inject(TranslatorService);
     private _dialog = inject(MatDialog);
     private _programImportService = inject(ProgramImportService);
@@ -139,13 +143,12 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         this.workoutDateTime = this.toDateTimeInputValue(this.currentLog.startDatim);
         this.calendarMonth = new Date(this.currentLog.startDatim.getFullYear(), this.currentLog.startDatim.getMonth(), 1);
         this.refreshCompletionStyles();
-        this._sharedService.emitLogType(LogTypes.SimpleLog);
-        this._sharedService.emitLogStartDatim(this.currentLog.startDatim);
+        this._workoutHeader.setLogType(LogTypes.SimpleLog);
+        this._workoutHeader.setLogStartDate(this.currentLog.startDatim);
         this.subToLanguageChange();
         this.subToSidebarToggleChange();
         this.subToMeasureToggleChange();
         this.subToOpenDialogStream();
-        this.subToExerciseTitleStream();
         this.subToSimpleLogs();
         this.subToRouteParams();
     }
@@ -439,8 +442,8 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         this.isEditingSimpleLogTitle = false;
         this.calendarMonth = new Date(this.currentLog.startDatim.getFullYear(), this.currentLog.startDatim.getMonth(), 1);
         this.refreshCalendar();
-        this._sharedService.emitLogType(this.currentLog.title);
-        this._sharedService.emitLogStartDatim(this.currentLog.startDatim);
+        this._workoutHeader.setLogType(this.currentLog.title);
+        this._workoutHeader.setLogStartDate(this.currentLog.startDatim);
         this._router.navigate(['/log-entry/simple-log']);
     }
 
@@ -490,7 +493,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         const title = this.simpleLogTitleDraft.trim();
         this.currentLog.title = title || LogTypes.SimpleLog;
         this.isEditingSimpleLogTitle = false;
-        this._sharedService.emitLogType(this.currentLog.title);
+        this._workoutHeader.setLogType(this.currentLog.title);
         this.saveSimpleLogIfNeeded();
     }
 
@@ -515,7 +518,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         this.currentLog.startDatim = this.dateTimeFromInputValue(dateTimeValue);
         this.workoutDate = this.toDateInputValue(this.currentLog.startDatim);
         this.calendarMonth = new Date(this.currentLog.startDatim.getFullYear(), this.currentLog.startDatim.getMonth(), 1);
-        this._sharedService.emitLogStartDatim(this.currentLog.startDatim);
+        this._workoutHeader.setLogStartDate(this.currentLog.startDatim);
         this.saveSimpleLogIfNeeded();
         this.refreshCalendar();
     }
@@ -703,7 +706,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     }
 
     private subToSidebarToggleChange(): void {
-        this._sharedService.sidebarToggleEmitted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(
+        this._layoutService.sidebarCollapsed$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(
             data => {
                 this.sbIsCollapsed = data;
                 this._cdr.markForCheck();
@@ -712,7 +715,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     }
 
     private subToMeasureToggleChange(): void {
-        this._sharedService.measureToggleSource$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(
+        this._workoutInteraction.measureChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(
             data => {
                 if (data === 'lbs' || data === 'kg') {
                     if (data !== this.weightMeasure) {
@@ -733,7 +736,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     }
 
     private subToOpenDialogStream(): void {
-        this._sharedService.openExerciseDialogEmitted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(
+        this._workoutInteraction.exerciseDialogRequested$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(
             data => {
                 if (data) {
                     if (data === 'strength') {
@@ -744,16 +747,6 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
                 }
             }
         )
-    }
-
-    private subToExerciseTitleStream(): void {
-        this._sharedService.exerciseTitleEmitted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(
-          data => {
-            this.currentLog.title = data;
-            this.saveCurrentWorkoutState();
-            this._cdr.markForCheck();
-          }
-        );
     }
 
     private subToSimpleLogs(): void {
@@ -833,8 +826,8 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         if (sourceWeightMeasure !== this.weightMeasure || sourceDistanceMeasure !== this.distanceMeasure) {
             this.saveSimpleLogIfNeeded();
         }
-        this._sharedService.emitLogType(this.currentLog.title);
-        this._sharedService.emitLogStartDatim(this.currentLog.startDatim);
+        this._workoutHeader.setLogType(this.currentLog.title);
+        this._workoutHeader.setLogStartDate(this.currentLog.startDatim);
     }
 
     private loadImportedWorkout(weekId: string, dayId: string): void {
@@ -870,8 +863,8 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             : [];
         this.isImportedWorkout = true;
         this.loadWorkoutTiming(state);
-        this._sharedService.emitLogType(this.currentLog.title);
-        this._sharedService.emitLogStartDatim(this.currentLog.startDatim);
+        this._workoutHeader.setLogType(this.currentLog.title);
+        this._workoutHeader.setLogStartDate(this.currentLog.startDatim);
         if (state && (
             sourceWeightMeasure !== this.weightMeasure ||
             (state.distanceMeasure || 'km') !== this.distanceMeasure
