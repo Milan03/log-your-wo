@@ -7,6 +7,7 @@ import { ImportedProgram } from '../../../shared/models/imported-program.model';
 import { ProgramImportService } from '../../../shared/services/program-import.service';
 import { WorkoutHeaderService } from '../../../shared/services/workout-header.service';
 import { ProgramImportComponent } from './program-import.component';
+import { ProgramImportWizardStore } from './program-import-wizard.store';
 
 describe('ProgramImportComponent', () => {
     let component: ProgramImportComponent;
@@ -27,6 +28,7 @@ describe('ProgramImportComponent', () => {
         TestBed.configureTestingModule({
             providers: [
                 ProgramImportService,
+                ProgramImportWizardStore,
                 { provide: WorkoutHeaderService, useValue: new WorkoutHeaderService() },
                 { provide: Router, useValue: router },
                 { provide: ActivatedRoute, useValue: { queryParamMap: routeParams.asObservable() } },
@@ -318,7 +320,7 @@ describe('ProgramImportComponent', () => {
             }),
             saveTrainingMaxes: jasmine.createSpy('saveTrainingMaxes').and.resolveTo()
         };
-        (component as any)._profileService = profileService;
+        (component as any)._wizard._profileService = profileService;
         spyOn(programImportService, 'previewWorkbook').and.resolveTo(preview);
         const input = document.createElement('input');
         Object.defineProperty(input, 'files', {
@@ -364,7 +366,7 @@ describe('ProgramImportComponent', () => {
             findTrainingMax: jasmine.createSpy('findTrainingMax'),
             saveTrainingMaxes: jasmine.createSpy('saveTrainingMaxes').and.resolveTo()
         };
-        (component as any)._profileService = profileService;
+        (component as any)._wizard._profileService = profileService;
         component.importPreview = {
             program: createProgram(),
             confidence: 0.9,
