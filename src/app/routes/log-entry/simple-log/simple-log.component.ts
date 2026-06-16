@@ -1,5 +1,5 @@
 import { DatePipe, NgStyle } from '@angular/common';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -75,7 +75,6 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     public intensities = FormValues.ExerciseIntensities;
 
     private readonly destroyRef = inject(DestroyRef);
-    private _cdr = inject(ChangeDetectorRef);
     private strengthGroupSource: Exercise[];
     private strengthGroups: ExerciseGroup[] = [];
     private cardioGroupSource: Exercise[];
@@ -98,6 +97,15 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     public set currentLanguage(value: string) { this._currentLanguage.set(value); }
     public get currentLog(): SimpleLog { return this._currentLog(); }
     public set currentLog(value: SimpleLog) { this._currentLog.set(value); }
+
+    /**
+     * Notify the `currentLog` signal after its contents (exercises, title, ...)
+     * are mutated in place, so OnPush views refresh. The signal uses
+     * `equal: () => false`, so re-setting the same instance still emits.
+     */
+    private touchCurrentLog(): void {
+        this._currentLog.set(this._currentLog());
+    }
     public get completionStyles(): { [key: string]: string } { return this._completionStyles(); }
     public set completionStyles(value: { [key: string]: string }) { this._completionStyles.set(value); }
     public get workoutDate(): string { return this._workoutDate(); }
@@ -167,7 +175,6 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
 
     ngOnInit(): void {
         this._measures.initFromProfile(this._profileService?.profile);
-        this._timing.setTickHandler(() => this._cdr.markForCheck());
         this.currentLanguage = FormValues.ENCode;
         this.currentLog = new SimpleLog();
         this.workoutDate = this.toDateInputValue(this.currentLog.startDatim);
@@ -228,8 +235,10 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
 
     public checkForTitleValue(): void {
         let title = this.simpleLogForm.get('title').value;
-        if (title)
+        if (title) {
             this.currentLog.title = title;
+            this.touchCurrentLog();
+        }
     }
 
     public openEmailDialog(): void {
@@ -260,11 +269,11 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         dialogRef.afterClosed().subscribe(result => {
             if (result) {
                 this.addExerciseToLog(type, result, insertAfter);
+                this.touchCurrentLog();
                 if (!this.isImportedWorkout && exerciseCountBeforeAdd === 0) {
                     this.ensureWorkoutStarted();
                 }
                 this.saveCurrentWorkoutState();
-                this._cdr.markForCheck();
             }
         });
     }
@@ -279,6 +288,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         } else {
             this.currentLog.cardioExercises = this.currentLog.cardioExercises.filter(currentExercise => currentExercise.exerciseId !== exercise.exerciseId);
         }
+        this.touchCurrentLog();
         this.saveCurrentWorkoutState();
     }
 
@@ -303,8 +313,8 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         dialogRef.afterClosed().subscribe(result => {
             if (result) {
                 this.replaceExercise(exercise, result);
+                this.touchCurrentLog();
                 this.saveCurrentWorkoutState();
-                this._cdr.markForCheck();
             }
         });
     }
@@ -317,6 +327,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         } else {
             this.currentLog.cardioExercises = [...this.currentLog.cardioExercises];
         }
+        this.touchCurrentLog();
         this.syncWorkoutCompletion();
         this.saveCurrentWorkoutState();
     }
@@ -353,6 +364,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             ...exercise,
             completed: true
         }));
+        this.touchCurrentLog();
         this._timing.complete();
         this.saveCurrentWorkoutState();
     }
@@ -372,6 +384,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             ...exercise,
             completed: exercise.exerciseId === lastCompletedExercise.exerciseId ? false : exercise.completed
         }));
+        this.touchCurrentLog();
         this._timing.reopen();
         this.saveCurrentWorkoutState();
     }
@@ -394,7 +407,6 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         }
 
         this.applyWorkoutReset();
-        this._cdr.markForCheck();
     }
 
     private applyWorkoutReset(): void {
@@ -406,6 +418,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             ...exercise,
             completed: false
         }));
+        this.touchCurrentLog();
         this._timing.clear();
         this.saveCurrentWorkoutState();
     }
@@ -419,6 +432,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             ...exercise,
             completed: false
         }));
+        this.touchCurrentLog();
         this._timing.clearCompletion();
         this.saveCurrentWorkoutState();
     }
@@ -458,6 +472,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             ? now
             : this.dateFromInputValue(dateValue);
         this.workoutDateTime = this.toDateTimeInputValue(this.currentLog.startDatim);
+        this.touchCurrentLog();
         this._timing.clear();
         this.isEditingSimpleLogTitle = false;
         this._calendarStore.setMonthFromDate(this.currentLog.startDatim);
@@ -511,6 +526,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     public saveSimpleLogTitle(): void {
         const title = this.simpleLogTitleDraft.trim();
         this.currentLog.title = title || LogTypes.SimpleLog;
+        this.touchCurrentLog();
         this.isEditingSimpleLogTitle = false;
         this._workoutHeader.setLogType(this.currentLog.title);
         this.saveSimpleLogIfNeeded();
@@ -563,7 +579,6 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
 
         this._simpleLogService.deleteLog(this.activeSimpleLogId);
         this.createNewSimpleLog();
-        this._cdr.markForCheck();
     }
 
     public async deleteSavedSimpleLog(log: SavedSimpleLog): Promise<void> {
@@ -585,7 +600,6 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         if (this.activeSimpleLogId === log.id) {
             this.createNewSimpleLog(log.workoutDate);
         }
-        this._cdr.markForCheck();
     }
 
     private refreshSelectedDateLogs(): void {
@@ -701,7 +715,6 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
                     this.intensities = FormValues.ExerciseIntensitiesFR;
                 }
                 this._calendarStore.updateWeekdays(this.currentLanguage);
-                this._cdr.markForCheck();
             }
         );
     }
@@ -710,7 +723,6 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         this._layoutService.sidebarCollapsed$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(
             data => {
                 this.sbIsCollapsed = data;
-                this._cdr.markForCheck();
             }
         );
     }
@@ -719,9 +731,9 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         this._workoutInteraction.measureChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(
             data => {
                 if (this._measures.applyMeasureChange(data, this.currentLog)) {
+                    this.touchCurrentLog();
                     this.saveCurrentWorkoutState();
                 }
-                this._cdr.markForCheck();
             }
         );
     }
@@ -743,7 +755,6 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     private subToSimpleLogs(): void {
         this._simpleLogService.logs$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(logs => {
             this._calendarStore.setSavedLogs(logs, this.workoutDate);
-            this._cdr.markForCheck();
         });
     }
 
@@ -780,7 +791,6 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
                     this.activeSimpleLogId = undefined;
                 }
             }
-            this._cdr.markForCheck();
         });
     }
 
@@ -798,6 +808,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             savedLog.weightMeasure || 'lbs',
             savedLog.distanceMeasure || 'km'
         );
+        this.touchCurrentLog();
         this.activeSimpleLogId = savedLog.id;
         this.workoutDate = savedLog.workoutDate;
         this.workoutDateTime = this.toDateTimeInputValue(this.currentLog.startDatim);
