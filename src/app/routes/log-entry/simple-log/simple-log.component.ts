@@ -24,7 +24,6 @@ import { WorkoutHeaderService } from '../../../shared/services/workout-header.se
 import { WorkoutInteractionService } from '../../../shared/services/workout-interaction.service';
 import { TranslatorService } from '../../../core/translator/translator.service';
 import { ProgramImportService } from '../../../shared/services/program-import.service';
-import { MeasureConversionService } from '../../../shared/services/measure-conversion.service';
 import { SimpleLogService } from '../../../shared/services/simple-log.service';
 import { ImportedProgramDay, ImportedProgramWeek, ImportedWorkoutState } from '../../../shared/models/imported-program.model';
 import { ProfileService } from '../../../shared/services/profile.service';
@@ -39,6 +38,7 @@ import { SimpleLogHistoryComponent } from '../simple-log-history/simple-log-hist
 import { SimpleLogCalendarStore } from './simple-log-calendar.store';
 import { WorkoutTimingStore } from './workout-timing.store';
 import { ImportedWorkoutStore } from './imported-workout.store';
+import { MeasureSettingsStore } from './measure-settings.store';
 
 const swal = require('sweetalert');
 
@@ -61,7 +61,7 @@ interface SimpleLogForm {
     templateUrl: './simple-log.component.html',
     styleUrls: ['./simple-log.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush,
-    providers: [SimpleLogCalendarStore, WorkoutTimingStore, ImportedWorkoutStore]
+    providers: [SimpleLogCalendarStore, WorkoutTimingStore, ImportedWorkoutStore, MeasureSettingsStore]
 })
 export class SimpleLogComponent implements OnInit, OnDestroy {
     public simpleLogForm: FormGroup<SimpleLogForm>;
@@ -75,8 +75,6 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     public readonly exerciseType: string = FormValues.ExerciseNameFormControl;
     public readonly cardioExerciseType: string = FormValues.CardioExerciseNameFormControl;
     public intensities = FormValues.ExerciseIntensities;
-    public weightMeasure: WeightMeasure = 'lbs';
-    public distanceMeasure: DistanceMeasure = 'km';
 
     private readonly destroyRef = inject(DestroyRef);
     private _cdr = inject(ChangeDetectorRef);
@@ -95,6 +93,12 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     private _calendarStore = inject(SimpleLogCalendarStore);
     private _timing = inject(WorkoutTimingStore);
     private _importedWorkout = inject(ImportedWorkoutStore);
+    private _measures = inject(MeasureSettingsStore);
+
+    // Active weight/distance units live in MeasureSettingsStore; these accessors
+    // keep the template and existing call sites pointed at it.
+    public get weightMeasure(): WeightMeasure { return this._measures.weightMeasure; }
+    public get distanceMeasure(): DistanceMeasure { return this._measures.distanceMeasure; }
 
     // Imported-workout context lives in ImportedWorkoutStore; these accessors
     // keep the template and existing call sites pointed at it.
@@ -129,7 +133,6 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     private _translatorService = inject(TranslatorService);
     private _dialog = inject(MatDialog);
     private _programImportService = inject(ProgramImportService);
-    private _measureConversionService = inject(MeasureConversionService);
     private _calendarService = inject(CalendarService);
     private _simpleLogService = inject(SimpleLogService);
     private _workoutExportService = inject(WorkoutExportService);
@@ -144,11 +147,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     }
 
     ngOnInit(): void {
-        const profile = this._profileService ? this._profileService.profile : undefined;
-        if (profile && profile.updatedAt) {
-            this.weightMeasure = profile.unitSystem === 'metric' ? 'kg' : 'lbs';
-            this.distanceMeasure = profile.unitSystem === 'metric' ? 'km' : 'mi';
-        }
+        this._measures.initFromProfile(this._profileService?.profile);
         this._timing.setTickHandler(() => this._cdr.markForCheck());
         this.currentLanguage = FormValues.ENCode;
         this.currentLog = new SimpleLog();
@@ -232,7 +231,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         if (name) {
             data = { ...data, exerciseName: name };
         }
-        data.measure = (type === 'strength') ? this.weightMeasure : this.distanceMeasure;
+        data.measure = this._measures.measureFor(type);
         const dialogRef = this._dialog.open(ExerciseDialogComponent, {
             data,
             panelClass: 'exercise-dialog-panel',
@@ -274,7 +273,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             exerciseName: exercise.exerciseName,
             exercise,
             isEdit: true,
-            measure: exercise.exerciseType === 'strength' ? this.weightMeasure : this.distanceMeasure
+            measure: this._measures.measureFor(exercise.exerciseType)
         };
         const dialogRef = this._dialog.open(ExerciseDialogComponent, {
             data,
@@ -669,24 +668,6 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         }
     }
 
-    private transformWeightMeasure(data: WeightMeasure): void {
-        const sourceMeasure = data === 'kg' ? 'lbs' : 'kg';
-        this.currentLog.exercises = this._measureConversionService.convertWeights(
-            this.currentLog.exercises,
-            sourceMeasure,
-            data
-        );
-    }
-
-    private transformDistanceMeasure(data: DistanceMeasure): void {
-        const sourceMeasure = data === 'mi' ? 'km' : 'mi';
-        this.currentLog.cardioExercises = this._measureConversionService.convertDistances(
-            this.currentLog.cardioExercises,
-            sourceMeasure,
-            data
-        );
-    }
-
     /**
      * Inter component communication Subscriptions
      */
@@ -717,18 +698,8 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     private subToMeasureToggleChange(): void {
         this._workoutInteraction.measureChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(
             data => {
-                if (data === 'lbs' || data === 'kg') {
-                    if (data !== this.weightMeasure) {
-                        this.weightMeasure = data;
-                        this.transformWeightMeasure(this.weightMeasure);
-                        this.saveCurrentWorkoutState();
-                    }
-                } else if (data === 'km' || data === 'mi') {
-                    if (data !== this.distanceMeasure) {
-                        this.distanceMeasure = data;
-                        this.transformDistanceMeasure(this.distanceMeasure);
-                        this.saveCurrentWorkoutState();
-                    }
+                if (this._measures.applyMeasureChange(data, this.currentLog)) {
+                    this.saveCurrentWorkoutState();
                 }
                 this._cdr.markForCheck();
             }
@@ -802,17 +773,10 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         }
 
         this.currentLog = this._simpleLogService.hydrateLog(savedLog);
-        const sourceWeightMeasure = savedLog.weightMeasure || 'lbs';
-        const sourceDistanceMeasure = savedLog.distanceMeasure || 'km';
-        this.currentLog.exercises = this._measureConversionService.convertWeights(
-            this.currentLog.exercises,
-            sourceWeightMeasure,
-            this.weightMeasure
-        );
-        this.currentLog.cardioExercises = this._measureConversionService.convertDistances(
-            this.currentLog.cardioExercises,
-            sourceDistanceMeasure,
-            this.distanceMeasure
+        const converted = this._measures.convertToActive(
+            this.currentLog,
+            savedLog.weightMeasure || 'lbs',
+            savedLog.distanceMeasure || 'km'
         );
         this.activeSimpleLogId = savedLog.id;
         this.workoutDate = savedLog.workoutDate;
@@ -820,7 +784,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         this._calendarStore.setMonthFromDate(this.currentLog.startDatim);
         this.refreshCalendar();
         this.loadWorkoutTiming(savedLog);
-        if (sourceWeightMeasure !== this.weightMeasure || sourceDistanceMeasure !== this.distanceMeasure) {
+        if (converted) {
             this.saveSimpleLogIfNeeded();
         }
         this._workoutHeader.setLogType(this.currentLog.title);
