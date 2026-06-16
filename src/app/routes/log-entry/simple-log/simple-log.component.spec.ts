@@ -506,6 +506,48 @@ describe('SimpleLogComponent', () => {
     expect(component.workoutCompletedAt).toBeUndefined();
   });
 
+  it('keeps elapsed time frozen at completion when a workout is reopened', () => {
+    jasmine.clock().install();
+    jasmine.clock().mockDate(new Date('2026-06-06T10:00:00.000Z'));
+    component.currentLog.exercises = [createExercise('Press', false)];
+    component.startWorkout();
+
+    jasmine.clock().mockDate(new Date('2026-06-06T10:10:00.000Z'));
+    component.markWorkoutComplete();
+    const completedElapsed = component.elapsedMs;
+
+    // Leave the workout completed for 30 minutes before reopening it; that gap
+    // must not be counted as workout time.
+    jasmine.clock().mockDate(new Date('2026-06-06T10:40:00.000Z'));
+    component.markWorkoutIncomplete();
+
+    expect(completedElapsed).toBe(600000);
+    expect(component.elapsedMs).toBe(completedElapsed);
+    jasmine.clock().uninstall();
+  });
+
+  it('keeps elapsed time frozen when a completed log is reopened by toggling a row', () => {
+    jasmine.clock().install();
+    jasmine.clock().mockDate(new Date('2026-06-06T10:00:00.000Z'));
+    const exercise = createExercise('Press', false);
+    component.currentLog.exercises = [exercise];
+    component.startWorkout();
+
+    // Completing the only row auto-completes the workout and freezes the clock.
+    jasmine.clock().mockDate(new Date('2026-06-06T10:10:00.000Z'));
+    component.onExerciseRowClick(exercise);
+    const completedElapsed = component.elapsedMs;
+
+    // Unchecking it 30 minutes later reopens the workout without counting the gap.
+    jasmine.clock().mockDate(new Date('2026-06-06T10:40:00.000Z'));
+    component.onExerciseRowClick(exercise);
+
+    expect(component.workoutCompletedAt).toBeUndefined();
+    expect(completedElapsed).toBe(600000);
+    expect(component.elapsedMs).toBe(completedElapsed);
+    jasmine.clock().uninstall();
+  });
+
   it('resets an in-progress workout by clearing the timer and unchecking every exercise', () => {
     component.currentLog.exercises = [createExercise('Clean', false)];
     component.currentLog.cardioExercises = [];
