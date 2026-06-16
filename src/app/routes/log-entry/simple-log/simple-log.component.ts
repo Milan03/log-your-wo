@@ -41,6 +41,7 @@ import {
 import { LogTypes, FormValues } from '../../../shared/common/common.constants';
 import { ExerciseGroupListComponent } from '../exercise-group-list/exercise-group-list.component';
 import { SimpleLogHistoryComponent } from '../simple-log-history/simple-log-history.component';
+import { SimpleLogCalendarStore } from './simple-log-calendar.store';
 
 import { Duration } from 'luxon';
 
@@ -64,7 +65,8 @@ interface SimpleLogForm {
     ],
     templateUrl: './simple-log.component.html',
     styleUrls: ['./simple-log.component.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    providers: [SimpleLogCalendarStore]
 })
 export class SimpleLogComponent implements OnInit, OnDestroy {
     public simpleLogForm: FormGroup<SimpleLogForm>;
@@ -98,16 +100,22 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     public totalPausedMs = 0;
     public elapsedMs = 0;
     public completionStyles: { [key: string]: string } = {};
-    public savedLogs: SavedSimpleLog[] = [];
-    public selectedDateLogs: SavedSimpleLog[] = [];
     public workoutDate = '';
     public workoutDateTime = '';
-    public calendarMonth = new Date();
-    public calendarDays: CalendarDay[] = [];
-    public isHistoryExpanded = true;
     public isEditingSimpleLogTitle = false;
     public simpleLogTitleDraft = '';
-    public calendarWeekdays: string[] = [];
+
+    private _calendarStore = inject(SimpleLogCalendarStore);
+
+    // Calendar/history view state lives in SimpleLogCalendarStore; these
+    // accessors keep the template and existing call sites pointed at it.
+    public get savedLogs(): SavedSimpleLog[] { return this._calendarStore.savedLogs; }
+    public get selectedDateLogs(): SavedSimpleLog[] { return this._calendarStore.selectedDateLogs; }
+    public get calendarDays(): CalendarDay[] { return this._calendarStore.calendarDays; }
+    public get calendarWeekdays(): string[] { return this._calendarStore.calendarWeekdays; }
+    public get calendarMonth(): Date { return this._calendarStore.calendarMonth; }
+    public get isHistoryExpanded(): boolean { return this._calendarStore.isHistoryExpanded; }
+    public set isHistoryExpanded(value: boolean) { this._calendarStore.isHistoryExpanded = value; }
 
     private _formBuilder = inject(FormBuilder);
     private _layoutService = inject(LayoutService);
@@ -141,7 +149,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         this.currentLog = new SimpleLog();
         this.workoutDate = this.toDateInputValue(this.currentLog.startDatim);
         this.workoutDateTime = this.toDateTimeInputValue(this.currentLog.startDatim);
-        this.calendarMonth = new Date(this.currentLog.startDatim.getFullYear(), this.currentLog.startDatim.getMonth(), 1);
+        this._calendarStore.setMonthFromDate(this.currentLog.startDatim);
         this.refreshCompletionStyles();
         this._workoutHeader.setLogType(LogTypes.SimpleLog);
         this._workoutHeader.setLogStartDate(this.currentLog.startDatim);
@@ -440,7 +448,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         this.workoutDateTime = this.toDateTimeInputValue(this.currentLog.startDatim);
         this.clearWorkoutTiming();
         this.isEditingSimpleLogTitle = false;
-        this.calendarMonth = new Date(this.currentLog.startDatim.getFullYear(), this.currentLog.startDatim.getMonth(), 1);
+        this._calendarStore.setMonthFromDate(this.currentLog.startDatim);
         this.refreshCalendar();
         this._workoutHeader.setLogType(this.currentLog.title);
         this._workoutHeader.setLogStartDate(this.currentLog.startDatim);
@@ -462,13 +470,13 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     public selectCalendarDay(day: CalendarDay): void {
         this.workoutDate = day.dateValue;
         if (!day.inCurrentMonth) {
-            this.calendarMonth = new Date(day.date.getFullYear(), day.date.getMonth(), 1);
+            this._calendarStore.setMonthFromDate(day.date);
             this.refreshCalendar();
         }
 
         // Selecting a day only surfaces that day's workouts; the calendar stays
         // open until the user opens a specific workout or starts a new log.
-        if (!this.savedLogs.some(savedLog => savedLog.workoutDate === day.dateValue)) {
+        if (!this._calendarStore.hasLogForDate(day.dateValue)) {
             this.createNewSimpleLog(day.dateValue);
         } else {
             this.refreshSelectedDateLogs();
@@ -476,12 +484,11 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     }
 
     public changeCalendarMonth(offset: number): void {
-        this.calendarMonth = new Date(this.calendarMonth.getFullYear(), this.calendarMonth.getMonth() + offset, 1);
-        this.refreshCalendar();
+        this._calendarStore.changeMonth(offset, this.workoutDate);
     }
 
     public toggleHistory(): void {
-        this.isHistoryExpanded = !this.isHistoryExpanded;
+        this._calendarStore.toggleHistory();
     }
 
     public beginSimpleLogTitleEdit(): void {
@@ -517,7 +524,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         this.workoutDateTime = dateTimeValue;
         this.currentLog.startDatim = this.dateTimeFromInputValue(dateTimeValue);
         this.workoutDate = this.toDateInputValue(this.currentLog.startDatim);
-        this.calendarMonth = new Date(this.currentLog.startDatim.getFullYear(), this.currentLog.startDatim.getMonth(), 1);
+        this._calendarStore.setMonthFromDate(this.currentLog.startDatim);
         this._workoutHeader.setLogStartDate(this.currentLog.startDatim);
         this.saveSimpleLogIfNeeded();
         this.refreshCalendar();
@@ -570,7 +577,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     }
 
     private refreshSelectedDateLogs(): void {
-        this.selectedDateLogs = this.savedLogs.filter(log => log.workoutDate === this.workoutDate);
+        this._calendarStore.refreshSelectedDateLogs(this.workoutDate);
     }
 
     public hasActiveSimpleLog(): boolean {
@@ -699,7 +706,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
                 } else {
                     this.intensities = FormValues.ExerciseIntensitiesFR;
                 }
-                this.calendarWeekdays = this._calendarService.weekdays(this.currentLanguage);
+                this._calendarStore.updateWeekdays(this.currentLanguage);
                 this._cdr.markForCheck();
             }
         );
@@ -751,8 +758,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
 
     private subToSimpleLogs(): void {
         this._simpleLogService.logs$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(logs => {
-            this.savedLogs = logs;
-            this.refreshCalendar();
+            this._calendarStore.setSavedLogs(logs, this.workoutDate);
             this._cdr.markForCheck();
         });
     }
@@ -820,7 +826,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         this.activeSimpleLogId = savedLog.id;
         this.workoutDate = savedLog.workoutDate;
         this.workoutDateTime = this.toDateTimeInputValue(this.currentLog.startDatim);
-        this.calendarMonth = new Date(this.currentLog.startDatim.getFullYear(), this.currentLog.startDatim.getMonth(), 1);
+        this._calendarStore.setMonthFromDate(this.currentLog.startDatim);
         this.refreshCalendar();
         this.loadWorkoutTiming(savedLog);
         if (sourceWeightMeasure !== this.weightMeasure || sourceDistanceMeasure !== this.distanceMeasure) {
@@ -988,9 +994,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     }
 
     private refreshCalendar(): void {
-        const workoutDates = new Set(this.savedLogs.map(log => log.workoutDate));
-        this.calendarDays = this._calendarService.buildMonth(this.calendarMonth, new Date(), workoutDates);
-        this.refreshSelectedDateLogs();
+        this._calendarStore.refresh(this.workoutDate);
     }
 
     private toDateInputValue(date: Date): string {
