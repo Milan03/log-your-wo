@@ -12,6 +12,7 @@ import {
 } from '../models/imported-program.model';
 import { SupabaseDataService } from './supabase-data.service';
 import { CloudSyncStatusService } from './cloud-sync-status.service';
+import { ProgramProgressService } from './program-progress.service';
 import type { ProgramWorkbookParserService } from './program-workbook-parser.service';
 
 @Injectable({
@@ -38,6 +39,7 @@ export class ProgramImportService {
 
     private cloudData = inject(SupabaseDataService, { optional: true });
     private syncStatus = inject(CloudSyncStatusService, { optional: true });
+    private progress = inject(ProgramProgressService);
 
     public setUserContext(userId: string): void {
         this.activeUserId = userId;
@@ -344,15 +346,7 @@ export class ProgramImportService {
     }
 
     public getDayCompletion(weekId: string, dayId: string): { completed: number, total: number } {
-        const day = this.getDay(weekId, dayId);
-        const state = this.getWorkoutState(weekId, dayId);
-        const exercises = state ? state.exercises : (day ? this.createExercisesForDay(day) : []);
-        const cardioExercises = state && state.cardioExercises ? state.cardioExercises : [];
-        const allExercises = [...exercises, ...cardioExercises];
-        return {
-            completed: allExercises.filter(exercise => exercise.completed).length,
-            total: allExercises.length
-        };
+        return this.progress.dayCompletion(this.getDay(weekId, dayId), this.getWorkoutState(weekId, dayId));
     }
 
     private getDurationMilliseconds(duration: unknown): number {
@@ -370,20 +364,14 @@ export class ProgramImportService {
     }
 
     public isWeekComplete(weekId: string): boolean {
-        const week = this.getWeek(weekId);
-
-        if (!week || !week.days.length) {
-            return false;
-        }
-
-        return week.days.every(day => {
-            const completion = this.getDayCompletion(weekId, day.id);
-            return completion.total > 0 && completion.completed === completion.total;
-        });
+        return this.progress.weekComplete(
+            this.getWeek(weekId),
+            dayId => this.getDayCompletion(weekId, dayId)
+        );
     }
 
     public getProgramProgress(program: ImportedProgram): { completed: number, total: number, started: number } {
-        return this.calculateProgramProgress(
+        return this.progress.programProgress(
             program,
             this.getWorkoutStates().filter(state => state.programId === program.id)
         );
@@ -392,71 +380,11 @@ export class ProgramImportService {
     public getProgramProgresses(
         programs: ImportedProgram[]
     ): Map<string, { completed: number, total: number, started: number }> {
-        const statesByProgram = new Map<string, ImportedWorkoutState[]>();
-        this.getWorkoutStates().forEach(state => {
-            const states = statesByProgram.get(state.programId) || [];
-            states.push(state);
-            statesByProgram.set(state.programId, states);
-        });
-
-        return new Map(programs.map(program => [
-            program.id,
-            this.calculateProgramProgress(program, statesByProgram.get(program.id) || [])
-        ]));
-    }
-
-    private calculateProgramProgress(
-        program: ImportedProgram,
-        states: ImportedWorkoutState[]
-    ): { completed: number, total: number, started: number } {
-        const statesByWorkout = new Map(states.map(state => [
-            `${state.weekId}:${state.dayId}`,
-            state
-        ]));
-        let completed = 0;
-        let started = 0;
-        let total = 0;
-
-        program.weeks.forEach(week => {
-            week.days.forEach(day => {
-                total++;
-                const state = statesByWorkout.get(`${week.id}:${day.id}`);
-
-                if (!state) {
-                    return;
-                }
-
-                const allExercises = [...state.exercises, ...(state.cardioExercises || [])];
-                const completedExercises = allExercises.filter(exercise => exercise.completed).length;
-                if (allExercises.length > 0 && completedExercises === allExercises.length) {
-                    completed++;
-                }
-
-                if (state.startedAt || state.completedAt || state.elapsedMs || completedExercises > 0) {
-                    started++;
-                }
-            });
-        });
-
-        return {
-            completed,
-            total,
-            started
-        };
+        return this.progress.programProgresses(programs, this.getWorkoutStates());
     }
 
     public getProgramStatus(program: ImportedProgram): 'complete' | 'in-progress' | 'not-started' {
-        const progress = this.getProgramProgress(program);
-
-        if (progress.total > 0 && progress.completed === progress.total) {
-            return 'complete';
-        }
-
-        if (progress.started > 0) {
-            return 'in-progress';
-        }
-
-        return 'not-started';
+        return this.progress.programStatus(this.getProgramProgress(program));
     }
 
     public getCurrentWorkout(program = this.getProgram()): { week: ImportedProgramWeek, day: ImportedProgramDay } | undefined {
@@ -464,69 +392,18 @@ export class ProgramImportService {
             return undefined;
         }
 
-        const states = this.getWorkoutStates().filter(state => state.programId === program.id);
-        const statesByWorkout = new Map(states.map(state => [
-            `${state.weekId}:${state.dayId}`,
-            state
-        ]));
-        const workouts = program.weeks.reduce((result, week) => {
-            week.days.forEach(day => result.push({ week, day }));
-            return result;
-        }, [] as Array<{ week: ImportedProgramWeek, day: ImportedProgramDay }>);
-        const incompleteWorkouts = workouts.filter(workout => {
-            const state = statesByWorkout.get(`${workout.week.id}:${workout.day.id}`);
-            const exercises = state
-                ? [...state.exercises, ...(state.cardioExercises || [])]
-                : this.createExercisesForDay(workout.day);
-            return exercises.length === 0 || exercises.some(exercise => !exercise.completed);
-        });
-        const inProgressWorkout = incompleteWorkouts
-            .map(workout => ({
-                workout,
-                state: statesByWorkout.get(`${workout.week.id}:${workout.day.id}`)
-            }))
-            .filter(({ state }) => {
-            const exercises = state ? [...state.exercises, ...(state.cardioExercises || [])] : [];
-            return !!state && (
-                !!state.startedAt ||
-                !!state.pausedAt ||
-                !!state.elapsedMs ||
-                exercises.some(exercise => exercise.completed)
-            );
-            })
-            .sort((first, second) =>
-                this.stateActivityTimestamp(second.state).localeCompare(this.stateActivityTimestamp(first.state))
-            )[0]?.workout;
-
-        return inProgressWorkout || incompleteWorkouts[0] || workouts[workouts.length - 1];
+        return this.progress.currentWorkout(
+            program,
+            this.getWorkoutStates().filter(state => state.programId === program.id)
+        );
     }
 
     public getDayElapsedMs(weekId: string, dayId: string): number {
-        const state = this.getWorkoutState(weekId, dayId);
-
-        if (!state) {
-            return 0;
-        }
-
-        if (state.elapsedMs) {
-            return state.elapsedMs;
-        }
-
-        if (state.startedAt && state.completedAt) {
-            return this.calculateElapsedMs(state.startedAt, state.completedAt, state.totalPausedMs || 0);
-        }
-
-        return 0;
+        return this.progress.dayElapsedMs(this.getWorkoutState(weekId, dayId));
     }
 
     public formatElapsedMs(elapsedMs: number): string {
-        const totalSeconds = Math.floor(elapsedMs / 1000);
-        const hours = Math.floor(totalSeconds / 3600);
-        const minutes = Math.floor((totalSeconds % 3600) / 60);
-        const seconds = totalSeconds % 60;
-        const pad = (value: number) => value < 10 ? `0${value}` : `${value}`;
-
-        return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+        return this.progress.formatElapsedMs(elapsedMs);
     }
 
     public markDayComplete(weekId: string, dayId: string): void {
@@ -542,7 +419,7 @@ export class ProgramImportService {
         const now = new Date().toISOString();
         const startedAt = state && state.startedAt ? state.startedAt : now;
         const totalPausedMs = state && state.totalPausedMs ? state.totalPausedMs : 0;
-        const elapsedMs = this.calculateElapsedMs(startedAt, now, totalPausedMs);
+        const elapsedMs = this.progress.calculateElapsedMs(startedAt, now, totalPausedMs);
 
         this.saveWorkoutState({
             programId: program.id,
@@ -566,10 +443,6 @@ export class ProgramImportService {
         });
     }
 
-    private calculateElapsedMs(startedAt: string, completedAt: string, totalPausedMs: number): number {
-        return Math.max(new Date(completedAt).getTime() - new Date(startedAt).getTime() - totalPausedMs, 0);
-    }
-
     private getWorkoutStates(): ImportedWorkoutState[] {
         const stored = localStorage.getItem(this.workoutStorageKey());
         if (stored === this.workoutStatesCacheRaw) {
@@ -586,10 +459,6 @@ export class ProgramImportService {
             exercises: this.combineCompoundExerciseNames(state.exercises || [])
         }));
         return this.workoutStatesCache;
-    }
-
-    private stateActivityTimestamp(state: ImportedWorkoutState): string {
-        return state?.updatedAt || state?.completedAt || state?.pausedAt || state?.startedAt || '';
     }
 
     private saveProgramList(programs: ImportedProgram[]): void {
