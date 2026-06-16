@@ -13,7 +13,7 @@ import {
 import { SupabaseDataService } from './supabase-data.service';
 import { CloudSyncStatusService } from './cloud-sync-status.service';
 import { ProgramProgressService } from './program-progress.service';
-import type { ProgramWorkbookParserService } from './program-workbook-parser.service';
+import { WorkbookImportService } from './workbook-import.service';
 
 @Injectable({
     providedIn: 'root'
@@ -24,13 +24,11 @@ export class ProgramImportService {
     private readonly legacyWorkoutStorageKey = 'logYourWo.importedWorkoutStates';
     private readonly legacyCompletionColorStorageKey = 'logYourWo.completionColor';
     private readonly defaultCompletionColor = '#2fb379';
-    private readonly maximumWorkbookBytes = 10 * 1024 * 1024;
     private activeUserId: string;
     private cloudWriteQueue: Promise<void> = Promise.resolve();
     private readonly deletedProgramIds = new Set<string>();
     private workoutStatesCacheRaw: string;
     private workoutStatesCache: ImportedWorkoutState[] = [];
-    private workbookParserPromise: Promise<ProgramWorkbookParserService>;
     private readonly programSource = new BehaviorSubject<ImportedProgram>(this.getProgram());
     private readonly programsSource = new BehaviorSubject<ImportedProgram[]>(this.getPrograms());
 
@@ -40,6 +38,7 @@ export class ProgramImportService {
     private cloudData = inject(SupabaseDataService, { optional: true });
     private syncStatus = inject(CloudSyncStatusService, { optional: true });
     private progress = inject(ProgramProgressService);
+    private workbookImport = inject(WorkbookImportService);
 
     public setUserContext(userId: string): void {
         this.activeUserId = userId;
@@ -136,49 +135,20 @@ export class ProgramImportService {
     }
 
     public async importWorkbook(file: File): Promise<ImportedProgram> {
-        const preview = await this.previewWorkbook(file);
-        if (!preview.program || !preview.program.weeks.length) {
-            if (
-                preview.warningDetails?.some(warning => warning.code === 'low-confidence')
-                && preview.warnings[0]
-            ) {
-                throw new Error(preview.warnings[0]);
-            }
-            throw new Error('No recognizable workout weeks were found in this workbook.');
-        }
-        if (preview.setup?.inputs.length) {
-            throw new Error('This workbook requires training maxes to be confirmed before it can be saved.');
-        }
-
-        this.saveProgram(preview.program);
-        return preview.program;
+        const program = await this.workbookImport.resolveImportableProgram(file);
+        this.saveProgram(program);
+        return program;
     }
 
-    public async previewWorkbook(file: File): Promise<ProgramImportPreview> {
-        if (file.size > this.maximumWorkbookBytes) {
-            throw new Error('Workbook files must be 10 MB or smaller.');
-        }
-
-        const data = await file.arrayBuffer();
-        const parser = await this.getWorkbookParser();
-        return parser.parse(data, file.name);
+    public previewWorkbook(file: File): Promise<ProgramImportPreview> {
+        return this.workbookImport.previewWorkbook(file);
     }
 
-    public async applyWorkbookInputs(
+    public applyWorkbookInputs(
         preview: ProgramImportPreview,
         values: { [inputId: string]: number }
     ): Promise<ProgramImportPreview> {
-        const parser = await this.getWorkbookParser();
-        return parser.applyInputs(preview, values);
-    }
-
-    private getWorkbookParser(): Promise<ProgramWorkbookParserService> {
-        if (!this.workbookParserPromise) {
-            this.workbookParserPromise = import('./program-workbook-parser.service')
-                .then(module => new module.ProgramWorkbookParserService());
-        }
-
-        return this.workbookParserPromise;
+        return this.workbookImport.applyWorkbookInputs(preview, values);
     }
 
     public getProgram(): ImportedProgram {
