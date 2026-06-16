@@ -32,6 +32,12 @@ import { ProgramImportService } from '../../../shared/services/program-import.se
 import { ProfileService } from '../../../shared/services/profile.service';
 import { WorkoutHeaderService } from '../../../shared/services/workout-header.service';
 import { TranslatorService } from '../../../core/translator/translator.service';
+import {
+    ProgramDayCard,
+    ProgramImportCard,
+    ProgramImportCardFactory,
+    ProgramWeekCard
+} from './program-import-card.factory';
 
 const swal = require('sweetalert');
 
@@ -100,6 +106,7 @@ export class ProgramImportComponent implements OnInit, OnDestroy {
     private _activatedRoute = inject(ActivatedRoute);
     private _translatorService = inject(TranslatorService, { optional: true });
     private _profileService = inject(ProfileService, { optional: true });
+    private _cardFactory = inject(ProgramImportCardFactory);
     private _cdr = inject(ChangeDetectorRef);
 
     ngOnInit(): void {
@@ -458,16 +465,6 @@ export class ProgramImportComponent implements OnInit, OnDestroy {
         };
     }
 
-    public getExercisePreview(exercises: ImportedProgramExercise[]): string[] {
-        return exercises.reduce((exerciseNames, exercise) => {
-            if (exercise.exerciseName && exerciseNames.indexOf(exercise.exerciseName) === -1) {
-                exerciseNames.push(exercise.exerciseName);
-            }
-
-            return exerciseNames;
-        }, [] as string[]);
-    }
-
     private selectWeekFromProgram(): void {
         if (!this.program || !this.program.weeks.length) {
             this.selectedWeek = undefined;
@@ -501,24 +498,7 @@ export class ProgramImportComponent implements OnInit, OnDestroy {
     }
 
     private refreshProgramCards(): void {
-        const progressByProgram = this._programImportService.getProgramProgresses(this.programs);
-        this.programCards = this.programs.map(program => {
-            const progress = progressByProgram.get(program.id) || {
-                completed: 0,
-                total: 0,
-                started: 0
-            };
-            const status = this.getStatusFromProgress(progress);
-
-            return {
-                program,
-                status,
-                statusLabel: this.formatProgramStatus(status),
-                statusClass: `program-import__library-status--${status}`,
-                progressLabel: `${progress.completed}/${progress.total} ${this.t('global.Days', undefined, 'days')}`,
-                progressPercent: progress.total ? (progress.completed / progress.total) * 100 : 0
-            };
-        });
+        this.programCards = this._cardFactory.programCards(this.programs);
     }
 
     private refreshProgramView(): void {
@@ -527,28 +507,11 @@ export class ProgramImportComponent implements OnInit, OnDestroy {
     }
 
     private refreshWeekCards(): void {
-        this.weekCards = this.program ? this.program.weeks.map(week => ({
-            ...week,
-            complete: this._programImportService.isWeekComplete(week.id)
-        })) : [];
+        this.weekCards = this._cardFactory.weekCards(this.program);
     }
 
     private refreshDayCards(): void {
-        this.dayCards = this.selectedWeek ? this.selectedWeek.days.map(day => this.createDayCard(day)) : [];
-    }
-
-    private createDayCard(day: ImportedProgramDay): ProgramDayCard {
-        const completion = this._programImportService.getDayCompletion(this.selectedWeek.id, day.id);
-        const elapsedMs = this._programImportService.getDayElapsedMs(this.selectedWeek.id, day.id);
-
-        return {
-            ...day,
-            completionLabel: `${completion.completed}/${completion.total}`,
-            completionPercent: completion.total ? (completion.completed / completion.total) * 100 : 0,
-            complete: completion.total > 0 && completion.completed === completion.total,
-            elapsedLabel: elapsedMs ? this._programImportService.formatElapsedMs(elapsedMs) : '',
-            exercisePreview: this.getExercisePreview(day.exercises)
-        };
+        this.dayCards = this._cardFactory.dayCards(this.selectedWeek);
     }
 
     private focusRequestedDay(): void {
@@ -608,24 +571,6 @@ export class ProgramImportComponent implements OnInit, OnDestroy {
             this.focusRequestedWeek();
             this.focusRequestedDay();
         });
-    }
-
-    private formatProgramStatus(status: ProgramImportStatus): string {
-        if (status === 'complete') {
-            return this.t('global.Complete', undefined, 'Complete');
-        }
-
-        return status === 'in-progress'
-            ? this.t('log-entry.InProgress', undefined, 'In progress')
-            : this.t('log-entry.NotStarted', undefined, 'Not started');
-    }
-
-    private getStatusFromProgress(progress: { completed: number, total: number, started: number }): ProgramImportStatus {
-        if (progress.total > 0 && progress.completed === progress.total) {
-            return 'complete';
-        }
-
-        return progress.started > 0 ? 'in-progress' : 'not-started';
     }
 
     private async confirmAndDeleteProgram(program: ImportedProgram): Promise<void> {
@@ -729,27 +674,4 @@ export class ProgramImportComponent implements OnInit, OnDestroy {
             ? this._translatorService.translate.instant(key, params)
             : fallback || key;
     }
-}
-
-type ProgramImportStatus = 'complete' | 'in-progress' | 'not-started';
-
-interface ProgramImportCard {
-    program: ImportedProgram;
-    status: ProgramImportStatus;
-    statusLabel: string;
-    statusClass: string;
-    progressLabel: string;
-    progressPercent: number;
-}
-
-interface ProgramWeekCard extends ImportedProgramWeek {
-    complete: boolean;
-}
-
-interface ProgramDayCard extends ImportedProgramDay {
-    completionLabel: string;
-    completionPercent: number;
-    complete: boolean;
-    elapsedLabel: string;
-    exercisePreview: string[];
 }
