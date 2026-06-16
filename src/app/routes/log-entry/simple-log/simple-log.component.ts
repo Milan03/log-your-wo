@@ -26,10 +26,6 @@ import { WorkoutInteractionService } from '../../../shared/services/workout-inte
 import { TranslatorService } from '../../../core/translator/translator.service';
 import { ProgramImportService } from '../../../shared/services/program-import.service';
 import { MeasureConversionService } from '../../../shared/services/measure-conversion.service';
-import {
-    WorkoutTimerService,
-    WorkoutTimingSnapshot
-} from '../../../shared/services/workout-timer.service';
 import { SimpleLogService } from '../../../shared/services/simple-log.service';
 import { ImportedProgramDay, ImportedProgramWeek, ImportedWorkoutState } from '../../../shared/models/imported-program.model';
 import { ProfileService } from '../../../shared/services/profile.service';
@@ -42,6 +38,7 @@ import { LogTypes, FormValues } from '../../../shared/common/common.constants';
 import { ExerciseGroupListComponent } from '../exercise-group-list/exercise-group-list.component';
 import { SimpleLogHistoryComponent } from '../simple-log-history/simple-log-history.component';
 import { SimpleLogCalendarStore } from './simple-log-calendar.store';
+import { WorkoutTimingStore } from './workout-timing.store';
 
 import { Duration } from 'luxon';
 
@@ -66,7 +63,7 @@ interface SimpleLogForm {
     templateUrl: './simple-log.component.html',
     styleUrls: ['./simple-log.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush,
-    providers: [SimpleLogCalendarStore]
+    providers: [SimpleLogCalendarStore, WorkoutTimingStore]
 })
 export class SimpleLogComponent implements OnInit, OnDestroy {
     public simpleLogForm: FormGroup<SimpleLogForm>;
@@ -94,11 +91,6 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     public importedWeek: ImportedProgramWeek;
     public importedDay: ImportedProgramDay;
     public isImportedWorkout = false;
-    public workoutStartedAt: string;
-    public workoutCompletedAt: string;
-    public workoutPausedAt: string;
-    public totalPausedMs = 0;
-    public elapsedMs = 0;
     public completionStyles: { [key: string]: string } = {};
     public workoutDate = '';
     public workoutDateTime = '';
@@ -106,6 +98,16 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     public simpleLogTitleDraft = '';
 
     private _calendarStore = inject(SimpleLogCalendarStore);
+    private _timing = inject(WorkoutTimingStore);
+
+    // Workout timing state lives in WorkoutTimingStore; these accessors keep the
+    // template and existing call sites pointed at it.
+    public get workoutStartedAt(): string { return this._timing.startedAt; }
+    public set workoutStartedAt(value: string) { this._timing.startedAt = value; }
+    public get workoutCompletedAt(): string { return this._timing.completedAt; }
+    public get workoutPausedAt(): string { return this._timing.pausedAt; }
+    public get totalPausedMs(): number { return this._timing.totalPausedMs; }
+    public get elapsedMs(): number { return this._timing.elapsedMs; }
 
     // Calendar/history view state lives in SimpleLogCalendarStore; these
     // accessors keep the template and existing call sites pointed at it.
@@ -126,7 +128,6 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     private _programImportService = inject(ProgramImportService);
     private _measureConversionService = inject(MeasureConversionService);
     private _calendarService = inject(CalendarService);
-    private _workoutTimerService = inject(WorkoutTimerService);
     private _simpleLogService = inject(SimpleLogService);
     private _workoutExportService = inject(WorkoutExportService);
     private _activatedRoute = inject(ActivatedRoute);
@@ -145,6 +146,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             this.weightMeasure = profile.unitSystem === 'metric' ? 'kg' : 'lbs';
             this.distanceMeasure = profile.unitSystem === 'metric' ? 'km' : 'mi';
         }
+        this._timing.setTickHandler(() => this._cdr.markForCheck());
         this.currentLanguage = FormValues.ENCode;
         this.currentLog = new SimpleLog();
         this.workoutDate = this.toDateInputValue(this.currentLog.startDatim);
@@ -163,7 +165,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
 
     ngOnDestroy(): void {
         this.pauseActiveWorkoutForNavigation();
-        this._workoutTimerService.stop();
+        this._timing.stop();
     }
 
     /**
@@ -300,7 +302,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
 
     public startWorkout(): void {
         this.ensureWorkoutStarted();
-        this.refreshElapsedMs();
+        this._timing.refreshElapsed();
         this.saveCurrentWorkoutState();
     }
 
@@ -329,7 +331,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             ...exercise,
             completed: true
         }));
-        this.completeWorkout();
+        this._timing.complete();
         this.saveCurrentWorkoutState();
     }
 
@@ -348,9 +350,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             ...exercise,
             completed: exercise.exerciseId === lastCompletedExercise.exerciseId ? false : exercise.completed
         }));
-        this.workoutCompletedAt = undefined;
-        this.workoutPausedAt = undefined;
-        this.syncElapsedTimer();
+        this._timing.reopen();
         this.saveCurrentWorkoutState();
     }
 
@@ -384,7 +384,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             ...exercise,
             completed: false
         }));
-        this.clearWorkoutTiming();
+        this._timing.clear();
         this.saveCurrentWorkoutState();
     }
 
@@ -397,8 +397,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             ...exercise,
             completed: false
         }));
-        this.workoutCompletedAt = undefined;
-        this.syncElapsedTimer();
+        this._timing.clearCompletion();
         this.saveCurrentWorkoutState();
     }
 
@@ -408,9 +407,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         }
 
         this.ensureWorkoutStarted();
-        this.workoutPausedAt = new Date().toISOString();
-        this.refreshElapsedMs();
-        this.syncElapsedTimer();
+        this._timing.pause();
         this.saveCurrentWorkoutState();
     }
 
@@ -419,14 +416,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             return;
         }
 
-        this.totalPausedMs = this._workoutTimerService.accumulatePauseMs(
-            this.totalPausedMs,
-            this.workoutPausedAt,
-            new Date().toISOString()
-        );
-        this.workoutPausedAt = undefined;
-        this.refreshElapsedMs();
-        this.syncElapsedTimer();
+        this._timing.resume();
         this.saveCurrentWorkoutState();
     }
 
@@ -446,7 +436,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             ? now
             : this.dateFromInputValue(dateValue);
         this.workoutDateTime = this.toDateTimeInputValue(this.currentLog.startDatim);
-        this.clearWorkoutTiming();
+        this._timing.clear();
         this.isEditingSimpleLogTitle = false;
         this._calendarStore.setMonthFromDate(this.currentLog.startDatim);
         this.refreshCalendar();
@@ -789,7 +779,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
                 this.isImportedWorkout = false;
                 this.importedWeek = undefined;
                 this.importedDay = undefined;
-                this.clearWorkoutTiming();
+                this._timing.clear();
                 if (simpleLogId) {
                     this.loadSimpleLog(simpleLogId);
                 } else if (!this.currentLog || this.hasLogContent(this.currentLog)) {
@@ -914,13 +904,9 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     }
 
     private pauseActiveWorkoutForNavigation(): void {
-        if (!this.workoutStartedAt || this.workoutPausedAt || this.workoutCompletedAt) {
-            return;
+        if (this._timing.pauseForNavigation()) {
+            this.saveCurrentWorkoutState();
         }
-
-        this.workoutPausedAt = new Date().toISOString();
-        this.refreshElapsedMs();
-        this.saveCurrentWorkoutState();
     }
 
     private saveImportedWorkoutState(): void {
@@ -1014,13 +1000,9 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     }
 
     private ensureWorkoutStarted(): void {
-        if (this.workoutStartedAt) {
-            return;
+        if (this._timing.ensureStarted()) {
+            this.isHistoryExpanded = false;
         }
-
-        this.workoutStartedAt = new Date().toISOString();
-        this.isHistoryExpanded = false;
-        this.syncElapsedTimer();
     }
 
     private syncWorkoutCompletion(): void {
@@ -1031,70 +1013,14 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         }
 
         if (exercises.every(exercise => exercise.completed)) {
-            this.completeWorkout();
+            this._timing.complete();
         } else {
-            this.workoutCompletedAt = undefined;
-            this.syncElapsedTimer();
+            this._timing.clearCompletion();
         }
-    }
-
-    private completeWorkout(): void {
-        const completedAt = new Date().toISOString();
-        if (this.workoutPausedAt) {
-            this.totalPausedMs = this._workoutTimerService.accumulatePauseMs(
-                this.totalPausedMs,
-                this.workoutPausedAt,
-                completedAt
-            );
-        }
-        this.workoutCompletedAt = completedAt;
-        this.workoutPausedAt = undefined;
-        this.refreshElapsedMs(completedAt);
-        this.syncElapsedTimer();
     }
 
     private loadWorkoutTiming(state: ImportedWorkoutState | SimpleLogTimingState): void {
-        this.workoutStartedAt = state ? state.startedAt : undefined;
-        this.workoutCompletedAt = state ? state.completedAt : undefined;
-        this.workoutPausedAt = state ? state.pausedAt : undefined;
-        this.totalPausedMs = state && state.totalPausedMs ? state.totalPausedMs : 0;
-        this.elapsedMs = state && state.elapsedMs ? state.elapsedMs : 0;
-        this.refreshElapsedMs();
-        this.syncElapsedTimer();
-    }
-
-    private clearWorkoutTiming(): void {
-        this.workoutStartedAt = undefined;
-        this.workoutCompletedAt = undefined;
-        this.workoutPausedAt = undefined;
-        this.totalPausedMs = 0;
-        this.elapsedMs = 0;
-
-        this._workoutTimerService.stop();
-    }
-
-    private timingSnapshot(): WorkoutTimingSnapshot {
-        return {
-            startedAt: this.workoutStartedAt,
-            completedAt: this.workoutCompletedAt,
-            pausedAt: this.workoutPausedAt,
-            totalPausedMs: this.totalPausedMs
-        };
-    }
-
-    private syncElapsedTimer(): void {
-        if (this._workoutTimerService.isRunning(this.timingSnapshot())) {
-            this._workoutTimerService.start(() => {
-                this.refreshElapsedMs();
-                this._cdr.markForCheck();
-            });
-        } else {
-            this._workoutTimerService.stop();
-        }
-    }
-
-    private refreshElapsedMs(nowIso?: string): void {
-        this.elapsedMs = this._workoutTimerService.elapsedMs(this.timingSnapshot(), nowIso);
+        this._timing.load(state);
     }
 
     /**
