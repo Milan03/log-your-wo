@@ -47,6 +47,11 @@ export class WorkoutTimerService {
         return totalPausedMs + (new Date(endIso).getTime() - new Date(pausedAtIso).getTime());
     }
 
+    /** Whether the per-second interval is currently running. */
+    public isTicking(): boolean {
+        return this.intervalId !== undefined;
+    }
+
     /** Start ticking every second, replacing any existing interval. */
     public start(onTick: () => void): void {
         this.stop();

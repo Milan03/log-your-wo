@@ -34,13 +34,6 @@ export class WorkoutTimingStore {
     public readonly totalPausedMs = signal<number>(0);
     public readonly elapsedMs = signal<number>(0);
 
-    private _onTick: () => void = () => {};
-
-    /** Register the callback fired each second so the host can mark for check. */
-    public setTickHandler(onTick: () => void): void {
-        this._onTick = onTick;
-    }
-
     public get isStarted(): boolean {
         return Boolean(this.startedAt());
     }
@@ -195,10 +188,13 @@ export class WorkoutTimingStore {
 
     private syncTimer(): void {
         if (this._timer.isRunning(this.snapshot())) {
-            this._timer.start(() => {
-                this.refreshElapsed();
-                this._onTick();
-            });
+            // Only start when not already ticking, so frequent state changes
+            // (e.g. toggling exercises) don't reset the 1-second cadence. The
+            // per-second tick writes the `elapsedMs` signal, which marks any
+            // OnPush view reading it for check — no manual change detection.
+            if (!this._timer.isTicking()) {
+                this._timer.start(() => this.refreshElapsed());
+            }
         } else {
             this._timer.stop();
         }
