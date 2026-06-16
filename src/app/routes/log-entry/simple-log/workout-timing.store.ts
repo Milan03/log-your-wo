@@ -167,6 +167,17 @@ export class WorkoutTimingStore {
         this._timer.stop();
     }
 
+    /** The full persisted timing payload (snapshot plus elapsed time). */
+    public toState(): WorkoutTimingState {
+        return {
+            startedAt: this.startedAt,
+            completedAt: this.completedAt,
+            pausedAt: this.pausedAt,
+            totalPausedMs: this.totalPausedMs,
+            elapsedMs: this.elapsedMs
+        };
+    }
+
     public snapshot(): WorkoutTimingSnapshot {
         return {
             startedAt: this.startedAt,
