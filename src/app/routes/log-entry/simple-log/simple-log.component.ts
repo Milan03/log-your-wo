@@ -13,7 +13,6 @@ import { CalendarDay, CalendarService } from '../../../shared/services/calendar.
 import { Exercise } from '../../../shared/models/exercise.model';
 import {
     DistanceMeasure,
-    PersistedExercise,
     SavedSimpleLog,
     SimpleLog,
     SimpleLogTimingState,
@@ -39,8 +38,7 @@ import { ExerciseGroupListComponent } from '../exercise-group-list/exercise-grou
 import { SimpleLogHistoryComponent } from '../simple-log-history/simple-log-history.component';
 import { SimpleLogCalendarStore } from './simple-log-calendar.store';
 import { WorkoutTimingStore } from './workout-timing.store';
-
-import { Duration } from 'luxon';
+import { ImportedWorkoutStore } from './imported-workout.store';
 
 const swal = require('sweetalert');
 
@@ -63,7 +61,7 @@ interface SimpleLogForm {
     templateUrl: './simple-log.component.html',
     styleUrls: ['./simple-log.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush,
-    providers: [SimpleLogCalendarStore, WorkoutTimingStore]
+    providers: [SimpleLogCalendarStore, WorkoutTimingStore, ImportedWorkoutStore]
 })
 export class SimpleLogComponent implements OnInit, OnDestroy {
     public simpleLogForm: FormGroup<SimpleLogForm>;
@@ -88,9 +86,6 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     private cardioGroups: ExerciseGroup[] = [];
     private activeSimpleLogId: string;
 
-    public importedWeek: ImportedProgramWeek;
-    public importedDay: ImportedProgramDay;
-    public isImportedWorkout = false;
     public completionStyles: { [key: string]: string } = {};
     public workoutDate = '';
     public workoutDateTime = '';
@@ -99,6 +94,14 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
 
     private _calendarStore = inject(SimpleLogCalendarStore);
     private _timing = inject(WorkoutTimingStore);
+    private _importedWorkout = inject(ImportedWorkoutStore);
+
+    // Imported-workout context lives in ImportedWorkoutStore; these accessors
+    // keep the template and existing call sites pointed at it.
+    public get importedWeek(): ImportedProgramWeek { return this._importedWorkout.week; }
+    public get importedDay(): ImportedProgramDay { return this._importedWorkout.day; }
+    public get isImportedWorkout(): boolean { return this._importedWorkout.isActive; }
+    public set isImportedWorkout(value: boolean) { this._importedWorkout.isActive = value; }
 
     // Workout timing state lives in WorkoutTimingStore; these accessors keep the
     // template and existing call sites pointed at it.
@@ -307,16 +310,16 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     }
 
     public navigateBackToWeek(): void {
-        if (!this.importedWeek) {
+        if (!this._importedWorkout.week) {
             this._router.navigate(['/log-entry/import-program']);
             return;
         }
 
         this._router.navigate(['/log-entry/import-program'], {
             queryParams: {
-                programId: this._programImportService.getProgram()?.id,
-                weekId: this.importedWeek.id,
-                dayId: this.importedDay?.id
+                programId: this._importedWorkout.programId(),
+                weekId: this._importedWorkout.week.id,
+                dayId: this._importedWorkout.day?.id
             }
         });
     }
@@ -762,9 +765,9 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
 
             if (weekId && dayId) {
                 if (programId) {
-                    this._programImportService.setActiveProgram(programId);
+                    this._importedWorkout.setActiveProgram(programId);
                 }
-                if (!this.isImportedWorkout || this.importedWeek?.id !== weekId || this.importedDay?.id !== dayId) {
+                if (!this._importedWorkout.isSameWorkout(weekId, dayId)) {
                     this.pauseActiveWorkoutForNavigation();
                 }
                 this.loadImportedWorkout(weekId, dayId);
@@ -776,9 +779,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
                 if (this.isImportedWorkout || isChangingSimpleLog) {
                     this.pauseActiveWorkoutForNavigation();
                 }
-                this.isImportedWorkout = false;
-                this.importedWeek = undefined;
-                this.importedDay = undefined;
+                this._importedWorkout.clear();
                 this._timing.clear();
                 if (simpleLogId) {
                     this.loadSimpleLog(simpleLogId);
@@ -827,68 +828,22 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     }
 
     private loadImportedWorkout(weekId: string, dayId: string): void {
-        this.importedWeek = this._programImportService.getWeek(weekId);
-        this.importedDay = this._programImportService.getDay(weekId, dayId);
+        const loaded = this._importedWorkout.load(weekId, dayId, {
+            weightMeasure: this.weightMeasure,
+            distanceMeasure: this.distanceMeasure
+        });
 
-        if (!this.importedWeek || !this.importedDay) {
+        if (!loaded) {
             return;
         }
 
-        const state = this._programImportService.getWorkoutState(weekId, dayId);
-        this.currentLog = new SimpleLog();
-        this.currentLog.title = `${this.importedWeek.name} - ${this.importedDay.name}`;
-        if (state?.startedAt) {
-            const startedAt = new Date(state.startedAt);
-            if (Number.isFinite(startedAt.getTime())) {
-                this.currentLog.startDatim = startedAt;
-            }
-        }
-        const sourceWeightMeasure = state?.weightMeasure
-            || this._programImportService.getProgram()?.weightMeasure
-            || 'lbs';
-        const exercises = state
-            ? this.hydrateExercises(state.exercises)
-            : this._programImportService.createExercisesForDay(this.importedDay);
-        this.currentLog.exercises = this._measureConversionService.convertWeights(exercises, sourceWeightMeasure, this.weightMeasure);
-        this.currentLog.cardioExercises = state && state.cardioExercises
-            ? this._measureConversionService.convertDistances(
-                this.hydrateExercises(state.cardioExercises),
-                state.distanceMeasure || 'km',
-                this.distanceMeasure
-            )
-            : [];
-        this.isImportedWorkout = true;
-        this.loadWorkoutTiming(state);
+        this.currentLog = loaded.log;
+        this.loadWorkoutTiming(loaded.state);
         this._workoutHeader.setLogType(this.currentLog.title);
         this._workoutHeader.setLogStartDate(this.currentLog.startDatim);
-        if (state && (
-            sourceWeightMeasure !== this.weightMeasure ||
-            (state.distanceMeasure || 'km') !== this.distanceMeasure
-        )) {
+        if (loaded.needsResave) {
             this.saveImportedWorkoutState();
         }
-    }
-
-    private hydrateExercises(exercises: PersistedExercise[]): Exercise[] {
-        return exercises.map(exercise => {
-            const hydratedExercise = Object.assign(new Exercise(), exercise);
-            hydratedExercise.duration = Duration.fromMillis(this.durationMilliseconds(exercise.duration));
-            return hydratedExercise;
-        });
-    }
-
-    private durationMilliseconds(duration: unknown): number {
-        if (Duration.isDuration(duration)) {
-            return duration.toMillis();
-        }
-
-        if (typeof duration === 'string') {
-            const milliseconds = Duration.fromISO(duration).toMillis();
-            return Number.isFinite(milliseconds) ? milliseconds : 0;
-        }
-
-        const milliseconds = Number(duration);
-        return Number.isFinite(milliseconds) ? milliseconds : 0;
     }
 
     private findLastCompletedExercise(): Exercise | undefined {
@@ -910,29 +865,11 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     }
 
     private saveImportedWorkoutState(): void {
-        if (!this.isImportedWorkout || !this.importedWeek || !this.importedDay) {
-            return;
-        }
-
-        const program = this._programImportService.getProgram();
-        if (!program) {
-            return;
-        }
-
-        this._programImportService.saveWorkoutState({
-            programId: program.id,
-            weekId: this.importedWeek.id,
-            dayId: this.importedDay.id,
-            weightMeasure: this.weightMeasure,
-            distanceMeasure: this.distanceMeasure,
-            exercises: this.currentLog.exercises,
-            cardioExercises: this.currentLog.cardioExercises,
-            startedAt: this.workoutStartedAt,
-            completedAt: this.workoutCompletedAt,
-            pausedAt: this.workoutPausedAt,
-            totalPausedMs: this.totalPausedMs,
-            elapsedMs: this.elapsedMs
-        });
+        this._importedWorkout.save(
+            this.currentLog,
+            { weightMeasure: this.weightMeasure, distanceMeasure: this.distanceMeasure },
+            this._timing.toState()
+        );
     }
 
     private saveCurrentWorkoutState(): void {
