@@ -124,6 +124,32 @@ describe('ProfileService', () => {
         expect(service.profile.unitSystem).toBe('metric');
     });
 
+    it('loads the account profile and discards a newer guest profile on sign-in', async () => {
+        const cloud = jasmine.createSpyObj<SupabaseDataService>(
+            'SupabaseDataService',
+            ['getProfile', 'saveProfile']
+        );
+        cloud.getProfile.and.resolveTo(profileWith({
+            firstName: 'Account',
+            unitSystem: 'imperial',
+            updatedAt: '2026-06-01T12:00:00.000Z'
+        }));
+        cloud.saveProfile.and.resolveTo();
+        localStorage.setItem('logYourWo.profile', JSON.stringify(profileWith({
+            firstName: 'Guest',
+            unitSystem: 'metric',
+            updatedAt: '2026-06-09T12:00:00.000Z'
+        })));
+        const service = createProfileService({ cloud });
+
+        service.setUserContext('user-1');
+        await service.syncWithCloud();
+
+        expect(service.profile.firstName).toBe('Account');
+        expect(service.profile.unitSystem).toBe('imperial');
+        expect(localStorage.getItem('logYourWo.profile')).toBeNull();
+    });
+
     it('keeps a profile edit made while initial cloud sync is loading', async () => {
         const remoteResult = deferred<UserProfile>();
         const cloud = jasmine.createSpyObj<SupabaseDataService>(
