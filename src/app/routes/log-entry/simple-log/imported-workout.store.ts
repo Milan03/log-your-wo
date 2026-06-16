@@ -1,4 +1,4 @@
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
 import { Duration } from 'luxon';
 
 import { Exercise } from '../../../shared/models/exercise.model';
@@ -36,22 +36,23 @@ export interface LoadedImportedWorkout {
  * log. Owns the active week/day context, builds a hydrated `SimpleLog` from the
  * persisted program state (hydration + measure conversion) and persists workout
  * state back. The host component still owns `currentLog`, timing and header
- * wiring. Provided per component instance, not in root.
+ * wiring. State is exposed as signals so OnPush views update without manual
+ * change detection. Provided per component instance, not in root.
  */
 @Injectable()
 export class ImportedWorkoutStore {
     private _programImportService = inject(ProgramImportService);
     private _measureConversionService = inject(MeasureConversionService);
 
-    public week?: ImportedProgramWeek;
-    public day?: ImportedProgramDay;
-    public isActive = false;
+    public readonly week = signal<ImportedProgramWeek | undefined>(undefined);
+    public readonly day = signal<ImportedProgramDay | undefined>(undefined);
+    public readonly isActive = signal<boolean>(false);
 
     /** Clear imported context (returning to a plain simple log). */
     public clear(): void {
-        this.isActive = false;
-        this.week = undefined;
-        this.day = undefined;
+        this.isActive.set(false);
+        this.week.set(undefined);
+        this.day.set(undefined);
     }
 
     public setActiveProgram(programId: string): void {
@@ -64,7 +65,7 @@ export class ImportedWorkoutStore {
 
     /** Whether the given week/day is already the active imported workout. */
     public isSameWorkout(weekId: string, dayId: string): boolean {
-        return this.isActive && this.week?.id === weekId && this.day?.id === dayId;
+        return this.isActive() && this.week()?.id === weekId && this.day()?.id === dayId;
     }
 
     /**
@@ -75,16 +76,18 @@ export class ImportedWorkoutStore {
      * measure conversion changed the stored values.
      */
     public load(weekId: string, dayId: string, measures: ActiveMeasures): LoadedImportedWorkout | null {
-        this.week = this._programImportService.getWeek(weekId);
-        this.day = this._programImportService.getDay(weekId, dayId);
+        const week = this._programImportService.getWeek(weekId);
+        const day = this._programImportService.getDay(weekId, dayId);
+        this.week.set(week);
+        this.day.set(day);
 
-        if (!this.week || !this.day) {
+        if (!week || !day) {
             return null;
         }
 
         const state = this._programImportService.getWorkoutState(weekId, dayId);
         const log = new SimpleLog();
-        log.title = `${this.week.name} - ${this.day.name}`;
+        log.title = `${week.name} - ${day.name}`;
         if (state?.startedAt) {
             const startedAt = new Date(state.startedAt);
             if (Number.isFinite(startedAt.getTime())) {
@@ -97,7 +100,7 @@ export class ImportedWorkoutStore {
             || 'lbs';
         const exercises = state
             ? this.hydrateExercises(state.exercises)
-            : this._programImportService.createExercisesForDay(this.day);
+            : this._programImportService.createExercisesForDay(day);
         log.exercises = this._measureConversionService.convertWeights(exercises, sourceWeightMeasure, measures.weightMeasure);
         log.cardioExercises = state && state.cardioExercises
             ? this._measureConversionService.convertDistances(
@@ -106,7 +109,7 @@ export class ImportedWorkoutStore {
                 measures.distanceMeasure
             )
             : [];
-        this.isActive = true;
+        this.isActive.set(true);
 
         const needsResave = state
             ? sourceWeightMeasure !== measures.weightMeasure || (state.distanceMeasure || 'km') !== measures.distanceMeasure
@@ -117,7 +120,9 @@ export class ImportedWorkoutStore {
 
     /** Persist the current imported workout state. No-op when not active. */
     public save(log: SimpleLog, measures: ActiveMeasures, timing: WorkoutTimingState): void {
-        if (!this.isActive || !this.week || !this.day) {
+        const week = this.week();
+        const day = this.day();
+        if (!this.isActive() || !week || !day) {
             return;
         }
 
@@ -128,8 +133,8 @@ export class ImportedWorkoutStore {
 
         this._programImportService.saveWorkoutState({
             programId: program.id,
-            weekId: this.week.id,
-            dayId: this.day.id,
+            weekId: week.id,
+            dayId: day.id,
             weightMeasure: measures.weightMeasure,
             distanceMeasure: measures.distanceMeasure,
             exercises: log.exercises,

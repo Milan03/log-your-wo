@@ -1,4 +1,4 @@
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
 
 import {
     DistanceMeasure,
@@ -12,27 +12,28 @@ import { MeasureConversionService } from '../../../shared/services/measure-conve
  * Component-scoped weight/distance unit state for the simple log. Owns the
  * active measures and the conversions that run when the user toggles units or
  * loads a log saved in different units. The host component still owns
- * `currentLog`; the store converts the exercises it is handed in place.
+ * `currentLog`; the store converts the exercises it is handed in place. State
+ * is exposed as signals so OnPush views update without manual change detection.
  * Provided per component instance, not in root.
  */
 @Injectable()
 export class MeasureSettingsStore {
     private _measureConversionService = inject(MeasureConversionService);
 
-    public weightMeasure: WeightMeasure = 'lbs';
-    public distanceMeasure: DistanceMeasure = 'km';
+    public readonly weightMeasure = signal<WeightMeasure>('lbs');
+    public readonly distanceMeasure = signal<DistanceMeasure>('km');
 
     /** Apply unit defaults from a saved profile (ignores an unsaved profile). */
     public initFromProfile(profile?: UserProfile): void {
         if (profile && profile.updatedAt) {
-            this.weightMeasure = profile.unitSystem === 'metric' ? 'kg' : 'lbs';
-            this.distanceMeasure = profile.unitSystem === 'metric' ? 'km' : 'mi';
+            this.weightMeasure.set(profile.unitSystem === 'metric' ? 'kg' : 'lbs');
+            this.distanceMeasure.set(profile.unitSystem === 'metric' ? 'km' : 'mi');
         }
     }
 
     /** The measure shown for an exercise of the given type. */
     public measureFor(exerciseType: string): WeightMeasure | DistanceMeasure {
-        return exerciseType === 'strength' ? this.weightMeasure : this.distanceMeasure;
+        return exerciseType === 'strength' ? this.weightMeasure() : this.distanceMeasure();
     }
 
     /**
@@ -42,16 +43,16 @@ export class MeasureSettingsStore {
      */
     public applyMeasureChange(data: string, log: SimpleLog): boolean {
         if (data === 'lbs' || data === 'kg') {
-            if (data !== this.weightMeasure) {
-                const source = this.weightMeasure;
-                this.weightMeasure = data;
+            const source = this.weightMeasure();
+            if (data !== source) {
+                this.weightMeasure.set(data);
                 log.exercises = this._measureConversionService.convertWeights(log.exercises, source, data);
                 return true;
             }
         } else if (data === 'km' || data === 'mi') {
-            if (data !== this.distanceMeasure) {
-                const source = this.distanceMeasure;
-                this.distanceMeasure = data;
+            const source = this.distanceMeasure();
+            if (data !== source) {
+                this.distanceMeasure.set(data);
                 log.cardioExercises = this._measureConversionService.convertDistances(log.cardioExercises, source, data);
                 return true;
             }
@@ -65,8 +66,10 @@ export class MeasureSettingsStore {
      * converted values).
      */
     public convertToActive(log: SimpleLog, sourceWeight: WeightMeasure, sourceDistance: DistanceMeasure): boolean {
-        log.exercises = this._measureConversionService.convertWeights(log.exercises, sourceWeight, this.weightMeasure);
-        log.cardioExercises = this._measureConversionService.convertDistances(log.cardioExercises, sourceDistance, this.distanceMeasure);
-        return sourceWeight !== this.weightMeasure || sourceDistance !== this.distanceMeasure;
+        const weightMeasure = this.weightMeasure();
+        const distanceMeasure = this.distanceMeasure();
+        log.exercises = this._measureConversionService.convertWeights(log.exercises, sourceWeight, weightMeasure);
+        log.cardioExercises = this._measureConversionService.convertDistances(log.cardioExercises, sourceDistance, distanceMeasure);
+        return sourceWeight !== weightMeasure || sourceDistance !== distanceMeasure;
     }
 }

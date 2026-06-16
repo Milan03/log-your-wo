@@ -1,4 +1,4 @@
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
 
 import {
     WorkoutTimerService,
@@ -20,18 +20,19 @@ export interface WorkoutTimingState {
  * Owns the start/pause/resume/complete clock fields and drives
  * `WorkoutTimerService` (the per-second tick and elapsed-time math). The host
  * component owns exercise data and persistence; it calls in to record timing
- * transitions and reads the fields back for binding/saving. Provided per
+ * transitions and reads the fields back for binding/saving. State is exposed as
+ * signals so OnPush views update without manual change detection. Provided per
  * component instance, not in root.
  */
 @Injectable()
 export class WorkoutTimingStore {
     private _timer = inject(WorkoutTimerService);
 
-    public startedAt?: string;
-    public completedAt?: string;
-    public pausedAt?: string;
-    public totalPausedMs = 0;
-    public elapsedMs = 0;
+    public readonly startedAt = signal<string | undefined>(undefined);
+    public readonly completedAt = signal<string | undefined>(undefined);
+    public readonly pausedAt = signal<string | undefined>(undefined);
+    public readonly totalPausedMs = signal<number>(0);
+    public readonly elapsedMs = signal<number>(0);
 
     private _onTick: () => void = () => {};
 
@@ -41,27 +42,27 @@ export class WorkoutTimingStore {
     }
 
     public get isStarted(): boolean {
-        return Boolean(this.startedAt);
+        return Boolean(this.startedAt());
     }
 
     /** Begin timing if not already started. Returns true only when it just started. */
     public ensureStarted(): boolean {
-        if (this.startedAt) {
+        if (this.startedAt()) {
             return false;
         }
 
-        this.startedAt = new Date().toISOString();
+        this.startedAt.set(new Date().toISOString());
         this.syncTimer();
         return true;
     }
 
     /** Pause a running workout. Caller should have ensured it is started. */
     public pause(): void {
-        if (this.pausedAt || this.completedAt) {
+        if (this.pausedAt() || this.completedAt()) {
             return;
         }
 
-        this.pausedAt = new Date().toISOString();
+        this.pausedAt.set(new Date().toISOString());
         this.refreshElapsed();
         this.syncTimer();
     }
@@ -72,26 +73,26 @@ export class WorkoutTimingStore {
      * the tick interval; the caller stops the clock on teardown.
      */
     public pauseForNavigation(): boolean {
-        if (!this.startedAt || this.pausedAt || this.completedAt) {
+        if (!this.startedAt() || this.pausedAt() || this.completedAt()) {
             return false;
         }
 
-        this.pausedAt = new Date().toISOString();
+        this.pausedAt.set(new Date().toISOString());
         this.refreshElapsed();
         return true;
     }
 
     public resume(): void {
-        if (!this.pausedAt) {
+        if (!this.pausedAt()) {
             return;
         }
 
-        this.totalPausedMs = this._timer.accumulatePauseMs(
-            this.totalPausedMs,
-            this.pausedAt,
+        this.totalPausedMs.set(this._timer.accumulatePauseMs(
+            this.totalPausedMs(),
+            this.pausedAt(),
             new Date().toISOString()
-        );
-        this.pausedAt = undefined;
+        ));
+        this.pausedAt.set(undefined);
         this.refreshElapsed();
         this.syncTimer();
     }
@@ -99,15 +100,15 @@ export class WorkoutTimingStore {
     /** Mark the workout complete, folding any open paused window into the total. */
     public complete(): void {
         const completedAt = new Date().toISOString();
-        if (this.pausedAt) {
-            this.totalPausedMs = this._timer.accumulatePauseMs(
-                this.totalPausedMs,
-                this.pausedAt,
+        if (this.pausedAt()) {
+            this.totalPausedMs.set(this._timer.accumulatePauseMs(
+                this.totalPausedMs(),
+                this.pausedAt(),
                 completedAt
-            );
+            ));
         }
-        this.completedAt = completedAt;
-        this.pausedAt = undefined;
+        this.completedAt.set(completedAt);
+        this.pausedAt.set(undefined);
         this.refreshElapsed(completedAt);
         this.syncTimer();
     }
@@ -118,7 +119,7 @@ export class WorkoutTimingStore {
      * time resumes from where it froze rather than counting the gap.
      */
     public reopen(): void {
-        this.pausedAt = undefined;
+        this.pausedAt.set(undefined);
         this.clearCompletion();
     }
 
@@ -128,14 +129,15 @@ export class WorkoutTimingStore {
      * where it froze rather than counting the gap.
      */
     public clearCompletion(): void {
-        if (this.completedAt) {
+        const completedAt = this.completedAt();
+        if (completedAt) {
             const now = new Date().toISOString();
-            this.totalPausedMs = this._timer.accumulatePauseMs(
-                this.totalPausedMs,
-                this.completedAt,
+            this.totalPausedMs.set(this._timer.accumulatePauseMs(
+                this.totalPausedMs(),
+                completedAt,
                 now
-            );
-            this.completedAt = undefined;
+            ));
+            this.completedAt.set(undefined);
             this.refreshElapsed(now);
         }
         this.syncTimer();
@@ -143,22 +145,22 @@ export class WorkoutTimingStore {
 
     /** Hydrate timing from a saved/imported workout state. */
     public load(state: WorkoutTimingState | undefined): void {
-        this.startedAt = state ? state.startedAt : undefined;
-        this.completedAt = state ? state.completedAt : undefined;
-        this.pausedAt = state ? state.pausedAt : undefined;
-        this.totalPausedMs = state && state.totalPausedMs ? state.totalPausedMs : 0;
-        this.elapsedMs = state && state.elapsedMs ? state.elapsedMs : 0;
+        this.startedAt.set(state ? state.startedAt : undefined);
+        this.completedAt.set(state ? state.completedAt : undefined);
+        this.pausedAt.set(state ? state.pausedAt : undefined);
+        this.totalPausedMs.set(state && state.totalPausedMs ? state.totalPausedMs : 0);
+        this.elapsedMs.set(state && state.elapsedMs ? state.elapsedMs : 0);
         this.refreshElapsed();
         this.syncTimer();
     }
 
     /** Reset every field and stop the clock. */
     public clear(): void {
-        this.startedAt = undefined;
-        this.completedAt = undefined;
-        this.pausedAt = undefined;
-        this.totalPausedMs = 0;
-        this.elapsedMs = 0;
+        this.startedAt.set(undefined);
+        this.completedAt.set(undefined);
+        this.pausedAt.set(undefined);
+        this.totalPausedMs.set(0);
+        this.elapsedMs.set(0);
         this._timer.stop();
     }
 
@@ -170,25 +172,25 @@ export class WorkoutTimingStore {
     /** The full persisted timing payload (snapshot plus elapsed time). */
     public toState(): WorkoutTimingState {
         return {
-            startedAt: this.startedAt,
-            completedAt: this.completedAt,
-            pausedAt: this.pausedAt,
-            totalPausedMs: this.totalPausedMs,
-            elapsedMs: this.elapsedMs
+            startedAt: this.startedAt(),
+            completedAt: this.completedAt(),
+            pausedAt: this.pausedAt(),
+            totalPausedMs: this.totalPausedMs(),
+            elapsedMs: this.elapsedMs()
         };
     }
 
     public snapshot(): WorkoutTimingSnapshot {
         return {
-            startedAt: this.startedAt,
-            completedAt: this.completedAt,
-            pausedAt: this.pausedAt,
-            totalPausedMs: this.totalPausedMs
+            startedAt: this.startedAt(),
+            completedAt: this.completedAt(),
+            pausedAt: this.pausedAt(),
+            totalPausedMs: this.totalPausedMs()
         };
     }
 
     public refreshElapsed(nowIso?: string): void {
-        this.elapsedMs = this._timer.elapsedMs(this.snapshot(), nowIso);
+        this.elapsedMs.set(this._timer.elapsedMs(this.snapshot(), nowIso));
     }
 
     private syncTimer(): void {

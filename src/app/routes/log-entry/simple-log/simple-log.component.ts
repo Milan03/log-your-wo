@@ -1,5 +1,5 @@
 import { DatePipe, NgStyle } from '@angular/common';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, inject, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -65,8 +65,6 @@ interface SimpleLogForm {
 })
 export class SimpleLogComponent implements OnInit, OnDestroy {
     public simpleLogForm: FormGroup<SimpleLogForm>;
-    public currentLanguage: string;
-    public currentLog: SimpleLog;
     public sbIsCollapsed: boolean;
 
     public readonly exerciseNameCharLimit: number = 50;
@@ -84,11 +82,32 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     private cardioGroups: ExerciseGroup[] = [];
     private activeSimpleLogId: string;
 
-    public completionStyles: { [key: string]: string } = {};
-    public workoutDate = '';
-    public workoutDateTime = '';
-    public isEditingSimpleLogTitle = false;
-    public simpleLogTitleDraft = '';
+    // Component-local view state is held in signals so OnPush views update from
+    // signal writes; get/set accessors preserve the existing field-style API for
+    // the template and call sites. `currentLog` is mutated in place in several
+    // flows, so it uses `equal: () => false` to still notify on re-set.
+    private readonly _currentLanguage = signal<string>('');
+    private readonly _currentLog = signal<SimpleLog>(new SimpleLog(), { equal: () => false });
+    private readonly _completionStyles = signal<{ [key: string]: string }>({});
+    private readonly _workoutDate = signal<string>('');
+    private readonly _workoutDateTime = signal<string>('');
+    private readonly _isEditingSimpleLogTitle = signal<boolean>(false);
+    private readonly _simpleLogTitleDraft = signal<string>('');
+
+    public get currentLanguage(): string { return this._currentLanguage(); }
+    public set currentLanguage(value: string) { this._currentLanguage.set(value); }
+    public get currentLog(): SimpleLog { return this._currentLog(); }
+    public set currentLog(value: SimpleLog) { this._currentLog.set(value); }
+    public get completionStyles(): { [key: string]: string } { return this._completionStyles(); }
+    public set completionStyles(value: { [key: string]: string }) { this._completionStyles.set(value); }
+    public get workoutDate(): string { return this._workoutDate(); }
+    public set workoutDate(value: string) { this._workoutDate.set(value); }
+    public get workoutDateTime(): string { return this._workoutDateTime(); }
+    public set workoutDateTime(value: string) { this._workoutDateTime.set(value); }
+    public get isEditingSimpleLogTitle(): boolean { return this._isEditingSimpleLogTitle(); }
+    public set isEditingSimpleLogTitle(value: boolean) { this._isEditingSimpleLogTitle.set(value); }
+    public get simpleLogTitleDraft(): string { return this._simpleLogTitleDraft(); }
+    public set simpleLogTitleDraft(value: string) { this._simpleLogTitleDraft.set(value); }
 
     private _calendarStore = inject(SimpleLogCalendarStore);
     private _timing = inject(WorkoutTimingStore);
@@ -97,34 +116,34 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
 
     // Active weight/distance units live in MeasureSettingsStore; these accessors
     // keep the template and existing call sites pointed at it.
-    public get weightMeasure(): WeightMeasure { return this._measures.weightMeasure; }
-    public get distanceMeasure(): DistanceMeasure { return this._measures.distanceMeasure; }
+    public get weightMeasure(): WeightMeasure { return this._measures.weightMeasure(); }
+    public get distanceMeasure(): DistanceMeasure { return this._measures.distanceMeasure(); }
 
     // Imported-workout context lives in ImportedWorkoutStore; these accessors
     // keep the template and existing call sites pointed at it.
-    public get importedWeek(): ImportedProgramWeek { return this._importedWorkout.week; }
-    public get importedDay(): ImportedProgramDay { return this._importedWorkout.day; }
-    public get isImportedWorkout(): boolean { return this._importedWorkout.isActive; }
-    public set isImportedWorkout(value: boolean) { this._importedWorkout.isActive = value; }
+    public get importedWeek(): ImportedProgramWeek { return this._importedWorkout.week(); }
+    public get importedDay(): ImportedProgramDay { return this._importedWorkout.day(); }
+    public get isImportedWorkout(): boolean { return this._importedWorkout.isActive(); }
+    public set isImportedWorkout(value: boolean) { this._importedWorkout.isActive.set(value); }
 
     // Workout timing state lives in WorkoutTimingStore; these accessors keep the
     // template and existing call sites pointed at it.
-    public get workoutStartedAt(): string { return this._timing.startedAt; }
-    public set workoutStartedAt(value: string) { this._timing.startedAt = value; }
-    public get workoutCompletedAt(): string { return this._timing.completedAt; }
-    public get workoutPausedAt(): string { return this._timing.pausedAt; }
-    public get totalPausedMs(): number { return this._timing.totalPausedMs; }
-    public get elapsedMs(): number { return this._timing.elapsedMs; }
+    public get workoutStartedAt(): string { return this._timing.startedAt(); }
+    public set workoutStartedAt(value: string) { this._timing.startedAt.set(value); }
+    public get workoutCompletedAt(): string { return this._timing.completedAt(); }
+    public get workoutPausedAt(): string { return this._timing.pausedAt(); }
+    public get totalPausedMs(): number { return this._timing.totalPausedMs(); }
+    public get elapsedMs(): number { return this._timing.elapsedMs(); }
 
     // Calendar/history view state lives in SimpleLogCalendarStore; these
     // accessors keep the template and existing call sites pointed at it.
-    public get savedLogs(): SavedSimpleLog[] { return this._calendarStore.savedLogs; }
-    public get selectedDateLogs(): SavedSimpleLog[] { return this._calendarStore.selectedDateLogs; }
-    public get calendarDays(): CalendarDay[] { return this._calendarStore.calendarDays; }
-    public get calendarWeekdays(): string[] { return this._calendarStore.calendarWeekdays; }
-    public get calendarMonth(): Date { return this._calendarStore.calendarMonth; }
-    public get isHistoryExpanded(): boolean { return this._calendarStore.isHistoryExpanded; }
-    public set isHistoryExpanded(value: boolean) { this._calendarStore.isHistoryExpanded = value; }
+    public get savedLogs(): SavedSimpleLog[] { return this._calendarStore.savedLogs(); }
+    public get selectedDateLogs(): SavedSimpleLog[] { return this._calendarStore.selectedDateLogs(); }
+    public get calendarDays(): CalendarDay[] { return this._calendarStore.calendarDays(); }
+    public get calendarWeekdays(): string[] { return this._calendarStore.calendarWeekdays(); }
+    public get calendarMonth(): Date { return this._calendarStore.calendarMonth(); }
+    public get isHistoryExpanded(): boolean { return this._calendarStore.isHistoryExpanded(); }
+    public set isHistoryExpanded(value: boolean) { this._calendarStore.isHistoryExpanded.set(value); }
 
     private _formBuilder = inject(FormBuilder);
     private _layoutService = inject(LayoutService);
@@ -309,7 +328,8 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     }
 
     public navigateBackToWeek(): void {
-        if (!this._importedWorkout.week) {
+        const week = this._importedWorkout.week();
+        if (!week) {
             this._router.navigate(['/log-entry/import-program']);
             return;
         }
@@ -317,8 +337,8 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         this._router.navigate(['/log-entry/import-program'], {
             queryParams: {
                 programId: this._importedWorkout.programId(),
-                weekId: this._importedWorkout.week.id,
-                dayId: this._importedWorkout.day?.id
+                weekId: week.id,
+                dayId: this._importedWorkout.day()?.id
             }
         });
     }
