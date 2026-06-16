@@ -19,6 +19,7 @@ export class ProfileService implements OnDestroy {
     private readonly guestStorageKey = 'logYourWo.profile';
     private activeUserId: string;
     private applyingProfileTheme = false;
+    private syncing = false;
     private cloudWriteQueue: Promise<void> = Promise.resolve();
     private readonly profileSource = new BehaviorSubject<UserProfile>(this.readProfile(this.guestStorageKey));
     private readonly themeSubscription?: Subscription;
@@ -56,40 +57,46 @@ export class ProfileService implements OnDestroy {
     }
 
     public async syncWithCloud(): Promise<void> {
-        if (!this.activeUserId) {
+        if (!this.activeUserId || !this.cloudData) {
             return;
         }
 
         const userId = this.activeUserId;
         const accountStorageKey = this.storageKey(userId);
-        const remoteProfile = await this.cloudData.getProfile(userId);
-        const accountCache = this.readStoredProfile(accountStorageKey);
-        const guestProfile = this.readStoredProfile(this.guestStorageKey);
-        const initialProfile = this.selectNewestProfile(remoteProfile, guestProfile, accountCache);
+        this.syncing = true;
 
-        if (this.activeUserId !== userId) {
-            return;
+        try {
+            const remoteProfile = await this.cloudData.getProfile(userId);
+            if (this.activeUserId !== userId) {
+                return;
+            }
+
+            const accountCache = this.readStoredProfile(accountStorageKey);
+            const guestProfile = this.readStoredProfile(this.guestStorageKey);
+            const hasAccountProfile = Boolean(remoteProfile || accountCache);
+
+            // An existing account loads its own profile (cloud, or a newer
+            // offline edit cached on this device). Only a brand-new account with
+            // no profile anywhere adopts the guest profile saved while signed
+            // out; otherwise the guest profile is discarded, never merged over
+            // the account.
+            const profile = hasAccountProfile
+                ? this.selectNewestProfile(remoteProfile, accountCache)
+                : (guestProfile || this.defaultProfile());
+
+            this.writeProfile(profile, accountStorageKey);
+            if (guestProfile) {
+                localStorage.removeItem(this.guestStorageKey);
+            }
+            this.publishProfile(profile);
+
+            await this.enqueueCloudWrite(
+                () => this.cloudData.saveProfile(userId, profile),
+                'Unable to synchronize profile with Supabase.'
+            );
+        } finally {
+            this.syncing = false;
         }
-
-        const latestAccountProfile = this.readStoredProfile(accountStorageKey);
-        const profile = this.selectNewestProfile(initialProfile, latestAccountProfile);
-        this.writeProfile(profile, accountStorageKey);
-        await this.enqueueCloudWrite(
-            () => this.cloudData.saveProfile(userId, this.selectNewestProfile(
-                profile,
-                this.readStoredProfile(accountStorageKey)
-            )),
-            'Unable to synchronize profile with Supabase.'
-        );
-
-        if (guestProfile) {
-            localStorage.removeItem(this.guestStorageKey);
-        }
-
-        this.publishProfile(this.selectNewestProfile(
-            profile,
-            this.readStoredProfile(accountStorageKey)
-        ));
     }
 
     public saveProfile(profile: UserProfile): Promise<void> {
@@ -227,7 +234,7 @@ export class ProfileService implements OnDestroy {
     }
 
     private persistDarkModePreference(enabled: boolean): void {
-        if (this.applyingProfileTheme || !this.activeUserId || this.profile.darkMode === enabled) {
+        if (this.applyingProfileTheme || this.syncing || !this.activeUserId || this.profile.darkMode === enabled) {
             return;
         }
 
@@ -238,7 +245,7 @@ export class ProfileService implements OnDestroy {
     }
 
     private persistLanguagePreference(language: PreferredLanguage): void {
-        if (!this.activeUserId || this.profile.preferredLanguage === language) {
+        if (this.syncing || !this.activeUserId || this.profile.preferredLanguage === language) {
             return;
         }
 
