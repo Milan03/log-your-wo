@@ -39,6 +39,17 @@ describe('Service: Translator', () => {
         expect(service).toBeTruthy();
     });
 
+    it('does not show the loading overlay during the initial language load', async () => {
+        const service = TestBed.inject(TranslatorService);
+        const loadingStates: boolean[] = [];
+        const subscription = service.languageLoading$.subscribe(loading => loadingStates.push(loading));
+
+        await service.initialized;
+
+        expect(loadingStates.every(loading => loading === false)).toBeTrue();
+        subscription.unsubscribe();
+    });
+
     it('replays the current language to late subscribers', async () => {
         const service = TestBed.inject(TranslatorService);
         await service.initialized;
