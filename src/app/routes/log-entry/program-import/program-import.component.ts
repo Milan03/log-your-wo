@@ -34,8 +34,7 @@ import {
     ProgramWeekCard
 } from './program-import-card.factory';
 import { ProgramImportWizardStore } from './program-import-wizard.store';
-
-const swal = require('sweetalert');
+import { ConfirmDialogService } from '../../../shared/services/confirm-dialog.service';
 
 @Component({
     selector: 'app-program-import',
@@ -97,6 +96,7 @@ export class ProgramImportComponent implements OnInit, OnDestroy {
     private _translatorService = inject(TranslatorService, { optional: true });
     private _cardFactory = inject(ProgramImportCardFactory);
     private _wizard = inject(ProgramImportWizardStore);
+    private _confirmDialog = inject(ConfirmDialogService);
 
     // Workbook import/review state and logic live in ProgramImportWizardStore;
     // these accessors keep the template and existing call sites pointed at it.
@@ -420,19 +420,15 @@ export class ProgramImportComponent implements OnInit, OnDestroy {
     }
 
     private async confirmAndDeleteProgram(program: ImportedProgram): Promise<void> {
-        const confirmed = await swal({
+        const confirmed = await this._confirmDialog.confirmDanger({
             title: this.t('program-import.DeleteTitle', undefined, 'Delete imported program?'),
             text: this.t(
                 'program-import.DeleteText',
                 { name: program.name },
                 `"${program.name}" and its saved workout progress will be removed.`
             ),
-            icon: 'warning',
-            buttons: [
-                this.t('global.CancelLabel', undefined, 'Cancel'),
-                this.t('global.DeleteLabel', undefined, 'Delete')
-            ],
-            dangerMode: true
+            confirmText: this.t('global.DeleteLabel', undefined, 'Delete'),
+            cancelText: this.t('global.CancelLabel', undefined, 'Cancel')
         });
 
         if (!confirmed) {
