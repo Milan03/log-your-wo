@@ -1,5 +1,6 @@
 import { NgClass, NgStyle, PercentPipe } from '@angular/common';
 import {
+    ChangeDetectionStrategy,
     Component,
     DestroyRef,
     effect,
@@ -7,6 +8,7 @@ import {
     inject,
     OnDestroy,
     OnInit,
+    signal,
     viewChildren
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -49,6 +51,7 @@ import { ConfirmDialogService } from '../../../shared/services/confirm-dialog.se
     ],
     templateUrl: './program-import.component.html',
     styleUrls: ['./program-import.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
     providers: [ProgramImportWizardStore]
 })
 export class ProgramImportComponent implements OnInit, OnDestroy {
@@ -64,14 +67,40 @@ export class ProgramImportComponent implements OnInit, OnDestroy {
         this.queueRequestedFocus();
     });
 
-    public program: ImportedProgram;
+    // View state is held in signals so the OnPush/zoneless view updates from the
+    // RxJS-subscription writes below; get/set accessors keep the template and
+    // call sites using the existing field-style API. `programs` is not bound in
+    // the template (only the derived `programCards` is), so it stays plain.
+    private readonly _program = signal<ImportedProgram>(undefined);
+    public get program(): ImportedProgram { return this._program(); }
+    public set program(value: ImportedProgram) { this._program.set(value); }
+
     public programs: ImportedProgram[] = [];
-    public programCards: ProgramImportCard[] = [];
-    public weekCards: ProgramWeekCard[] = [];
-    public dayCards: ProgramDayCard[] = [];
-    public selectedWeek: ImportedProgramWeek;
-    public completionColor = '#2fb379';
-    public completionStyles: { [key: string]: string } = {};
+
+    private readonly _programCards = signal<ProgramImportCard[]>([]);
+    public get programCards(): ProgramImportCard[] { return this._programCards(); }
+    public set programCards(value: ProgramImportCard[]) { this._programCards.set(value); }
+
+    private readonly _weekCards = signal<ProgramWeekCard[]>([]);
+    public get weekCards(): ProgramWeekCard[] { return this._weekCards(); }
+    public set weekCards(value: ProgramWeekCard[]) { this._weekCards.set(value); }
+
+    private readonly _dayCards = signal<ProgramDayCard[]>([]);
+    public get dayCards(): ProgramDayCard[] { return this._dayCards(); }
+    public set dayCards(value: ProgramDayCard[]) { this._dayCards.set(value); }
+
+    private readonly _selectedWeek = signal<ImportedProgramWeek>(undefined);
+    public get selectedWeek(): ImportedProgramWeek { return this._selectedWeek(); }
+    public set selectedWeek(value: ImportedProgramWeek) { this._selectedWeek.set(value); }
+
+    private readonly _completionColor = signal('#2fb379');
+    public get completionColor(): string { return this._completionColor(); }
+    public set completionColor(value: string) { this._completionColor.set(value); }
+
+    private readonly _completionStyles = signal<{ [key: string]: string }>({});
+    public get completionStyles(): { [key: string]: string } { return this._completionStyles(); }
+    public set completionStyles(value: { [key: string]: string }) { this._completionStyles.set(value); }
+
     public completionColorOptions = [
         '#2fb379',
         '#2f80ed',

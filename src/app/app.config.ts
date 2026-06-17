@@ -3,7 +3,7 @@ import {
     inject,
     isDevMode,
     provideAppInitializer,
-    provideZoneChangeDetection
+    provideZonelessChangeDetection
 } from '@angular/core';
 import { provideHttpClient } from '@angular/common/http';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
@@ -21,7 +21,7 @@ import { routes } from './routes/routes';
 
 export const appConfig: ApplicationConfig = {
     providers: [
-        provideZoneChangeDetection(),
+        provideZonelessChangeDetection(),
         provideHttpClient(),
         provideAnimationsAsync(),
         provideRouter(routes),

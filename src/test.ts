@@ -1,6 +1,7 @@
 // This file is required by karma.conf.js and loads recursively all the .spec and framework files
+// The app runs zoneless; the test target loads zone.js + zone.js/testing via its
+// `polyfills` array (before Jasmine) so the zone-based TestBed keeps working.
 
-import 'zone.js/testing';
 import { getTestBed } from '@angular/core/testing';
 import {
   BrowserDynamicTestingModule,
