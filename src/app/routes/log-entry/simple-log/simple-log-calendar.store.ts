@@ -45,7 +45,17 @@ export class SimpleLogCalendarStore {
     /** Rebuild the month grid and the selected-day workout list. */
     public refresh(workoutDate: string): void {
         const workoutDates = new Set(this.savedLogs().map(log => log.workoutDate));
-        this.calendarDays.set(this._calendarService.buildMonth(this.calendarMonth(), new Date(), workoutDates));
+        const completedWorkoutDates = new Set(
+            this.savedLogs()
+                .filter(log => Boolean(log.completedAt))
+                .map(log => log.workoutDate)
+        );
+        this.calendarDays.set(this._calendarService.buildMonth(
+            this.calendarMonth(),
+            new Date(),
+            workoutDates,
+            completedWorkoutDates
+        ));
         this.refreshSelectedDateLogs(workoutDate);
     }
 

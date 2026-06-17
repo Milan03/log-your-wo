@@ -1,12 +1,16 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { TranslateModule } from '@ngx-translate/core';
 
 interface EmailForm {
     emailAddress: FormControl<string | null>;
+}
+
+export interface EmailDialogData {
+    initialEmail?: string;
 }
 
 @Component({
@@ -26,9 +30,13 @@ interface EmailForm {
 export class EmailDialogComponent {
     public _dialogRef = inject(MatDialogRef) as MatDialogRef<EmailDialogComponent>;
     private _formBuilder = inject(FormBuilder);
+    private _emailDialogData = inject<EmailDialogData | null>(MAT_DIALOG_DATA, { optional: true });
 
     public emailForm: FormGroup<EmailForm> = this._formBuilder.group({
-        'emailAddress': ['', Validators.compose([Validators.required, Validators.email])]
+        'emailAddress': [
+            this._emailDialogData?.initialEmail || '',
+            Validators.compose([Validators.required, Validators.email])
+        ]
     });
     
     public submitForm(event: Event): void {

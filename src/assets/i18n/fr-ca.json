@@ -212,6 +212,10 @@
         "ResetTitle": "Réinitialiser cet entraînement?",
         "ResetText": "Cela remet le chronomètre à zéro et décoche tous les exercices. Vos exercices sont conservés, mais la progression est perdue.",
         "ResetConfirm": "Réinitialiser",
+        "MarkCompleteTitle": "Marquer cet entraînement comme terminé?",
+        "MarkCompleteText": "Cela marque tous les exercices comme terminés et arrête le chronomètre. Vous pourrez le rouvrir plus tard si vous devez en ajouter.",
+        "MarkCompleteDoneTitle": "Entraînement terminé",
+        "MarkCompleteDoneText": "Votre journal d'entraînement a été marqué comme terminé.",
         "DeleteLog": "Supprimer le journal",
         "NotStarted": "Non commencé",
         "InProgress": "En cours",
@@ -224,6 +228,7 @@
         "EmailSentDescription": "Le courriel a été envoyé à l'adresse fournie.",
         "EmailError": "Problème lors de l'envoi du courriel",
         "EmailErrorDescription": "Un problème est survenu lors de l'envoi à l'adresse fournie. Veuillez réessayer.",
+        "SavingPdf": "Préparation du PDF...",
         "PdfError": "Problème lors de la création du PDF",
         "PdfErrorDescription": "Un problème est survenu lors de la création de votre PDF d'entraînement. Veuillez réessayer."
     },

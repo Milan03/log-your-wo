@@ -40,6 +40,23 @@ describe('CalendarService', () => {
             expect(plainCell?.hasWorkout).toBeFalse();
             expect(plainCell?.isToday).toBeFalse();
         });
+
+        it('flags completed workout days separately from saved workout days', () => {
+            const days = service.buildMonth(
+                month,
+                today,
+                new Set(['2026-06-10', '2026-06-11']),
+                new Set(['2026-06-11'])
+            );
+
+            const inProgressCell = days.find(day => day.dateValue === '2026-06-10');
+            const completedCell = days.find(day => day.dateValue === '2026-06-11');
+
+            expect(inProgressCell?.hasWorkout).toBeTrue();
+            expect(inProgressCell?.hasCompletedWorkout).toBeFalse();
+            expect(completedCell?.hasWorkout).toBeTrue();
+            expect(completedCell?.hasCompletedWorkout).toBeTrue();
+        });
     });
 
     describe('weekdays', () => {

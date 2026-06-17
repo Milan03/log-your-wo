@@ -8,6 +8,7 @@ export interface CalendarDay {
     inCurrentMonth: boolean;
     isToday: boolean;
     hasWorkout: boolean;
+    hasCompletedWorkout: boolean;
 }
 
 /**
@@ -21,9 +22,15 @@ export class CalendarService {
 
     /**
      * Build the six-week (42-cell) grid for `month`, marking today and any day
-     * whose `yyyy-MM-dd` value is present in `workoutDates`.
+     * whose `yyyy-MM-dd` value is present in `workoutDates` or
+     * `completedWorkoutDates`.
      */
-    public buildMonth(month: Date, today: Date, workoutDates: ReadonlySet<string>): CalendarDay[] {
+    public buildMonth(
+        month: Date,
+        today: Date,
+        workoutDates: ReadonlySet<string>,
+        completedWorkoutDates: ReadonlySet<string> = new Set()
+    ): CalendarDay[] {
         const year = month.getFullYear();
         const monthIndex = month.getMonth();
         const firstVisibleDate = new Date(year, monthIndex, 1 - new Date(year, monthIndex, 1).getDay());
@@ -43,7 +50,8 @@ export class CalendarService {
                 dayNumber: date.getDate(),
                 inCurrentMonth: date.getMonth() === monthIndex,
                 isToday: dateValue === todayValue,
-                hasWorkout: workoutDates.has(dateValue)
+                hasWorkout: workoutDates.has(dateValue),
+                hasCompletedWorkout: completedWorkoutDates.has(dateValue)
             };
         });
     }

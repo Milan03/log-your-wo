@@ -38,6 +38,7 @@
                         [class.simple-log-calendar__day--muted]="!day.inCurrentMonth"
                         [class.simple-log-calendar__day--today]="day.isToday"
                         [class.simple-log-calendar__day--worked]="day.hasWorkout"
+                        [class.simple-log-calendar__day--completed]="day.hasCompletedWorkout"
                         [class.simple-log-calendar__day--selected]="day.dateValue === workoutDate"
                         [attr.aria-label]="day.date | date:'longDate'"
                         (click)="selectDay.emit(day)">
