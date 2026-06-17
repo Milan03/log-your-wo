@@ -1,6 +1,5 @@
 import { NgClass, NgStyle, PercentPipe } from '@angular/common';
 import {
-    ChangeDetectorRef,
     Component,
     DestroyRef,
     effect,
@@ -98,18 +97,17 @@ export class ProgramImportComponent implements OnInit, OnDestroy {
     private _translatorService = inject(TranslatorService, { optional: true });
     private _cardFactory = inject(ProgramImportCardFactory);
     private _wizard = inject(ProgramImportWizardStore);
-    private _cdr = inject(ChangeDetectorRef);
 
     // Workbook import/review state and logic live in ProgramImportWizardStore;
     // these accessors keep the template and existing call sites pointed at it.
-    public get isImporting(): boolean { return this._wizard.isImporting; }
-    public get importError(): string { return this._wizard.importError; }
-    public get importPreview(): ProgramImportPreview { return this._wizard.importPreview; }
-    public set importPreview(value: ProgramImportPreview) { this._wizard.importPreview = value; }
-    public get importReviewStep(): 'setup' | 'review' { return this._wizard.importReviewStep; }
-    public get setupError(): string { return this._wizard.setupError; }
-    public set setupError(value: string) { this._wizard.setupError = value; }
-    public get selectedReviewWeekIndex(): number { return this._wizard.selectedReviewWeekIndex; }
+    public get isImporting(): boolean { return this._wizard.isImporting(); }
+    public get importError(): string { return this._wizard.importError(); }
+    public get importPreview(): ProgramImportPreview { return this._wizard.importPreview(); }
+    public set importPreview(value: ProgramImportPreview) { this._wizard.importPreview.set(value); }
+    public get importReviewStep(): 'setup' | 'review' { return this._wizard.importReviewStep(); }
+    public get setupError(): string { return this._wizard.setupError(); }
+    public set setupError(value: string) { this._wizard.setupError.set(value); }
+    public get selectedReviewWeekIndex(): number { return this._wizard.selectedReviewWeekIndex(); }
     public get workbookSetupValid(): boolean { return this._wizard.workbookSetupValid; }
     public get workbookWeightUnit(): string { return this._wizard.workbookWeightUnit; }
     public get selectedReviewWeek(): ImportedProgramWeek { return this._wizard.selectedReviewWeek; }
@@ -174,7 +172,6 @@ export class ProgramImportComponent implements OnInit, OnDestroy {
             await this._wizard.previewFromFile(file);
         } finally {
             input.value = '';
-            this._cdr.markForCheck();
         }
     }
 
@@ -188,7 +185,6 @@ export class ProgramImportComponent implements OnInit, OnDestroy {
 
     public async continueToImportReview(): Promise<void> {
         await this._wizard.continueToImportReview();
-        this._cdr.markForCheck();
     }
 
     public editWorkbookMaxes(): void {

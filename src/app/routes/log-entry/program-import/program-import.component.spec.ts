@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, ElementRef } from '@angular/core';
+import { ElementRef } from '@angular/core';
 import { fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, Event as RouterEvent, NavigationEnd, ParamMap, Router } from '@angular/router';
 import { BehaviorSubject, Subject } from 'rxjs';
@@ -15,7 +15,6 @@ describe('ProgramImportComponent', () => {
     let routeParams: BehaviorSubject<ParamMap>;
     let routerEvents: Subject<RouterEvent>;
     let router: jasmine.SpyObj<Router>;
-    let changeDetectorRef: jasmine.SpyObj<ChangeDetectorRef>;
 
     beforeEach(() => {
         localStorage.clear();
@@ -24,15 +23,13 @@ describe('ProgramImportComponent', () => {
         router = jasmine.createSpyObj<Router>('Router', ['navigate'], {
             events: routerEvents.asObservable()
         });
-        changeDetectorRef = jasmine.createSpyObj<ChangeDetectorRef>('ChangeDetectorRef', ['markForCheck']);
         TestBed.configureTestingModule({
             providers: [
                 ProgramImportService,
                 ProgramImportWizardStore,
                 { provide: WorkoutHeaderService, useValue: new WorkoutHeaderService() },
                 { provide: Router, useValue: router },
-                { provide: ActivatedRoute, useValue: { queryParamMap: routeParams.asObservable() } },
-                { provide: ChangeDetectorRef, useValue: changeDetectorRef }
+                { provide: ActivatedRoute, useValue: { queryParamMap: routeParams.asObservable() } }
             ]
         });
         programImportService = TestBed.inject(ProgramImportService);
@@ -178,7 +175,6 @@ describe('ProgramImportComponent', () => {
         await component.onFileSelected({ target: input } as unknown as Event);
 
         expect(component.importPreview.program.id).toBe('draft-program');
-        expect(changeDetectorRef.markForCheck).toHaveBeenCalled();
         expect(programImportService.getPrograms().some(program => program.id === 'draft-program')).toBeFalse();
 
         component.confirmImport();
