@@ -45,16 +45,16 @@ export class WorkoutExportService {
      * Generate the workout PDF and trigger a browser download.
      */
     public async savePdf(context: WorkoutExportContext): Promise<void> {
-        let createdPDF: jsPDF;
-        let workoutPdfService: WorkoutPdfService;
+        this.swalPdfSaving();
         try {
-            workoutPdfService = await this.getWorkoutPdfService();
-            createdPDF = await workoutPdfService.create(this.buildPdfData(context));
+            const workoutPdfService = await this.getWorkoutPdfService();
+            const createdPDF = await workoutPdfService.create(this.buildPdfData(context));
+            createdPDF.save(workoutPdfService.getFileName(context.log));
         } catch {
             this.swalPdfError();
             return;
         }
-        createdPDF.save(workoutPdfService.getFileName(context.log));
+        Swal.close();
         this._googleAnalyticsService.eventEmitter('pdf_saved_success', 'general', 'engagement');
     }
 
@@ -208,6 +208,18 @@ export class WorkoutExportService {
             title: this.t('log-entry.EmailError'),
             text: this.t('log-entry.EmailErrorDescription'),
             icon: 'error'
+        });
+    }
+
+    private swalPdfSaving(): void {
+        Swal.fire({
+            title: this.t('log-entry.SavingPdf'),
+            text: this.t('log-entry.PleaseWait'),
+            icon: 'info',
+            showConfirmButton: false,
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            didOpen: () => Swal.showLoading()
         });
     }
 

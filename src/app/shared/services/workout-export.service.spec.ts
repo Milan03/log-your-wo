@@ -45,6 +45,7 @@ describe('WorkoutExportService', () => {
         spyOn<any>(service, 'swalEmailSending');
         spyOn<any>(service, 'swalEmailSent');
         spyOn<any>(service, 'swalEmailError');
+        spyOn<any>(service, 'swalPdfSaving');
         spyOn<any>(service, 'swalPdfError');
     });
 
@@ -73,6 +74,7 @@ describe('WorkoutExportService', () => {
 
         await service.savePdf(context());
 
+        expect((service as any).swalPdfSaving).toHaveBeenCalled();
         expect(save).toHaveBeenCalledWith('workout.pdf');
         expect(analytics.eventEmitter).toHaveBeenCalledWith('pdf_saved_success', 'general', 'engagement');
     });

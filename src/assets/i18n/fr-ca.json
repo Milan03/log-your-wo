@@ -228,6 +228,7 @@
         "EmailSentDescription": "Le courriel a été envoyé à l'adresse fournie.",
         "EmailError": "Problème lors de l'envoi du courriel",
         "EmailErrorDescription": "Un problème est survenu lors de l'envoi à l'adresse fournie. Veuillez réessayer.",
+        "SavingPdf": "Préparation du PDF...",
         "PdfError": "Problème lors de la création du PDF",
         "PdfErrorDescription": "Un problème est survenu lors de la création de votre PDF d'entraînement. Veuillez réessayer."
     },

@@ -228,6 +228,7 @@
         "EmailSentDescription": "Email has been sent to the provided email address.",
         "EmailError": "Problem Sending Email",
         "EmailErrorDescription": "There was a problem trying to send to the provided email address. Please try again.",
+        "SavingPdf": "Preparing PDF...",
         "PdfError": "Problem Creating PDF",
         "PdfErrorDescription": "There was a problem creating your workout PDF. Please try again."
     },
