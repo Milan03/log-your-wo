@@ -1,4 +1,4 @@
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
 
 import {
     ImportedProgramExercise,
@@ -19,16 +19,17 @@ import { TranslatorService } from '../../../core/translator/translator.service';
  * reviewing/editing the parsed weeks, and confirming the import (saving the
  * program and any confirmed training maxes). The host component owns the
  * program-library/browse view and just delegates here. Provided per component
- * instance, not in root.
+ * instance, not in root. State is exposed as signals so OnPush/zoneless views
+ * update from writes without manual change detection.
  */
 @Injectable()
 export class ProgramImportWizardStore {
-    public isImporting = false;
-    public importError = '';
-    public importPreview: ProgramImportPreview;
-    public importReviewStep: 'setup' | 'review' = 'review';
-    public setupError = '';
-    public selectedReviewWeekIndex = 0;
+    public readonly isImporting = signal(false);
+    public readonly importError = signal('');
+    public readonly importPreview = signal<ProgramImportPreview>(undefined);
+    public readonly importReviewStep = signal<'setup' | 'review'>('review');
+    public readonly setupError = signal('');
+    public readonly selectedReviewWeekIndex = signal(0);
 
     private pendingTrainingMaxes: TrainingMax[] = [];
 
@@ -38,40 +39,41 @@ export class ProgramImportWizardStore {
 
     /** Preview an uploaded workbook, moving into the setup/review flow. */
     public async previewFromFile(file: File): Promise<void> {
-        this.isImporting = true;
-        this.importError = '';
+        this.isImporting.set(true);
+        this.importError.set('');
         this.pendingTrainingMaxes = [];
 
         try {
             const preview = await this._programImportService.previewWorkbook(file);
             if (!preview.program) {
-                this.importError = preview.warningDetails?.[0]
+                this.importError.set(preview.warningDetails?.[0]
                     ? this.formatImportWarning(preview.warningDetails[0])
                     : preview.warnings[0]
-                    || this.t('program-import.ImportError', undefined, 'That workbook could not be imported. Try another .xlsx file.');
+                    || this.t('program-import.ImportError', undefined, 'That workbook could not be imported. Try another .xlsx file.'));
             } else {
-                this.importPreview = preview;
+                this.importPreview.set(preview);
                 this.initializeWorkbookSetup();
-                this.selectedReviewWeekIndex = 0;
+                this.selectedReviewWeekIndex.set(0);
             }
         } catch (error) {
             const message = error instanceof Error ? error.message : '';
-            this.importError = /10 MB/.test(message)
+            this.importError.set(/10 MB/.test(message)
                 ? this.t('program-import.WorkbookTooLarge', undefined, 'Workbook files must be 10 MB or smaller.')
-                : this.t('program-import.ImportError', undefined, 'That workbook could not be imported. Try another .xlsx file.');
+                : this.t('program-import.ImportError', undefined, 'That workbook could not be imported. Try another .xlsx file.'));
         } finally {
-            this.isImporting = false;
+            this.isImporting.set(false);
         }
     }
 
     public async confirmImport(): Promise<void> {
-        if (!this.importPreview?.program) {
+        const preview = this.importPreview();
+        if (!preview?.program) {
             return;
         }
 
         const program = {
-            ...this.importPreview.program,
-            weeks: this.importPreview.program.weeks.map(week => ({
+            ...preview.program,
+            weeks: preview.program.weeks.map(week => ({
                 ...week,
                 days: week.days.map(day => ({
                     ...day,
@@ -92,66 +94,67 @@ export class ProgramImportWizardStore {
         };
 
         if (!program.weeks.length) {
-            this.importError = this.t(
+            this.importError.set(this.t(
                 'program-import.NoReviewRows',
                 undefined,
                 'Keep at least one exercise before saving the imported program.'
-            );
+            ));
             return;
         }
 
         this._programImportService.saveProgram(program);
         const trainingMaxes = this.pendingTrainingMaxes;
-        this.importPreview = undefined;
-        this.importReviewStep = 'review';
-        this.setupError = '';
-        this.selectedReviewWeekIndex = 0;
-        this.importError = '';
-        this.pendingTrainingMaxes = [];
+        this.resetWizardState();
 
         if (this._profileService && trainingMaxes.length) {
             try {
                 await this._profileService.saveTrainingMaxes(trainingMaxes);
             } catch {
-                this.importError = this.t(
+                this.importError.set(this.t(
                     'program-import.MaxSyncError',
                     undefined,
                     'The program was saved, but the training maxes could not be synchronized.'
-                );
+                ));
             }
         }
     }
 
     public cancelImportReview(): void {
-        this.importPreview = undefined;
-        this.importReviewStep = 'review';
-        this.setupError = '';
-        this.selectedReviewWeekIndex = 0;
-        this.importError = '';
+        this.resetWizardState();
+    }
+
+    private resetWizardState(): void {
+        this.importPreview.set(undefined);
+        this.importReviewStep.set('review');
+        this.setupError.set('');
+        this.selectedReviewWeekIndex.set(0);
+        this.importError.set('');
         this.pendingTrainingMaxes = [];
     }
 
     public async continueToImportReview(): Promise<void> {
-        if (!this.importPreview?.setup || !this.workbookSetupValid) {
-            this.setupError = this.t(
+        const preview = this.importPreview();
+        if (!preview?.setup || !this.workbookSetupValid) {
+            this.setupError.set(this.t(
                 'program-import.SetupValidation',
                 undefined,
                 'Enter a number greater than zero for each required max.'
-            );
+            ));
             return;
         }
 
-        const values = this.importPreview.setup.inputs.reduce((result, input) => {
+        const values = preview.setup.inputs.reduce((result, input) => {
             result[input.id] = Number(input.value);
             return result;
         }, {} as { [inputId: string]: number });
-        this.importPreview = await this._programImportService.applyWorkbookInputs(this.importPreview, values);
-        this.importPreview.program.weightMeasure = this.workbookWeightMeasure;
-        this.importReviewStep = 'review';
-        this.setupError = '';
+        const applied = await this._programImportService.applyWorkbookInputs(preview, values);
+        applied.program.weightMeasure = this.workbookWeightMeasure;
+        this.importPreview.set(applied);
+        this.importReviewStep.set('review');
+        this.setupError.set('');
 
-        if (this._profileService && this.importPreview.setup.inputs.length) {
-            this.pendingTrainingMaxes = this.importPreview.setup.inputs.map(input => ({
+        if (this._profileService && applied.setup.inputs.length) {
+            this.pendingTrainingMaxes = applied.setup.inputs.map(input => ({
                 id: this._profileService.findTrainingMax(input.exerciseName)?.id || input.id,
                 exerciseName: input.exerciseName,
                 value: Number(input.value)
@@ -160,13 +163,13 @@ export class ProgramImportWizardStore {
     }
 
     public editWorkbookMaxes(): void {
-        this.importReviewStep = 'setup';
-        this.setupError = '';
+        this.importReviewStep.set('setup');
+        this.setupError.set('');
     }
 
     public get workbookSetupValid(): boolean {
-        return Boolean(this.importPreview?.setup)
-            && this.importPreview.setup.inputs.every(input => this.isWorkbookInputValid(input));
+        const setup = this.importPreview()?.setup;
+        return Boolean(setup) && setup.inputs.every(input => this.isWorkbookInputValid(input));
     }
 
     public isWorkbookInputValid(input: WorkbookImportInput): boolean {
@@ -185,7 +188,11 @@ export class ProgramImportWizardStore {
     }
 
     public deleteReviewExercise(weekIndex: number, dayIndex: number, exerciseIndex: number): void {
-        this.importPreview.program.weeks[weekIndex].days[dayIndex].exercises.splice(exerciseIndex, 1);
+        const preview = this.importPreview();
+        preview.program.weeks[weekIndex].days[dayIndex].exercises.splice(exerciseIndex, 1);
+        // Re-emit a new preview reference so the signal notifies after the
+        // in-place splice (the nested program object is intentionally shared).
+        this.importPreview.set({ ...preview });
     }
 
     public trackExerciseById(index: number, exercise: ImportedProgramExercise): string {
@@ -193,43 +200,46 @@ export class ProgramImportWizardStore {
     }
 
     public selectReviewWeek(index: number): void {
-        const lastIndex = (this.importPreview?.program?.weeks.length || 1) - 1;
-        this.selectedReviewWeekIndex = Math.max(0, Math.min(index, lastIndex));
+        const lastIndex = (this.importPreview()?.program?.weeks.length || 1) - 1;
+        this.selectedReviewWeekIndex.set(Math.max(0, Math.min(index, lastIndex)));
     }
 
     public previousReviewWeek(): void {
-        this.selectReviewWeek(this.selectedReviewWeekIndex - 1);
+        this.selectReviewWeek(this.selectedReviewWeekIndex() - 1);
     }
 
     public nextReviewWeek(): void {
-        this.selectReviewWeek(this.selectedReviewWeekIndex + 1);
+        this.selectReviewWeek(this.selectedReviewWeekIndex() + 1);
     }
 
     public get selectedReviewWeek(): ImportedProgramWeek {
-        return this.importPreview?.program?.weeks[this.selectedReviewWeekIndex];
+        return this.importPreview()?.program?.weeks[this.selectedReviewWeekIndex()];
     }
 
     public get reviewExerciseCount(): number {
-        if (!this.importPreview?.program) {
+        const preview = this.importPreview();
+        if (!preview?.program) {
             return 0;
         }
-        return this.importPreview.program.weeks.reduce((total, week) =>
+        return preview.program.weeks.reduce((total, week) =>
             total + week.days.reduce((dayTotal, day) => dayTotal + day.exercises.length, 0), 0);
     }
 
     public get importWarnings(): string[] {
-        if (!this.importPreview) {
+        const preview = this.importPreview();
+        if (!preview) {
             return [];
         }
-        return this.importPreview.warningDetails?.length
-            ? this.importPreview.warningDetails.map(warning => this.formatImportWarning(warning))
-            : this.importPreview.warnings;
+        return preview.warningDetails?.length
+            ? preview.warningDetails.map(warning => this.formatImportWarning(warning))
+            : preview.warnings;
     }
 
     private initializeWorkbookSetup(): void {
-        const setup = this.importPreview?.setup;
+        const preview = this.importPreview();
+        const setup = preview?.setup;
         if (!setup) {
-            this.importReviewStep = 'review';
+            this.importReviewStep.set('review');
             return;
         }
 
@@ -240,9 +250,9 @@ export class ProgramImportWizardStore {
                 ? this.roundTrainingMax(Number(value))
                 : value;
         });
-        this.importPreview.program.weightMeasure = this.workbookWeightMeasure;
-        this.importReviewStep = 'setup';
-        this.setupError = '';
+        preview.program.weightMeasure = this.workbookWeightMeasure;
+        this.importReviewStep.set('setup');
+        this.setupError.set('');
     }
 
     private buildReviewedPrescription(exercise: ImportedProgramExercise): string {
