@@ -13,6 +13,7 @@ import { ProgramImportService } from '../../../shared/services/program-import.se
 import { WorkoutInteractionService } from '../../../shared/services/workout-interaction.service';
 import { SimpleLogService } from '../../../shared/services/simple-log.service';
 import { ProfileService } from '../../../shared/services/profile.service';
+import { WorkoutExportService } from '../../../shared/services/workout-export.service';
 import { Exercise } from '../../../shared/models/exercise.model';
 import { ImportedProgram } from '../../../shared/models/imported-program.model';
 import { SimpleLog } from '../../../shared/models/simple-log.model';
@@ -371,7 +372,7 @@ describe('SimpleLogComponent', () => {
 
   it('routes a valid save submit to the export service', () => {
     component.currentLog.exercises = [createExercise('Clean', false)];
-    const savePdf = spyOn((component as any)._workoutExportService, 'savePdf');
+    const savePdf = spyOn(TestBed.inject(WorkoutExportService), 'savePdf');
 
     component.submit('save');
 
@@ -379,7 +380,7 @@ describe('SimpleLogComponent', () => {
   });
 
   it('emails the export context when the dialog returns a recipient', () => {
-    const emailPdf = spyOn((component as any)._workoutExportService, 'emailPdf');
+    const emailPdf = spyOn(TestBed.inject(WorkoutExportService), 'emailPdf');
     const dialog = (component as any)._dialog;
     spyOn(dialog, 'open').and.returnValue({
       afterClosed: () => of('athlete@example.com')

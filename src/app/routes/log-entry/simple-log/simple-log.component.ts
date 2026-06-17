@@ -7,7 +7,6 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 
 import { ExerciseDialogComponent } from '../exercise-dialog/exercise-dialog.component';
-import { EmailDialogComponent } from '../email-dialog/email-dialog.component';
 import { ExerciseGroup } from '../exercise-group-list/exercise-group-list.component';
 import { CalendarDay, CalendarService } from '../../../shared/services/calendar.service';
 import { Exercise } from '../../../shared/models/exercise.model';
@@ -27,10 +26,6 @@ import { ProgramImportService } from '../../../shared/services/program-import.se
 import { SimpleLogService } from '../../../shared/services/simple-log.service';
 import { ImportedProgramDay, ImportedProgramWeek, ImportedWorkoutState } from '../../../shared/models/imported-program.model';
 import { ProfileService } from '../../../shared/services/profile.service';
-import {
-    WorkoutExportContext,
-    WorkoutExportService
-} from '../../../shared/services/workout-export.service';
 
 import { LogTypes, FormValues } from '../../../shared/common/common.constants';
 import { ExerciseGroupListComponent } from '../exercise-group-list/exercise-group-list.component';
@@ -40,6 +35,7 @@ import { WorkoutTimingStore } from './workout-timing.store';
 import { ImportedWorkoutStore } from './imported-workout.store';
 import { MeasureSettingsStore } from './measure-settings.store';
 import { ExerciseListStore } from './exercise-list.store';
+import { WorkoutExportCoordinator } from './workout-export.coordinator';
 
 const swal = require('sweetalert');
 
@@ -62,7 +58,14 @@ interface SimpleLogForm {
     templateUrl: './simple-log.component.html',
     styleUrls: ['./simple-log.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush,
-    providers: [SimpleLogCalendarStore, WorkoutTimingStore, ImportedWorkoutStore, MeasureSettingsStore, ExerciseListStore]
+    providers: [
+        SimpleLogCalendarStore,
+        WorkoutTimingStore,
+        ImportedWorkoutStore,
+        MeasureSettingsStore,
+        ExerciseListStore,
+        WorkoutExportCoordinator
+    ]
 })
 export class SimpleLogComponent implements OnInit, OnDestroy {
     public simpleLogForm: FormGroup<SimpleLogForm>;
@@ -160,7 +163,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     private _programImportService = inject(ProgramImportService);
     private _calendarService = inject(CalendarService);
     private _simpleLogService = inject(SimpleLogService);
-    private _workoutExportService = inject(WorkoutExportService);
+    private _export = inject(WorkoutExportCoordinator);
     private _activatedRoute = inject(ActivatedRoute);
     private _router = inject(Router);
     private _profileService = inject(ProfileService, { optional: true });
@@ -206,29 +209,10 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             return;
         }
         if (submitType == 'save') {
-            this._workoutExportService.savePdf(this.buildExportContext());
+            this._export.savePdf(this.currentLog, this.currentLanguage);
         } else {
             this.openEmailDialog();
         }
-    }
-
-    private buildExportContext(): WorkoutExportContext {
-        return {
-            log: this.currentLog,
-            weightMeasure: this.weightMeasure,
-            distanceMeasure: this.distanceMeasure,
-            elapsedTimeLabel: this.getElapsedTimeLabel(),
-            language: this.currentLanguage,
-            startedAt: this.workoutStartedAt,
-            completedAt: this.workoutCompletedAt,
-            pausedAt: this.workoutPausedAt,
-            importedWorkout: this.isImportedWorkout
-                ? {
-                    weekName: this.importedWeek?.name || '',
-                    dayName: this.importedDay?.name || ''
-                }
-                : undefined
-        };
     }
 
     public checkForTitleValue(): void {
@@ -240,15 +224,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     }
 
     public openEmailDialog(): void {
-        const dialogRef = this._dialog.open(EmailDialogComponent, {
-            panelClass: 'email-dialog-panel',
-            maxWidth: 'calc(100vw - 24px)'
-        });
-        dialogRef.afterClosed().subscribe(result => {
-            if (result) {
-                this._workoutExportService.emailPdf(result, this.buildExportContext());
-            }
-        });
+        this._export.emailPdf(this.currentLog, this.currentLanguage);
     }
 
     public openExerciseDialog(type: string, name?: string, insertAfter?: Exercise): void {
