@@ -14,6 +14,7 @@ import { WorkoutInteractionService } from '../../../shared/services/workout-inte
 import { SimpleLogService } from '../../../shared/services/simple-log.service';
 import { ProfileService } from '../../../shared/services/profile.service';
 import { WorkoutExportService } from '../../../shared/services/workout-export.service';
+import { AlertChoice, ConfirmDialogService } from '../../../shared/services/confirm-dialog.service';
 import { Exercise } from '../../../shared/models/exercise.model';
 import { ImportedProgram } from '../../../shared/models/imported-program.model';
 import { SimpleLog } from '../../../shared/models/simple-log.model';
@@ -26,6 +27,8 @@ describe('SimpleLogComponent', () => {
   let workoutInteraction: WorkoutInteractionService;
   let routerSpy: jasmine.SpyObj<Router>;
   let simpleLogService: SimpleLogService;
+  let confirmSpy: jasmine.Spy<(options: unknown) => Promise<boolean>>;
+  let successSpy: jasmine.Spy<(options: unknown) => Promise<AlertChoice>>;
 
   beforeEach(waitForAsync(() => {
     routeParams = new BehaviorSubject(convertToParamMap({}));
@@ -71,6 +74,10 @@ describe('SimpleLogComponent', () => {
     programImportService = TestBed.inject(ProgramImportService);
     workoutInteraction = TestBed.inject(WorkoutInteractionService);
     simpleLogService = TestBed.inject(SimpleLogService);
+    const confirmDialog = TestBed.inject(ConfirmDialogService);
+    confirmSpy = spyOn(confirmDialog, 'confirm').and.resolveTo(true);
+    successSpy = spyOn(confirmDialog, 'success').and.resolveTo('cancel');
+    spyOn(confirmDialog, 'confirmDanger').and.resolveTo(true);
     fixture = TestBed.createComponent(SimpleLogComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
@@ -161,6 +168,21 @@ describe('SimpleLogComponent', () => {
     simpleLogService.saveLog(log, component.workoutDate);
 
     expect(component.calendarDays.some(day => day.dateValue === component.workoutDate && day.hasWorkout)).toBeTrue();
+  });
+
+  it('marks completed workout dates in the calendar', () => {
+    const log = component.currentLog;
+    log.exercises = [createExercise('Press', true)];
+    simpleLogService.saveLog(log, component.workoutDate, {
+      startedAt: '2026-06-06T10:00:00.000Z',
+      completedAt: '2026-06-06T11:00:00.000Z'
+    });
+
+    expect(component.calendarDays.some(day =>
+      day.dateValue === component.workoutDate &&
+      day.hasWorkout &&
+      day.hasCompletedWorkout
+    )).toBeTrue();
   });
 
   it('shows the calendar by default when landing on the page', () => {
@@ -492,14 +514,79 @@ describe('SimpleLogComponent', () => {
     expect(component.getStrengthExerciseGroups()).not.toBe(firstGroups);
   });
 
-  it('marks an imported workout incomplete by unchecking only the last completed row', () => {
+  it('does not auto-complete the workout when the last exercise is checked', () => {
+    const exercise = createExercise('Press', false);
+    component.currentLog.exercises = [exercise];
+    component.isImportedWorkout = false;
+
+    component.onExerciseRowClick(exercise);
+
+    expect(exercise.completed).toBeTrue();
+    expect(component.workoutCompletedAt).toBeUndefined();
+  });
+
+  it('only marks the workout complete after the confirmation is accepted', async () => {
+    component.currentLog.exercises = [createExercise('Press', false)];
+
+    confirmSpy.and.resolveTo(false);
+    await component.markWorkoutComplete();
+    expect(component.workoutCompletedAt).toBeUndefined();
+    expect(component.currentLog.exercises[0].completed).toBeFalse();
+    expect(successSpy).not.toHaveBeenCalled();
+
+    confirmSpy.and.resolveTo(true);
+    await component.markWorkoutComplete();
+    expect(component.workoutCompletedAt).toBeTruthy();
+    expect(component.currentLog.exercises[0].completed).toBeTrue();
+    expect(successSpy).toHaveBeenCalled();
+  });
+
+  it('offers PDF actions on the workout-complete success alert', async () => {
+    component.currentLog.exercises = [createExercise('Press', false)];
+
+    await component.markWorkoutComplete();
+
+    expect(successSpy).toHaveBeenCalledWith(jasmine.objectContaining({
+      confirmText: 'log-entry.SaveAsPDF',
+      denyText: 'log-entry.EmailAsPDF',
+      cancelText: 'global.OkLabel'
+    }));
+  });
+
+  it('saves the completed workout as a PDF from the success alert', async () => {
+    component.currentLog.exercises = [createExercise('Press', false)];
+    const exportCoordinator = (component as any)._export;
+    const savePdf = spyOn(exportCoordinator, 'savePdf');
+    const emailPdf = spyOn(exportCoordinator, 'emailPdf');
+    successSpy.and.resolveTo('confirm');
+
+    await component.markWorkoutComplete();
+
+    expect(savePdf).toHaveBeenCalledWith(component.currentLog, component.currentLanguage);
+    expect(emailPdf).not.toHaveBeenCalled();
+  });
+
+  it('emails the completed workout as a PDF from the success alert', async () => {
+    component.currentLog.exercises = [createExercise('Press', false)];
+    const exportCoordinator = (component as any)._export;
+    const savePdf = spyOn(exportCoordinator, 'savePdf');
+    const emailPdf = spyOn(exportCoordinator, 'emailPdf');
+    successSpy.and.resolveTo('deny');
+
+    await component.markWorkoutComplete();
+
+    expect(emailPdf).toHaveBeenCalledWith(component.currentLog, component.currentLanguage);
+    expect(savePdf).not.toHaveBeenCalled();
+  });
+
+  it('marks an imported workout incomplete by unchecking only the last completed row', async () => {
     programImportService.saveProgram(createProgram());
     routeParams.next(convertToParamMap({
       weekId: 'week-1',
       dayId: 'week-1-day-1'
     }));
 
-    component.markWorkoutComplete();
+    await component.markWorkoutComplete();
     component.markWorkoutIncomplete();
 
     expect(component.currentLog.exercises?.[0].completed).toBeTrue();
@@ -507,14 +594,14 @@ describe('SimpleLogComponent', () => {
     expect(component.workoutCompletedAt).toBeUndefined();
   });
 
-  it('keeps elapsed time frozen at completion when a workout is reopened', () => {
+  it('keeps elapsed time frozen at completion when a workout is reopened', async () => {
     jasmine.clock().install();
     jasmine.clock().mockDate(new Date('2026-06-06T10:00:00.000Z'));
     component.currentLog.exercises = [createExercise('Press', false)];
     component.startWorkout();
 
     jasmine.clock().mockDate(new Date('2026-06-06T10:10:00.000Z'));
-    component.markWorkoutComplete();
+    await component.markWorkoutComplete();
     const completedElapsed = component.elapsedMs;
 
     // Leave the workout completed for 30 minutes before reopening it; that gap
@@ -527,21 +614,23 @@ describe('SimpleLogComponent', () => {
     jasmine.clock().uninstall();
   });
 
-  it('keeps elapsed time frozen when a completed log is reopened by toggling a row', () => {
+  it('keeps elapsed time frozen when a completed log is reopened by toggling a row', async () => {
     jasmine.clock().install();
     jasmine.clock().mockDate(new Date('2026-06-06T10:00:00.000Z'));
     const exercise = createExercise('Press', false);
     component.currentLog.exercises = [exercise];
     component.startWorkout();
 
-    // Completing the only row auto-completes the workout and freezes the clock.
+    // Marking the workout complete freezes the clock.
     jasmine.clock().mockDate(new Date('2026-06-06T10:10:00.000Z'));
-    component.onExerciseRowClick(exercise);
+    await component.markWorkoutComplete();
     const completedElapsed = component.elapsedMs;
 
-    // Unchecking it 30 minutes later reopens the workout without counting the gap.
+    // Unchecking a row 30 minutes later reopens the workout without counting the gap.
+    // markWorkoutComplete replaced the rows with completed copies, so toggle the
+    // entry that is actually in the log (as a row click would).
     jasmine.clock().mockDate(new Date('2026-06-06T10:40:00.000Z'));
-    component.onExerciseRowClick(exercise);
+    component.onExerciseRowClick(component.currentLog.exercises[0]);
 
     expect(component.workoutCompletedAt).toBeUndefined();
     expect(completedElapsed).toBe(600000);
@@ -549,10 +638,10 @@ describe('SimpleLogComponent', () => {
     jasmine.clock().uninstall();
   });
 
-  it('resets an in-progress workout by clearing the timer and unchecking every exercise', () => {
+  it('resets an in-progress workout by clearing the timer and unchecking every exercise', async () => {
     component.currentLog.exercises = [createExercise('Clean', false)];
     component.currentLog.cardioExercises = [];
-    component.markWorkoutComplete();
+    await component.markWorkoutComplete();
     const save = spyOn<any>(component, 'saveCurrentWorkoutState');
 
     (component as any).applyWorkoutReset();

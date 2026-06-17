@@ -328,13 +328,36 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         });
     }
 
-    public markWorkoutComplete(): void {
+    public async markWorkoutComplete(): Promise<void> {
+        const confirmed = await this._confirmDialog.confirm({
+            title: this.t('log-entry.MarkCompleteTitle'),
+            text: this.t('log-entry.MarkCompleteText'),
+            confirmText: this.t('global.MarkAsComplete'),
+            cancelText: this.t('global.CancelLabel')
+        });
+
+        if (!confirmed) {
+            return;
+        }
+
         this.ensureWorkoutStarted();
         this.currentLog.exercises = this._exerciseList.setAllCompleted(this.currentLog.exercises, true);
         this.currentLog.cardioExercises = this._exerciseList.setAllCompleted(this.currentLog.cardioExercises, true);
         this.touchCurrentLog();
         this._timing.complete();
         this.saveCurrentWorkoutState();
+        const completeAction = await this._confirmDialog.success({
+            title: this.t('log-entry.MarkCompleteDoneTitle'),
+            text: this.t('log-entry.MarkCompleteDoneText'),
+            confirmText: this.t('log-entry.SaveAsPDF'),
+            denyText: this.t('log-entry.EmailAsPDF'),
+            cancelText: this.t('global.OkLabel')
+        });
+        if (completeAction === 'confirm') {
+            this._export.savePdf(this.currentLog, this.currentLanguage);
+        } else if (completeAction === 'deny') {
+            this._export.emailPdf(this.currentLog, this.currentLanguage);
+        }
     }
 
     public markWorkoutIncomplete(): void {
@@ -833,16 +856,16 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         }
     }
 
+    /**
+     * Toggling rows never auto-completes the workout — the user completes it
+     * explicitly via `markWorkoutComplete`, so they can keep adding exercises
+     * after checking the last one. Unchecking a row on an already-completed
+     * workout still reopens it.
+     */
     private syncWorkoutCompletion(): void {
         const exercises = [...this.currentLog.exercises, ...this.currentLog.cardioExercises];
 
-        if (!exercises.length) {
-            return;
-        }
-
-        if (exercises.every(exercise => exercise.completed)) {
-            this._timing.complete();
-        } else {
+        if (exercises.length && !exercises.every(exercise => exercise.completed)) {
             this._timing.clearCompletion();
         }
     }

@@ -138,14 +138,30 @@
     font-weight: 800;
 }
 
+.simple-log-calendar__day--completed {
+    background: variables.$success;
+    color: #fff;
+    font-weight: 800;
+}
+
 .simple-log-calendar__day--worked.simple-log-calendar__day--selected {
     box-shadow: inset 0 0 0 2px #fff, 0 0 0 1px variables.$primary;
+    color: #fff;
+}
+
+.simple-log-calendar__day--completed.simple-log-calendar__day--selected {
+    box-shadow: inset 0 0 0 2px #fff, 0 0 0 1px variables.$success;
     color: #fff;
 }
 
 .simple-log-calendar__day--worked:hover,
 .simple-log-calendar__day--worked:focus {
     background: #176495;
+}
+
+.simple-log-calendar__day--completed:hover,
+.simple-log-calendar__day--completed:focus {
+    background: variables.$success-dark;
 }
 
 .simple-log-library__list {
