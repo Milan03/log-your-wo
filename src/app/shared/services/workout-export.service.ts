@@ -1,5 +1,6 @@
 import { inject, Injectable, Injector } from '@angular/core';
 import type { jsPDF } from 'jspdf';
+import Swal from 'sweetalert2/dist/sweetalert2.esm.all.js';
 
 import { EmailService } from './email.service';
 import { GoogleAnalyticsService } from './google-analytics.service';
@@ -12,8 +13,6 @@ import { TranslatorService } from '../../core/translator/translator.service';
 import { EmailRequest } from '../models/email-request.model';
 import { DistanceMeasure, SimpleLog, WeightMeasure } from '../models/simple-log.model';
 import { FormValues } from '../common/common.constants';
-
-const swal = require('sweetalert');
 
 /**
  * Snapshot of the workout state needed to render and deliver a workout PDF.
@@ -185,40 +184,38 @@ export class WorkoutExportService {
     }
 
     private swalEmailSending(): void {
-        swal({
+        Swal.fire({
             title: this.t('log-entry.SendingEmail'),
             text: this.t('log-entry.PleaseWait'),
             icon: 'info',
-            buttons: false,
-            closeOnClickOutside: false
+            showConfirmButton: false,
+            allowOutsideClick: false
         });
     }
 
     private swalEmailSent(): void {
-        swal({
+        Swal.fire({
             title: this.t('log-entry.EmailSent'),
             text: this.t('log-entry.EmailSentDescription'),
             icon: 'success',
-            buttons: false,
+            showConfirmButton: false,
             timer: 1500
         });
     }
 
     private swalEmailError(): void {
-        swal({
+        Swal.fire({
             title: this.t('log-entry.EmailError'),
             text: this.t('log-entry.EmailErrorDescription'),
-            icon: 'error',
-            button: true
+            icon: 'error'
         });
     }
 
     private swalPdfError(): void {
-        swal({
+        Swal.fire({
             title: this.t('log-entry.PdfError'),
             text: this.t('log-entry.PdfErrorDescription'),
-            icon: 'error',
-            button: true
+            icon: 'error'
         });
     }
 

@@ -36,8 +36,7 @@ import { ImportedWorkoutStore } from './imported-workout.store';
 import { MeasureSettingsStore } from './measure-settings.store';
 import { ExerciseListStore } from './exercise-list.store';
 import { WorkoutExportCoordinator } from './workout-export.coordinator';
-
-const swal = require('sweetalert');
+import { ConfirmDialogService } from '../../../shared/services/confirm-dialog.service';
 
 interface SimpleLogForm {
     title: FormControl<string | null>;
@@ -167,6 +166,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     private _activatedRoute = inject(ActivatedRoute);
     private _router = inject(Router);
     private _profileService = inject(ProfileService, { optional: true });
+    private _confirmDialog = inject(ConfirmDialogService);
 
     constructor() {
         this.simpleLogForm = this._formBuilder.group({
@@ -367,12 +367,11 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             return;
         }
 
-        const confirmed = await swal({
+        const confirmed = await this._confirmDialog.confirmDanger({
             title: this.t('log-entry.ResetTitle'),
             text: this.t('log-entry.ResetText'),
-            icon: 'warning',
-            buttons: [this.t('global.CancelLabel'), this.t('log-entry.ResetConfirm')],
-            dangerMode: true
+            confirmText: this.t('log-entry.ResetConfirm'),
+            cancelText: this.t('global.CancelLabel')
         });
 
         if (!confirmed) {
@@ -524,14 +523,13 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             return;
         }
 
-        const confirmed = await swal({
+        const confirmed = await this._confirmDialog.confirmDanger({
             title: this.t('log-entry.DeleteTitle'),
             text: this.t('log-entry.DeleteText', {
                 name: this.currentLog.title || this.t('log-entry.SimpleLog')
             }),
-            icon: 'warning',
-            buttons: [this.t('global.CancelLabel'), this.t('global.DeleteLabel')],
-            dangerMode: true
+            confirmText: this.t('global.DeleteLabel'),
+            cancelText: this.t('global.CancelLabel')
         });
 
         if (!confirmed) {
@@ -543,14 +541,13 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     }
 
     public async deleteSavedSimpleLog(log: SavedSimpleLog): Promise<void> {
-        const confirmed = await swal({
+        const confirmed = await this._confirmDialog.confirmDanger({
             title: this.t('log-entry.DeleteTitle'),
             text: this.t('log-entry.DeleteText', {
                 name: log.title || this.t('log-entry.SimpleLog')
             }),
-            icon: 'warning',
-            buttons: [this.t('global.CancelLabel'), this.t('global.DeleteLabel')],
-            dangerMode: true
+            confirmText: this.t('global.DeleteLabel'),
+            cancelText: this.t('global.CancelLabel')
         });
 
         if (!confirmed) {
@@ -854,9 +851,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         this._timing.load(state);
     }
 
-    /**
-     * Sweet alert prompts.
-     */
+    /** Shorthand for an instant translation lookup. */
     private t(key: string, params?: object): string {
         return this._translatorService.translate.instant(key, params);
     }

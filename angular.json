@@ -36,8 +36,7 @@
                 "html2canvas",
                 "jspdf",
                 "raf",
-                "rgbcolor",
-                "sweetalert"
+                "rgbcolor"
              ],
             "outputPath": "dist",
             "index": "src/index.html",

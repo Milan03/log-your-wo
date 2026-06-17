@@ -41,7 +41,7 @@ describe('WorkoutExportService', () => {
         });
         service = TestBed.inject(WorkoutExportService);
 
-        // Suppress the global sweetalert dialogs while asserting on their triggers.
+        // Suppress the global SweetAlert2 dialogs while asserting on their triggers.
         spyOn<any>(service, 'swalEmailSending');
         spyOn<any>(service, 'swalEmailSent');
         spyOn<any>(service, 'swalEmailError');

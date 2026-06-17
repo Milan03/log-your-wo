@@ -764,23 +764,25 @@ html.app-dark-mode {
         background-color: #34465b;
     }
 
-    .swal-modal {
+    .swal2-popup {
         color: var(--dark-text-secondary);
         background-color: var(--dark-surface);
     }
 
-    .swal-title,
-    .swal-text {
+    .swal2-title,
+    .swal2-html-container {
         color: var(--dark-text);
     }
 
-    .swal-icon--success::before,
-    .swal-icon--success::after,
-    .swal-icon--success__hide-corners {
+    // The success-tick animation masks part of its ring with elements painted in
+    // the popup background colour; keep them matched to the dark surface.
+    .swal2-icon.swal2-success .swal2-success-circular-line-left,
+    .swal2-icon.swal2-success .swal2-success-circular-line-right,
+    .swal2-icon.swal2-success .swal2-success-fix {
         background-color: var(--dark-surface);
     }
 
-    .swal-button--cancel {
+    .swal2-cancel {
         color: var(--dark-text);
         background-color: var(--dark-surface-raised);
     }
