@@ -10,24 +10,21 @@ import {
     ImportedWorkoutState,
     ProgramImportPreview
 } from '../models/imported-program.model';
-import { SupabaseDataService } from './supabase-data.service';
-import { CloudSyncStatusService } from './cloud-sync-status.service';
 import { ProgramProgressService } from './program-progress.service';
 import { WorkbookImportService } from './workbook-import.service';
 import { ImportedProgramStorageService } from './imported-program-storage.service';
+import { ProgramImportCloudService } from './program-import-cloud.service';
 
 @Injectable({
     providedIn: 'root'
 })
 export class ProgramImportService {
-    private cloudData = inject(SupabaseDataService, { optional: true });
-    private syncStatus = inject(CloudSyncStatusService, { optional: true });
     private progress = inject(ProgramProgressService);
     private workbookImport = inject(WorkbookImportService);
     private storage = inject(ImportedProgramStorageService);
+    private cloud = inject(ProgramImportCloudService);
 
     private readonly defaultCompletionColor = '#2fb379';
-    private cloudWriteQueue: Promise<void> = Promise.resolve();
     private readonly deletedProgramIds = new Set<string>();
     private workoutStatesCacheRaw: string;
     private workoutStatesCache: ImportedWorkoutState[] = [];
@@ -57,14 +54,14 @@ export class ProgramImportService {
         const userId = this.storage.activeUserId;
         const accountProgramKey = this.storage.programsStorageKey(userId);
         const accountWorkoutKey = this.storage.workoutStorageKey(userId);
-        await this.enqueueCloudWrite(
-            () => this.retryPendingProgramDeletes(userId),
+        await this.cloud.enqueue(
+            () => this.cloud.retryPendingDeletes(userId),
             'Unable to retry deleted imported programs.'
         );
         const [remotePrograms, remoteStates, preferences] = await Promise.all([
-            this.cloudData.getPrograms(userId),
-            this.cloudData.getWorkoutStates(userId),
-            this.cloudData.getPreferences(userId)
+            this.cloud.getPrograms(userId),
+            this.cloud.getWorkoutStates(userId),
+            this.cloud.getPreferences(userId)
         ]);
         const accountPrograms = this.storage.readJson<ImportedProgram[]>(accountProgramKey, []);
         const guestPrograms = this.storage.readJson<ImportedProgram[]>(this.storage.legacyProgramsStorageKey, []);
@@ -87,13 +84,13 @@ export class ProgramImportService {
             || this.storage.readRaw(this.storage.legacyCompletionColorStorageKey)
             || this.defaultCompletionColor;
 
-        await this.enqueueCloudWrite(async () => {
+        await this.cloud.enqueue(async () => {
             const currentPrograms = this.excludeDeletedPrograms(programs, userId);
             const currentStates = this.excludeDeletedWorkoutStates(states, userId);
-            await this.cloudData.savePrograms(userId, currentPrograms);
+            await this.cloud.savePrograms(userId, currentPrograms);
             await Promise.all([
-                this.cloudData.saveWorkoutStates(userId, currentStates),
-                this.cloudData.savePreferences(userId, {
+                this.cloud.saveWorkoutStates(userId, currentStates),
+                this.cloud.savePreferences(userId, {
                     activeProgramId: currentPrograms.some(program => program.id === activeProgram?.id)
                         ? activeProgram.id
                         : currentPrograms[0]?.id,
@@ -182,7 +179,7 @@ export class ProgramImportService {
         ]);
         this.storage.writeActiveProgram(savedProgram);
         this.programSource.next(savedProgram);
-        this.persistPrograms([savedProgram]);
+        this.cloud.persistPrograms([savedProgram]);
         this.persistPreferences({ activeProgramId: savedProgram.id });
     }
 
@@ -227,7 +224,7 @@ export class ProgramImportService {
         }
 
         this.programSource.next(nextProgram);
-        this.deleteRemoteProgram(idToDelete);
+        this.cloud.deleteProgram(idToDelete);
         this.persistPreferences({ activeProgramId: nextProgram ? nextProgram.id : undefined });
     }
 
@@ -294,7 +291,7 @@ export class ProgramImportService {
         this.writeWorkoutStates(states);
         this.programsSource.next(this.getPrograms());
         this.programSource.next(this.getProgram());
-        this.persistWorkoutStates([cleanedState]);
+        this.cloud.persistWorkoutStates([cleanedState]);
     }
 
     public createExercisesForDay(day: ImportedProgramDay): Exercise[] {
@@ -493,77 +490,11 @@ export class ProgramImportService {
         }
     }
 
-    private async retryPendingProgramDeletes(userId: string): Promise<void> {
-        for (const programId of this.storage.getPendingProgramDeletes(userId)) {
-            await this.cloudData.deleteProgram(userId, programId);
-            this.storage.removePendingProgramDelete(programId, userId);
-        }
-    }
-
-    private persistPrograms(programs: ImportedProgram[]): void {
-        if (!this.storage.activeUserId) {
-            return;
-        }
-
-        const userId = this.storage.activeUserId;
-        this.enqueueCloudWrite(
-            () => this.cloudData.savePrograms(userId, programs),
-            'Unable to save imported program to Supabase.'
-        );
-    }
-
-    private persistWorkoutStates(states: ImportedWorkoutState[]): void {
-        if (!this.storage.activeUserId) {
-            return;
-        }
-
-        const userId = this.storage.activeUserId;
-        this.enqueueCloudWrite(
-            () => this.cloudData.saveWorkoutStates(userId, states),
-            'Unable to save imported workout state to Supabase.'
-        );
-    }
-
     private persistPreferences(preferences: { activeProgramId?: string, completionColor?: string }): void {
-        if (!this.storage.activeUserId) {
-            return;
-        }
-
-        const mergedPreferences = {
+        this.cloud.persistPreferences({
             activeProgramId: preferences.activeProgramId,
             completionColor: preferences.completionColor || this.getCompletionColor()
-        };
-        const userId = this.storage.activeUserId;
-        this.enqueueCloudWrite(
-            () => this.cloudData.savePreferences(userId, mergedPreferences),
-            'Unable to save user preferences to Supabase.'
-        );
-    }
-
-    private deleteRemoteProgram(programId: string): void {
-        if (!this.storage.activeUserId) {
-            return;
-        }
-
-        const userId = this.storage.activeUserId;
-        this.enqueueCloudWrite(
-            async () => {
-                await this.cloudData.deleteProgram(userId, programId);
-                this.storage.removePendingProgramDelete(programId, userId);
-            },
-            'Unable to delete imported program from Supabase.'
-        );
-    }
-
-    private enqueueCloudWrite(action: () => Promise<void>, errorMessage: string): Promise<void> {
-        const operation = this.cloudWriteQueue
-            .catch(() => undefined)
-            .then(action);
-        this.cloudWriteQueue = operation.catch(error => {
-                console.error(errorMessage, error);
-                this.syncStatus?.report();
-            });
-        return operation;
+        });
     }
 
     private combineCompoundExerciseNames<T extends { exerciseName?: string }>(exercises: T[]): T[] {
