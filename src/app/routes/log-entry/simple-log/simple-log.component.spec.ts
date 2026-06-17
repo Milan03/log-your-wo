@@ -15,6 +15,7 @@ import { SimpleLogService } from '../../../shared/services/simple-log.service';
 import { ProfileService } from '../../../shared/services/profile.service';
 import { WorkoutExportService } from '../../../shared/services/workout-export.service';
 import { AlertChoice, ConfirmDialogService } from '../../../shared/services/confirm-dialog.service';
+import { AuthService } from '../../../core/auth/auth.service';
 import { Exercise } from '../../../shared/models/exercise.model';
 import { ImportedProgram } from '../../../shared/models/imported-program.model';
 import { SimpleLog } from '../../../shared/models/simple-log.model';
@@ -27,12 +28,14 @@ describe('SimpleLogComponent', () => {
   let workoutInteraction: WorkoutInteractionService;
   let routerSpy: jasmine.SpyObj<Router>;
   let simpleLogService: SimpleLogService;
+  let authService: { currentUser: any };
   let confirmSpy: jasmine.Spy<(options: unknown) => Promise<boolean>>;
   let successSpy: jasmine.Spy<(options: unknown) => Promise<AlertChoice>>;
 
   beforeEach(waitForAsync(() => {
     routeParams = new BehaviorSubject(convertToParamMap({}));
     routerSpy = jasmine.createSpyObj<Router>('Router', ['navigate']);
+    authService = { currentUser: null };
 
     TestBed.configureTestingModule({
       imports: [
@@ -63,6 +66,10 @@ describe('SimpleLogComponent', () => {
         {
           provide: Router,
           useValue: routerSpy
+        },
+        {
+          provide: AuthService,
+          useValue: authService
         }
       ]
     })
@@ -128,6 +135,23 @@ describe('SimpleLogComponent', () => {
       jasmine.any(Function),
       jasmine.objectContaining({
         panelClass: 'email-dialog-panel'
+      })
+    );
+  });
+
+  it('prefills the email form with the signed-in account email', () => {
+    authService.currentUser = { email: 'account@example.com' };
+    const dialog = (component as any)._dialog;
+    spyOn(dialog, 'open').and.returnValue({
+      afterClosed: () => of(undefined)
+    });
+
+    component.openEmailDialog();
+
+    expect(dialog.open).toHaveBeenCalledWith(
+      jasmine.any(Function),
+      jasmine.objectContaining({
+        data: { initialEmail: 'account@example.com' }
       })
     );
   });

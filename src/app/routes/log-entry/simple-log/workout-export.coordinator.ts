@@ -2,6 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 
 import { EmailDialogComponent } from '../email-dialog/email-dialog.component';
+import { AuthService } from '../../../core/auth/auth.service';
 import { SimpleLog } from '../../../shared/models/simple-log.model';
 import { ProgramImportService } from '../../../shared/services/program-import.service';
 import {
@@ -28,6 +29,7 @@ export class WorkoutExportCoordinator {
     private _timing = inject(WorkoutTimingStore);
     private _measures = inject(MeasureSettingsStore);
     private _importedWorkout = inject(ImportedWorkoutStore);
+    private _auth = inject(AuthService, { optional: true });
 
     /** Export the log to PDF. */
     public savePdf(log: SimpleLog, language: string): void {
@@ -37,6 +39,9 @@ export class WorkoutExportCoordinator {
     /** Open the email dialog and, when a recipient is returned, email the PDF. */
     public emailPdf(log: SimpleLog, language: string): void {
         const dialogRef = this._dialog.open(EmailDialogComponent, {
+            data: {
+                initialEmail: this._auth?.currentUser?.email || ''
+            },
             panelClass: 'email-dialog-panel',
             maxWidth: 'calc(100vw - 24px)'
         });
