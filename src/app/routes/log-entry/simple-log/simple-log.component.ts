@@ -39,6 +39,7 @@ import { SimpleLogCalendarStore } from './simple-log-calendar.store';
 import { WorkoutTimingStore } from './workout-timing.store';
 import { ImportedWorkoutStore } from './imported-workout.store';
 import { MeasureSettingsStore } from './measure-settings.store';
+import { ExerciseListStore } from './exercise-list.store';
 
 const swal = require('sweetalert');
 
@@ -61,7 +62,7 @@ interface SimpleLogForm {
     templateUrl: './simple-log.component.html',
     styleUrls: ['./simple-log.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush,
-    providers: [SimpleLogCalendarStore, WorkoutTimingStore, ImportedWorkoutStore, MeasureSettingsStore]
+    providers: [SimpleLogCalendarStore, WorkoutTimingStore, ImportedWorkoutStore, MeasureSettingsStore, ExerciseListStore]
 })
 export class SimpleLogComponent implements OnInit, OnDestroy {
     public simpleLogForm: FormGroup<SimpleLogForm>;
@@ -75,10 +76,6 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     public intensities = FormValues.ExerciseIntensities;
 
     private readonly destroyRef = inject(DestroyRef);
-    private strengthGroupSource: Exercise[];
-    private strengthGroups: ExerciseGroup[] = [];
-    private cardioGroupSource: Exercise[];
-    private cardioGroups: ExerciseGroup[] = [];
     private activeSimpleLogId: string;
 
     // Component-local view state is held in signals so OnPush views update from
@@ -121,6 +118,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     private _timing = inject(WorkoutTimingStore);
     private _importedWorkout = inject(ImportedWorkoutStore);
     private _measures = inject(MeasureSettingsStore);
+    private _exerciseList = inject(ExerciseListStore);
 
     // Active weight/distance units live in MeasureSettingsStore; these accessors
     // keep the template and existing call sites pointed at it.
@@ -284,9 +282,9 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
 
     public removeRow(exercise: Exercise) {
         if (exercise.exerciseType === 'strength') {
-            this.currentLog.exercises = this.currentLog.exercises.filter(currentExercise => currentExercise.exerciseId !== exercise.exerciseId);
+            this.currentLog.exercises = this._exerciseList.removeById(this.currentLog.exercises, exercise.exerciseId);
         } else {
-            this.currentLog.cardioExercises = this.currentLog.cardioExercises.filter(currentExercise => currentExercise.exerciseId !== exercise.exerciseId);
+            this.currentLog.cardioExercises = this._exerciseList.removeById(this.currentLog.cardioExercises, exercise.exerciseId);
         }
         this.touchCurrentLog();
         this.saveCurrentWorkoutState();
@@ -356,34 +354,33 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
 
     public markWorkoutComplete(): void {
         this.ensureWorkoutStarted();
-        this.currentLog.exercises = this.currentLog.exercises.map(exercise => ({
-            ...exercise,
-            completed: true
-        }));
-        this.currentLog.cardioExercises = this.currentLog.cardioExercises.map(exercise => ({
-            ...exercise,
-            completed: true
-        }));
+        this.currentLog.exercises = this._exerciseList.setAllCompleted(this.currentLog.exercises, true);
+        this.currentLog.cardioExercises = this._exerciseList.setAllCompleted(this.currentLog.cardioExercises, true);
         this.touchCurrentLog();
         this._timing.complete();
         this.saveCurrentWorkoutState();
     }
 
     public markWorkoutIncomplete(): void {
-        const lastCompletedExercise = this.findLastCompletedExercise();
+        const lastCompletedExercise = this._exerciseList.findLastCompleted(
+            this.currentLog.exercises,
+            this.currentLog.cardioExercises
+        );
 
         if (!lastCompletedExercise) {
             return;
         }
 
-        this.currentLog.exercises = this.currentLog.exercises.map(exercise => ({
-            ...exercise,
-            completed: exercise.exerciseId === lastCompletedExercise.exerciseId ? false : exercise.completed
-        }));
-        this.currentLog.cardioExercises = this.currentLog.cardioExercises.map(exercise => ({
-            ...exercise,
-            completed: exercise.exerciseId === lastCompletedExercise.exerciseId ? false : exercise.completed
-        }));
+        this.currentLog.exercises = this._exerciseList.setCompletedById(
+            this.currentLog.exercises,
+            lastCompletedExercise.exerciseId,
+            false
+        );
+        this.currentLog.cardioExercises = this._exerciseList.setCompletedById(
+            this.currentLog.cardioExercises,
+            lastCompletedExercise.exerciseId,
+            false
+        );
         this.touchCurrentLog();
         this._timing.reopen();
         this.saveCurrentWorkoutState();
@@ -410,28 +407,16 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     }
 
     private applyWorkoutReset(): void {
-        this.currentLog.exercises = this.currentLog.exercises.map(exercise => ({
-            ...exercise,
-            completed: false
-        }));
-        this.currentLog.cardioExercises = this.currentLog.cardioExercises.map(exercise => ({
-            ...exercise,
-            completed: false
-        }));
+        this.currentLog.exercises = this._exerciseList.setAllCompleted(this.currentLog.exercises, false);
+        this.currentLog.cardioExercises = this._exerciseList.setAllCompleted(this.currentLog.cardioExercises, false);
         this.touchCurrentLog();
         this._timing.clear();
         this.saveCurrentWorkoutState();
     }
 
     public unselectAllExercises(): void {
-        this.currentLog.exercises = this.currentLog.exercises.map(exercise => ({
-            ...exercise,
-            completed: false
-        }));
-        this.currentLog.cardioExercises = this.currentLog.cardioExercises.map(exercise => ({
-            ...exercise,
-            completed: false
-        }));
+        this.currentLog.exercises = this._exerciseList.setAllCompleted(this.currentLog.exercises, false);
+        this.currentLog.cardioExercises = this._exerciseList.setAllCompleted(this.currentLog.cardioExercises, false);
         this.touchCurrentLog();
         this._timing.clearCompletion();
         this.saveCurrentWorkoutState();
@@ -611,38 +596,11 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     }
 
     public getStrengthExerciseGroups(): ExerciseGroup[] {
-        if (this.strengthGroupSource !== this.currentLog.exercises) {
-            this.strengthGroupSource = this.currentLog.exercises;
-            this.strengthGroups = this.getSequentialExerciseGroups(this.currentLog.exercises);
-        }
-
-        return this.strengthGroups;
+        return this._exerciseList.strengthGroupsFor(this.currentLog.exercises);
     }
 
     public getCardioExerciseGroups(): ExerciseGroup[] {
-        if (this.cardioGroupSource !== this.currentLog.cardioExercises) {
-            this.cardioGroupSource = this.currentLog.cardioExercises;
-            this.cardioGroups = this.getSequentialExerciseGroups(this.currentLog.cardioExercises);
-        }
-
-        return this.cardioGroups;
-    }
-
-    private getSequentialExerciseGroups(exercises: Exercise[]): ExerciseGroup[] {
-        return exercises.reduce((groups: ExerciseGroup[], exercise: Exercise) => {
-            const previousGroup = groups[groups.length - 1];
-
-            if (previousGroup && previousGroup.exerciseName === exercise.exerciseName) {
-                previousGroup.exercises.push(exercise);
-            } else {
-                groups.push({
-                    exerciseName: exercise.exerciseName,
-                    exercises: [exercise]
-                });
-            }
-
-            return groups;
-        }, []);
+        return this._exerciseList.cardioGroupsFor(this.currentLog.cardioExercises);
     }
 
     private refreshCompletionStyles(): void {
@@ -665,40 +623,17 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
 
     private addExerciseToLog(type: string, newExercise: Exercise, insertAfter?: Exercise): void {
         if (type === 'strength') {
-            this.currentLog.exercises = this.insertExercise(this.currentLog.exercises, newExercise, insertAfter);
+            this.currentLog.exercises = this._exerciseList.insert(this.currentLog.exercises, newExercise, insertAfter);
         } else {
-            this.currentLog.cardioExercises = this.insertExercise(this.currentLog.cardioExercises, newExercise, insertAfter);
+            this.currentLog.cardioExercises = this._exerciseList.insert(this.currentLog.cardioExercises, newExercise, insertAfter);
         }
-    }
-
-    private insertExercise(exercises: Exercise[], newExercise: Exercise, insertAfter?: Exercise): Exercise[] {
-        if (!insertAfter) {
-            return [...exercises, newExercise];
-        }
-
-        const insertIndex = exercises.findIndex(exercise => exercise.exerciseId === insertAfter.exerciseId);
-
-        if (insertIndex < 0) {
-            return [...exercises, newExercise];
-        }
-
-        return [
-            ...exercises.slice(0, insertIndex + 1),
-            newExercise,
-            ...exercises.slice(insertIndex + 1)
-        ];
     }
 
     private replaceExercise(originalExercise: Exercise, updatedExercise: Exercise): void {
-        updatedExercise.exerciseId = originalExercise.exerciseId;
-        updatedExercise.sourceId = originalExercise.sourceId;
-        updatedExercise.completed = originalExercise.completed;
-        updatedExercise.prescription = updatedExercise.prescription || originalExercise.prescription;
-
         if (originalExercise.exerciseType === 'strength') {
-            this.currentLog.exercises = this.currentLog.exercises.map(exercise => exercise.exerciseId === originalExercise.exerciseId ? updatedExercise : exercise);
+            this.currentLog.exercises = this._exerciseList.replace(this.currentLog.exercises, originalExercise, updatedExercise);
         } else {
-            this.currentLog.cardioExercises = this.currentLog.cardioExercises.map(exercise => exercise.exerciseId === originalExercise.exerciseId ? updatedExercise : exercise);
+            this.currentLog.cardioExercises = this._exerciseList.replace(this.currentLog.cardioExercises, originalExercise, updatedExercise);
         }
     }
 
@@ -841,18 +776,6 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         }
     }
 
-    private findLastCompletedExercise(): Exercise | undefined {
-        const exercises = [...this.currentLog.exercises, ...this.currentLog.cardioExercises];
-
-        for (let index = exercises.length - 1; index >= 0; index--) {
-            if (exercises[index].completed) {
-                return exercises[index];
-            }
-        }
-
-        return undefined;
-    }
-
     private pauseActiveWorkoutForNavigation(): void {
         if (this._timing.pauseForNavigation()) {
             this.saveCurrentWorkoutState();
@@ -908,7 +831,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     }
 
     private getCurrentExerciseCount(): number {
-        return (this.currentLog.exercises || []).length + (this.currentLog.cardioExercises || []).length;
+        return this._exerciseList.count(this.currentLog.exercises, this.currentLog.cardioExercises);
     }
 
     private refreshCalendar(): void {
