@@ -31,11 +31,28 @@ export class TranslatorService {
         if (!this.translate.getDefaultLang())
             this.translate.setDefaultLang(this.defaultLanguage);
 
-        this.initialized = this.useLanguage(this.currentLanguage.value);
+        this.initialized = this.loadInitialLanguage(this.currentLanguage.value);
     }
 
     public get language(): string {
         return this.currentLanguage.value;
+    }
+
+    /**
+     * Load the persisted/default language at startup. This deliberately skips
+     * the "changing language" overlay — on first load (or refresh) the user is
+     * not switching anything, so showing it would be misleading. After this
+     * runs, `translate.currentLang` is set, so a later same-language
+     * `useLanguage` call hits the no-op guard and a real switch shows the
+     * overlay as expected.
+     */
+    private async loadInitialLanguage(language: string): Promise<void> {
+        try {
+            await firstValueFrom(this.translate.use(language));
+            this.persistLanguage(language);
+        } catch (error) {
+            console.error(`Unable to load language "${language}".`, error);
+        }
     }
 
     public get loadingLabel(): string {
