@@ -185,12 +185,72 @@ hr {
 
 // Override button styles
 .btn {
-    &.btn-warning {
+    &.btn-primary,
+    &.btn-info {
         color: #fff;
+        background-color: #31408f;
+        border-color: #31408f;
+        &:hover,
+        &:focus,
+        &:active,
+        &.active {
+            color: #fff;
+            background-color: #263373;
+            border-color: #263373;
+        }
+        &:disabled,
+        &.disabled {
+            color: #fff;
+            background-color: #31408f;
+            border-color: #31408f;
+            opacity: 1;
+        }
+    }
+    &.btn-warning {
+        color: #1f2933;
+        &:hover,
+        &:focus,
+        &:active,
+        &.active,
+        &:disabled,
+        &.disabled {
+            color: #1f2933;
+        }
+    }
+    &.btn-success {
+        color: #07131f;
+        &:hover,
+        &:focus,
+        &:active,
+        &.active,
+        &:disabled,
+        &.disabled {
+            color: #07131f;
+        }
+        &:hover,
+        &:focus,
+        &:active,
+        &.active {
+            background-color: $success;
+            border-color: $success;
+        }
     }
     &.btn-outline-warning {
+        color: #8a4b00;
+        border-color: #8a4b00;
         @include hover-focus-active {
             color: #fff;
+            border-color: #8a4b00;
+            background-color: #8a4b00;
+        }
+    }
+    &.btn-outline-success {
+        color: #0f6b3f;
+        border-color: #0f6b3f;
+        @include hover-focus-active {
+            color: #fff;
+            border-color: #0f6b3f;
+            background-color: #0f6b3f;
         }
     }
 }

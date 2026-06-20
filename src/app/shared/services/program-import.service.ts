@@ -407,10 +407,10 @@ export class ProgramImportService {
         });
     }
 
-    private getWorkoutStates(): ImportedWorkoutState[] {
+    public getWorkoutStates(): ImportedWorkoutState[] {
         const stored = this.storage.readRaw(this.storage.workoutStorageKey());
         if (stored === this.workoutStatesCacheRaw) {
-            return this.workoutStatesCache;
+            return this.cloneWorkoutStates(this.workoutStatesCache);
         }
 
         const parsedStates = this.storage.readJson<ImportedWorkoutState[]>(
@@ -422,7 +422,7 @@ export class ProgramImportService {
             ...state,
             exercises: this.combineCompoundExerciseNames(state.exercises || [])
         }));
-        return this.workoutStatesCache;
+        return this.cloneWorkoutStates(this.workoutStatesCache);
     }
 
     private saveProgramList(programs: ImportedProgram[]): void {
@@ -488,6 +488,14 @@ export class ProgramImportService {
             this.workoutStatesCacheRaw = serialized;
             this.workoutStatesCache = states;
         }
+    }
+
+    private cloneWorkoutStates(states: ImportedWorkoutState[]): ImportedWorkoutState[] {
+        return states.map(state => ({
+            ...state,
+            exercises: (state.exercises || []).map(exercise => ({ ...exercise })),
+            cardioExercises: (state.cardioExercises || []).map(exercise => ({ ...exercise }))
+        }));
     }
 
     private persistPreferences(preferences: { activeProgramId?: string, completionColor?: string }): void {

@@ -15,26 +15,26 @@
 }
 
 :host ::ng-deep .exercise-dialog {
-    --mdc-outlined-text-field-focus-outline-color: #007bff;
-    --mdc-outlined-text-field-focus-label-text-color: #007bff;
-    --mat-select-focused-arrow-color: #007bff;
+    --mdc-outlined-text-field-focus-outline-color: #005fcc;
+    --mdc-outlined-text-field-focus-label-text-color: #005fcc;
+    --mat-select-focused-arrow-color: #005fcc;
 }
 
 :host ::ng-deep .exercise-dialog .mdc-text-field--outlined.mdc-text-field--focused .mdc-notched-outline__leading,
 :host ::ng-deep .exercise-dialog .mdc-text-field--outlined.mdc-text-field--focused .mdc-notched-outline__trailing {
-    border-color: #007bff !important;
+    border-color: #005fcc !important;
 }
 
 :host ::ng-deep .exercise-dialog .mdc-text-field--outlined.mdc-text-field--focused .mdc-notched-outline__notch {
-    border-top-color: #007bff !important;
+    border-top-color: #005fcc !important;
     border-right: 0 !important;
-    border-bottom-color: #007bff !important;
+    border-bottom-color: #005fcc !important;
     border-left: 0 !important;
 }
 
 :host ::ng-deep .exercise-dialog .mdc-text-field--focused .mdc-floating-label,
 :host ::ng-deep .exercise-dialog .mat-mdc-form-field.mat-focused .mat-mdc-select-arrow {
-    color: #007bff !important;
+    color: #005fcc !important;
 }
 
 :host ::ng-deep .exercise-dialog input.mat-mdc-input-element:focus {
@@ -45,7 +45,7 @@
 
 :host ::ng-deep .exercise-dialog .mat-button-toggle-checked {
     color: #fff !important;
-    background-color: #007bff !important;
+    background-color: #005fcc !important;
 }
 
 :host ::ng-deep .exercise-dialog .mat-button-toggle-checked .mat-button-toggle-button {
@@ -182,7 +182,7 @@
 }
 
 .exercise-dialog__duration-part input:focus {
-    border-bottom-color: #007bff;
+    border-bottom-color: #005fcc;
     background: #fafdff;
 }
 

@@ -1,0 +1,73 @@
+<main class="progress-summary-page">
+    <header class="progress-summary-header">
+        <span>{{ 'log-entry.ProgressSummary' | translate }}</span>
+        <h1>{{ 'log-entry.TrainingSummary' | translate }}</h1>
+        <p>{{ 'log-entry.TrainingSummaryDescription' | translate }}</p>
+    </header>
+
+    @if (hasProgress()) {
+        <div class="progress-summary-sections">
+            @for (section of summarySections(); track section.id) {
+                <section class="progress-summary-section" [attr.aria-label]="section.titleKey | translate">
+                    <div class="progress-summary-section__header">
+                        <span>{{ section.titleKey | translate }}</span>
+                        <p>{{ section.descriptionKey | translate }}</p>
+                    </div>
+
+                    <div class="progress-summary-grid" [attr.aria-label]="'log-entry.HistorySummary' | translate">
+                        @for (card of section.cards; track card.labelKey) {
+                            <div class="progress-summary-card">
+                                <span>{{ card.labelKey | translate }}</span>
+                                <strong>{{ card.value }}</strong>
+                                @if (card.detail) {
+                                    <small>{{ card.detail }}</small>
+                                }
+                            </div>
+                        }
+                    </div>
+                </section>
+            }
+        </div>
+
+        @if (latestWorkout(); as latest) {
+            <section class="progress-summary-latest">
+                <div class="progress-summary-latest__header">
+                    <div>
+                        <span>{{ 'log-entry.LatestWorkout' | translate }}</span>
+                        <h2>{{ latest.title }}</h2>
+                        <p>{{ latestWorkoutDateLabel() }}</p>
+                    </div>
+                    <a
+                        class="btn btn-outline-primary"
+                        [routerLink]="latest.route"
+                        [queryParams]="latest.queryParams">
+                        {{ 'log-entry.OpenWorkout' | translate }}
+                    </a>
+                </div>
+
+                <div class="progress-summary-grid progress-summary-grid--compact">
+                    @for (card of latestWorkoutCards(); track card.labelKey) {
+                        <div class="progress-summary-card">
+                            <span>{{ card.labelKey | translate }}</span>
+                            <strong>{{ card.value | translate }}</strong>
+                            @if (card.detail) {
+                                <small>{{ card.detail | translate }}</small>
+                            }
+                        </div>
+                    }
+                </div>
+            </section>
+        }
+    }
+
+    @if (!hasProgress()) {
+        <section class="progress-summary-empty">
+            <span class="progress-summary-empty__icon"><em class="icon-notebook"></em></span>
+            <h2>{{ 'log-entry.NoProgressTitle' | translate }}</h2>
+            <p>{{ 'log-entry.NoProgressDescription' | translate }}</p>
+            <a class="btn btn-primary" [routerLink]="['/log-entry/simple-log']">
+                {{ 'log-entry.StartLogging' | translate }}
+            </a>
+        </section>
+    }
+</main>
