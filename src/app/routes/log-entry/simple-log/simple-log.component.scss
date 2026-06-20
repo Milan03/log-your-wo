@@ -37,7 +37,7 @@
 
 .simple-log-intro p {
     margin-top: 6px;
-    color: #6c757d;
+    color: #4f5b67;
 }
 
 .simple-log-title {
@@ -157,7 +157,7 @@
 
 .simple-log-empty p {
     max-width: 440px;
-    color: #6c757d;
+    color: #4f5b67;
 }
 
 .simple-log-empty__actions {
@@ -170,6 +170,13 @@
 
 .simple-log-empty__actions em {
     margin-right: 6px;
+}
+
+:host-context(.app-dark-mode) {
+    .simple-log-intro p,
+    .simple-log-empty p {
+        color: var(--dark-text-muted);
+    }
 }
 
 .imported-log-toolbar {
@@ -493,7 +500,7 @@ tr.mat-row {
     }
 
     .imported-log-context span {
-        color: #6c757d;
+        color: #4f5b67;
         font-size: 0.7rem;
         font-weight: 700;
         text-transform: uppercase;

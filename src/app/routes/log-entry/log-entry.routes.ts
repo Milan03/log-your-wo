@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 
 import { SeoData } from '../../core/seo/seo.service';
 import { ProgramImportComponent } from './program-import/program-import.component';
+import { ProgressSummaryComponent } from './progress-summary/progress-summary.component';
 import { SimpleLogComponent } from './simple-log/simple-log.component';
 
 const SIMPLE_LOG_SEO: SeoData = {
@@ -20,8 +21,16 @@ const IMPORT_PROGRAM_SEO: SeoData = {
     path: '/log-entry/import-program'
 };
 
+const PROGRESS_SUMMARY_SEO: SeoData = {
+    title: 'Workout Progress Summary',
+    description: 'Review saved workout totals, training time, strength volume, cardio distance, and your latest workout.',
+    keywords: 'workout progress, workout history, training summary',
+    path: '/log-entry/progress-summary'
+};
+
 export const LOG_ENTRY_ROUTES: Routes = [
     { path: 'simple-log', component: SimpleLogComponent, data: { seo: SIMPLE_LOG_SEO } },
+    { path: 'progress-summary', component: ProgressSummaryComponent, data: { seo: PROGRESS_SUMMARY_SEO } },
     {
         path: 'import-program/workout',
         component: SimpleLogComponent,

@@ -20,6 +20,13 @@ const ImportProgram = {
     translate: 'sidebar.ImportProgram'
 };
 
+const ProgressSummary = {
+    text: 'Progress Summary',
+    link: '/log-entry/progress-summary',
+    icon: 'icon-chart',
+    translate: 'log-entry.ProgressSummary'
+};
+
 const Profile = {
     text: 'Profile',
     link: '/profile',
@@ -38,6 +45,7 @@ export const menu: MenuItem[] = [
     //Home,
     SimpleLog,
     ImportProgram,
+    ProgressSummary,
     Profile
 ];
 import { MenuItem } from '../core/menu/menu.service';

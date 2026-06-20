@@ -68,18 +68,18 @@ label {
     font-weight: 600;
 }
 
-/* Send: #fff on #3F51B5 = 6.6:1 text; fill vs #fff dialog = 6.6:1 boundary. */
+/* Send: #fff on #31408f = 9.2:1 text; fill vs #fff dialog = 9.2:1 boundary. */
 .button-container .btn-primary {
     color: #fff;
-    background-color: variables.$primary;
-    border-color: variables.$primary;
+    background-color: #31408f;
+    border-color: #31408f;
 }
 
 .button-container .btn-primary:hover,
 .button-container .btn-primary:focus {
     color: #fff;
-    background-color: variables.$primary-dark;
-    border-color: variables.$primary-dark;
+    background-color: #263373;
+    border-color: #263373;
 }
 
 /* Cancel: #333 on #fff = 12.6:1 text; border #6c757d vs #fff = 4.7:1 boundary. */
@@ -99,23 +99,23 @@ label {
 /* Visible keyboard focus ring (2.4.7 / 1.4.11). */
 .button-container .btn-primary:focus-visible,
 .button-container .btn-secondary:focus-visible {
-    outline: 2px solid variables.$primary;
+    outline: 2px solid #31408f;
     outline-offset: 2px;
 }
 
 :host-context(html.app-dark-mode) {
-    /* Send: #fff on #5C6BC0 = 4.8:1 text; fill vs #1b2635 surface = 3.2:1 boundary. */
+    /* Send: #07131f on #7dd3fc = 11.2:1 text; fill vs dark surface has a visible boundary. */
     .button-container .btn-primary {
-        color: #fff;
-        background-color: #5c6bc0;
-        border-color: #5c6bc0;
+        color: #07131f;
+        background-color: #7dd3fc;
+        border-color: #7dd3fc;
     }
 
     .button-container .btn-primary:hover,
     .button-container .btn-primary:focus {
-        color: #fff;
-        background-color: #6b79c9;
-        border-color: #6b79c9;
+        color: #07131f;
+        background-color: #8edcff;
+        border-color: #8edcff;
     }
 
     /* Cancel: #f1f5f9 on #243244 = 11.8:1 text; border #8fa2b8 vs #1b2635 = 5.9:1 boundary. */

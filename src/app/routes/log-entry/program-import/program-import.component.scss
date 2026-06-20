@@ -113,7 +113,7 @@
 
 .program-import__library-meta,
 .program-import__library-row {
-    color: #6c757d;
+    color: #4f5b67;
     font-size: 0.78rem;
 }
 
@@ -171,7 +171,7 @@
 
 .program-import__header p {
     margin: 6px 0 0;
-    color: #6c757d;
+    color: #4f5b67;
 }
 
 .program-import__actions {
@@ -239,6 +239,19 @@
 .program-import__empty h2,
 .program-import__empty p {
     margin: 0;
+}
+
+.program-import__empty p,
+.program-import__review-header p {
+    color: #4f5b67;
+}
+
+:host-context(.app-dark-mode) {
+    .program-import__header p,
+    .program-import__empty p,
+    .program-import__review-header p {
+        color: var(--dark-text-muted);
+    }
 }
 
 .program-import__review {
@@ -369,7 +382,7 @@
 }
 
 .program-import__review-nav-button:disabled {
-    color: #6c757d !important;
+    color: #4f5b67 !important;
     border-color: #c5cdd5 !important;
     background-color: #f3f5f7 !important;
     opacity: 1;
@@ -413,7 +426,7 @@
 }
 
 .program-import__review-week-heading span {
-    color: #6c757d;
+    color: #4f5b67;
     font-size: 0.82rem;
     font-weight: 700;
 }
@@ -515,7 +528,7 @@
 .program-import__eyebrow,
 .program-import__count {
     font-size: 0.8rem;
-    color: #6c757d;
+    color: #4f5b67;
     text-transform: uppercase;
 }
 
