@@ -25,6 +25,7 @@ describe('SimpleLogService', () => {
         const exercise = new Exercise();
         exercise.exerciseType = 'strength';
         exercise.exerciseName = 'Back Squat';
+        exercise.order = 1;
         log.title = 'Saturday strength';
         log.exercises = [exercise];
 
@@ -35,6 +36,7 @@ describe('SimpleLogService', () => {
         expect(restored.title).toBe('Saturday strength');
         expect(restored.startDatim.getFullYear()).toBe(2026);
         expect(restored.exercises[0] instanceof Exercise).toBeTrue();
+        expect(restored.exercises[0].order).toBe(1);
     });
 
     it('updates an existing log instead of creating a duplicate', () => {

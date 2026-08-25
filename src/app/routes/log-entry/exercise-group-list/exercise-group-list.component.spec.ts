@@ -67,7 +67,7 @@ describe('ExerciseGroupListComponent', () => {
         const emitted: Exercise[] = [];
         component.addRow.subscribe(exercise => emitted.push(exercise));
 
-        component.onAddRow({ exerciseName: 'Squat', exercises: [first, last] });
+        component.onAddRow({ exerciseName: 'Squat', exerciseType: 'strength', exercises: [first, last] });
 
         expect(emitted).toEqual([last]);
     });

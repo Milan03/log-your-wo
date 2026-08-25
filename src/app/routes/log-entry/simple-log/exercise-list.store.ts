@@ -6,56 +6,62 @@ import { ExerciseGroup } from '../exercise-group-list/exercise-group-list.compon
 
 /**
  * Component-scoped exercise-list operations for the simple log: immutable
- * insert/replace/remove/completion edits on the strength and cardio arrays, and
- * the sequential same-name grouping used by the views. The host component owns
- * `currentLog`; it hands the arrays here and assigns the returned arrays back.
- * Grouping is memoized by array reference so OnPush views reuse the same group
- * objects until the source rows change. Provided per component instance.
+ * cross-type insert and ordering operations, array edits, and sequential
+ * same-name grouping. The host component owns `currentLog`; it hands the arrays
+ * here and assigns the returned arrays back. Grouping is memoized by array
+ * reference so OnPush views reuse the same group objects until the source rows
+ * change. Provided per component instance.
  */
 @Injectable()
 export class ExerciseListStore {
-    private strengthGroupSource: Exercise[];
-    private strengthGroups: ExerciseGroup[] = [];
-    private cardioGroupSource: Exercise[];
-    private cardioGroups: ExerciseGroup[] = [];
+    private sequentialStrengthSource: Exercise[];
+    private sequentialCardioSource: Exercise[];
+    private sequentialGroupsValue: ExerciseGroup[] = [];
 
-    /** Sequential groups for the strength rows, memoized by array reference. */
-    public strengthGroupsFor(exercises: Exercise[]): ExerciseGroup[] {
-        if (this.strengthGroupSource !== exercises) {
-            this.strengthGroupSource = exercises;
-            this.strengthGroups = this.toSequentialGroups(exercises);
+    /**
+     * Sequential groups across both strength and cardio rows, ordered by their
+     * shared `order` sequence so each group lands where the user added it.
+     * Memoized by the two source array references.
+     */
+    public sequentialGroupsFor(strength: Exercise[], cardio: Exercise[]): ExerciseGroup[] {
+        if (this.sequentialStrengthSource !== strength || this.sequentialCardioSource !== cardio) {
+            this.sequentialStrengthSource = strength;
+            this.sequentialCardioSource = cardio;
+            this.sequentialGroupsValue = this.toSequentialGroups(this.mergedByOrder(strength, cardio));
         }
 
-        return this.strengthGroups;
+        return this.sequentialGroupsValue;
     }
 
-    /** Sequential groups for the cardio rows, memoized by array reference. */
-    public cardioGroupsFor(exercises: Exercise[]): ExerciseGroup[] {
-        if (this.cardioGroupSource !== exercises) {
-            this.cardioGroupSource = exercises;
-            this.cardioGroups = this.toSequentialGroups(exercises);
+    /**
+     * Insert `newExercise` into the combined strength/cardio sequence — after
+     * `insertAfter` when given, else at the end — then renumber every row's
+     * `order` and split the rows back into their typed arrays. Renumbering also
+     * normalizes legacy rows that had no `order` yet.
+     */
+    public insertSequential(
+        strength: Exercise[],
+        cardio: Exercise[],
+        newExercise: Exercise,
+        insertAfter?: Exercise
+    ): { strength: Exercise[]; cardio: Exercise[] } {
+        const merged = this.mergedByOrder(strength, cardio);
+        let insertIndex = merged.length;
+
+        if (insertAfter) {
+            const anchorIndex = merged.findIndex(exercise => exercise.exerciseId === insertAfter.exerciseId);
+            if (anchorIndex >= 0) {
+                insertIndex = anchorIndex + 1;
+            }
         }
 
-        return this.cardioGroups;
-    }
+        merged.splice(insertIndex, 0, newExercise);
+        merged.forEach((exercise, index) => exercise.order = index);
 
-    /** Insert `newExercise`, after `insertAfter` when given, else at the end. */
-    public insert(exercises: Exercise[], newExercise: Exercise, insertAfter?: Exercise): Exercise[] {
-        if (!insertAfter) {
-            return [...exercises, newExercise];
-        }
-
-        const insertIndex = exercises.findIndex(exercise => exercise.exerciseId === insertAfter.exerciseId);
-
-        if (insertIndex < 0) {
-            return [...exercises, newExercise];
-        }
-
-        return [
-            ...exercises.slice(0, insertIndex + 1),
-            newExercise,
-            ...exercises.slice(insertIndex + 1)
-        ];
+        return {
+            strength: merged.filter(exercise => exercise.exerciseType !== 'cardio'),
+            cardio: merged.filter(exercise => exercise.exerciseType === 'cardio')
+        };
     }
 
     /**
@@ -67,6 +73,7 @@ export class ExerciseListStore {
         updated.exerciseId = original.exerciseId;
         updated.sourceId = original.sourceId;
         updated.completed = original.completed;
+        updated.order = original.order;
         updated.prescription = updated.prescription || original.prescription;
 
         return exercises.map(exercise => exercise.exerciseId === original.exerciseId ? updated : exercise);
@@ -90,9 +97,9 @@ export class ExerciseListStore {
         }));
     }
 
-    /** The last completed row across strength then cardio, scanning from the end. */
+    /** The last completed row in the combined display order. */
     public findLastCompleted(strength: Exercise[], cardio: Exercise[]): Exercise | undefined {
-        const exercises = [...strength, ...cardio];
+        const exercises = this.mergedByOrder(strength, cardio);
 
         for (let index = exercises.length - 1; index >= 0; index--) {
             if (exercises[index].completed) {
@@ -111,17 +118,39 @@ export class ExerciseListStore {
     private toSequentialGroups(exercises: Exercise[]): ExerciseGroup[] {
         return exercises.reduce((groups: ExerciseGroup[], exercise: Exercise) => {
             const previousGroup = groups[groups.length - 1];
+            const exerciseType = this.exerciseTypeFor(exercise);
 
-            if (previousGroup && previousGroup.exerciseName === exercise.exerciseName) {
+            if (previousGroup
+                && previousGroup.exerciseName === exercise.exerciseName
+                && previousGroup.exerciseType === exerciseType) {
                 previousGroup.exercises.push(exercise);
             } else {
                 groups.push({
                     exerciseName: exercise.exerciseName,
+                    exerciseType,
                     exercises: [exercise]
                 });
             }
 
             return groups;
         }, []);
+    }
+
+    /**
+     * Both typed arrays merged into one list ordered by the shared `order`
+     * sequence. Legacy rows without `order` sort last in a stable way, which
+     * preserves the historical strength-then-cardio display until normalized.
+     */
+    private mergedByOrder(strength: Exercise[], cardio: Exercise[]): Exercise[] {
+        return [...(strength || []), ...(cardio || [])]
+            .sort((first, second) => this.orderValue(first) - this.orderValue(second));
+    }
+
+    private orderValue(exercise: Exercise): number {
+        return typeof exercise.order === 'number' ? exercise.order : Number.MAX_SAFE_INTEGER;
+    }
+
+    private exerciseTypeFor(exercise: Exercise): 'strength' | 'cardio' {
+        return exercise.exerciseType === 'cardio' ? 'cardio' : 'strength';
     }
 }

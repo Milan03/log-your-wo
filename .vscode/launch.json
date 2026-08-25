@@ -1,0 +1,13 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Log Your Workout (Firefox)",
+            "type": "node-terminal",
+            "request": "launch",
+            "command": "& 'C:\\Program Files\\Mozilla Firefox\\firefox.exe' -new-tab 'http://localhost:4200/'; Wait-Process -Name firefox",
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "serve: Angular"
+        }
+    ]
+}
