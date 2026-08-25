@@ -90,6 +90,13 @@ The development environment sends email requests to
 `http://localhost:3000/sendmail`. The application itself still runs without
 the mail server; only email delivery will be unavailable.
 
+### VS Code
+
+Open the repository folder in VS Code and press F5. The workspace launch task
+starts the Angular development server and opens `http://localhost:4200` in
+the current Firefox instance as a new tab. If Firefox is not already running,
+it starts Firefox normally.
+
 ## Configuration
 
 Frontend runtime configuration is stored in:

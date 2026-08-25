@@ -591,12 +591,8 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         return Boolean(this.activeSimpleLogId);
     }
 
-    public getStrengthExerciseGroups(): ExerciseGroup[] {
-        return this._exerciseList.strengthGroupsFor(this.currentLog.exercises);
-    }
-
-    public getCardioExerciseGroups(): ExerciseGroup[] {
-        return this._exerciseList.cardioGroupsFor(this.currentLog.cardioExercises);
+    public getExerciseGroups(): ExerciseGroup[] {
+        return this._exerciseList.sequentialGroupsFor(this.currentLog.exercises, this.currentLog.cardioExercises);
     }
 
     private refreshCompletionStyles(): void {
@@ -618,11 +614,15 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     }
 
     private addExerciseToLog(type: string, newExercise: Exercise, insertAfter?: Exercise): void {
-        if (type === 'strength') {
-            this.currentLog.exercises = this._exerciseList.insert(this.currentLog.exercises, newExercise, insertAfter);
-        } else {
-            this.currentLog.cardioExercises = this._exerciseList.insert(this.currentLog.cardioExercises, newExercise, insertAfter);
-        }
+        newExercise.exerciseType = type;
+        const result = this._exerciseList.insertSequential(
+            this.currentLog.exercises,
+            this.currentLog.cardioExercises,
+            newExercise,
+            insertAfter
+        );
+        this.currentLog.exercises = result.strength;
+        this.currentLog.cardioExercises = result.cardio;
     }
 
     private replaceExercise(originalExercise: Exercise, updatedExercise: Exercise): void {

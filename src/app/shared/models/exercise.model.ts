@@ -15,7 +15,12 @@ export class Exercise {
         public intensity?: Intensity,
         public completed?: boolean,
         public sourceId?: string,
-        public prescription?: string
+        public prescription?: string,
+        // Cross-type insertion sequence, shared across strength and cardio so the
+        // simple log can render both in the order the user added them. Legacy
+        // rows have no `order`; they fall back to strength-then-cardio and are
+        // normalized on the next edit.
+        public order?: number
     ) {
         this.exerciseId = Guid.create();
         this.duration = Duration.fromMillis(0);

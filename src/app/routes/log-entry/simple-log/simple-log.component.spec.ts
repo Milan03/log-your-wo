@@ -186,6 +186,25 @@ describe('SimpleLogComponent', () => {
     expect(component.workoutPausedAt).toBeUndefined();
   });
 
+  it('keeps strength and cardio rows in the order they are added and saved', () => {
+    const run = createExercise('Run', false);
+    const squat = createExercise('Squat', false);
+    const dialog = (component as any)._dialog;
+    spyOn(dialog, 'open').and.returnValues(
+      { afterClosed: () => of(run) },
+      { afterClosed: () => of(squat) }
+    );
+
+    component.openExerciseDialog('cardio');
+    component.openExerciseDialog('strength');
+
+    expect(component.getExerciseGroups().map(group => group.exerciseName)).toEqual(['Run', 'Squat']);
+    expect(component.currentLog.cardioExercises[0].order).toBe(0);
+    expect(component.currentLog.exercises[0].order).toBe(1);
+    expect(simpleLogService.getLogs()[0].cardioExercises[0].order).toBe(0);
+    expect(simpleLogService.getLogs()[0].exercises[0].order).toBe(1);
+  });
+
   it('marks saved workout dates in the calendar', () => {
     const log = component.currentLog;
     log.exercises = [createExercise('Press', false)];
@@ -344,7 +363,7 @@ describe('SimpleLogComponent', () => {
     const thirdClean = createExercise('Clean', false);
     component.currentLog.exercises = [firstClean, secondClean, squat, thirdClean];
 
-    const groups = component.getStrengthExerciseGroups();
+    const groups = component.getExerciseGroups();
 
     expect(groups.length).toBe(3);
     expect(groups[0].exerciseName).toBe('Clean');
@@ -362,7 +381,7 @@ describe('SimpleLogComponent', () => {
     bike.exerciseType = 'cardio';
     component.currentLog.cardioExercises = [firstRun, secondRun, bike];
 
-    const groups = component.getCardioExerciseGroups();
+    const groups = component.getExerciseGroups();
 
     expect(groups.length).toBe(2);
     expect(groups[0].exercises).toEqual([firstRun, secondRun]);
@@ -528,14 +547,14 @@ describe('SimpleLogComponent', () => {
       createExercise('Clean', false)
     ];
 
-    const firstGroups = component.getStrengthExerciseGroups();
-    const secondGroups = component.getStrengthExerciseGroups();
+    const firstGroups = component.getExerciseGroups();
+    const secondGroups = component.getExerciseGroups();
 
     expect(secondGroups).toBe(firstGroups);
 
     component.currentLog.exercises = [...component.currentLog.exercises];
 
-    expect(component.getStrengthExerciseGroups()).not.toBe(firstGroups);
+    expect(component.getExerciseGroups()).not.toBe(firstGroups);
   });
 
   it('does not auto-complete the workout when the last exercise is checked', () => {

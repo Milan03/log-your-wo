@@ -9,6 +9,7 @@ import { IntensityFormatPipe } from '../../../shared/pipes/format-intensity.pipe
 
 export interface ExerciseGroup {
     exerciseName: string;
+    exerciseType: 'strength' | 'cardio';
     exercises: Exercise[];
 }
 
@@ -26,7 +27,6 @@ export interface ExerciseGroup {
 })
 export class ExerciseGroupListComponent {
     @Input() groups: ExerciseGroup[] = [];
-    @Input() exerciseType: 'strength' | 'cardio' = 'strength';
     @Input() weightMeasure: WeightMeasure = 'lbs';
     @Input() distanceMeasure: DistanceMeasure = 'km';
 
