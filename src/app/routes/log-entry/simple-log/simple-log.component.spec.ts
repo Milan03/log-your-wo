@@ -766,6 +766,84 @@ describe('SimpleLogComponent', () => {
     jasmine.clock().uninstall();
   });
 
+  describe('editing a completed workout time', () => {
+    const draftEvent = (value: string) => ({ currentTarget: { value } } as unknown as Event);
+
+    async function completeWorkout(startIso: string, completeIso: string): Promise<void> {
+      jasmine.clock().mockDate(new Date(startIso));
+      component.currentLog.exercises = [createExercise('Press', false)];
+      component.startWorkout();
+      jasmine.clock().mockDate(new Date(completeIso));
+      await component.markWorkoutComplete();
+    }
+
+    beforeEach(() => jasmine.clock().install());
+    afterEach(() => jasmine.clock().uninstall());
+
+    it('prefills the editor from the current elapsed time', async () => {
+      await completeWorkout('2026-06-06T10:00:00.000Z', '2026-06-06T11:35:20.000Z');
+
+      component.beginElapsedEdit();
+
+      expect(component.isEditingElapsed).toBeTrue();
+      expect(component.elapsedHoursDraft).toBe('1');
+      expect(component.elapsedMinutesDraft).toBe('35');
+    });
+
+    it('moves the completion to shorten an over-long workout', async () => {
+      await completeWorkout('2026-06-06T10:00:00.000Z', '2026-06-06T14:00:00.000Z');
+
+      component.beginElapsedEdit();
+      component.updateElapsedHoursDraft(draftEvent('1'));
+      component.updateElapsedMinutesDraft(draftEvent('15'));
+      component.saveElapsedEdit();
+
+      expect(component.isEditingElapsed).toBeFalse();
+      expect(component.workoutStartedAt).toBe('2026-06-06T10:00:00.000Z');
+      expect(component.workoutCompletedAt).toBe('2026-06-06T11:15:00.000Z');
+      expect(component.elapsedMs).toBe(75 * 60 * 1000);
+      expect(simpleLogService.getLogs()[0].elapsedMs).toBe(75 * 60 * 1000);
+    });
+
+    it('moves the start earlier when the corrected time would finish in the future', async () => {
+      await completeWorkout('2026-06-06T10:00:00.000Z', '2026-06-06T10:30:00.000Z');
+
+      component.beginElapsedEdit();
+      component.updateElapsedHoursDraft(draftEvent('2'));
+      component.updateElapsedMinutesDraft(draftEvent('0'));
+      component.saveElapsedEdit();
+
+      expect(component.workoutCompletedAt).toBe('2026-06-06T10:30:00.000Z');
+      expect(component.workoutStartedAt).toBe('2026-06-06T08:30:00.000Z');
+      expect(component.elapsedMs).toBe(2 * 60 * 60 * 1000);
+    });
+
+    it('ignores invalid durations', async () => {
+      await completeWorkout('2026-06-06T10:00:00.000Z', '2026-06-06T11:00:00.000Z');
+      component.beginElapsedEdit();
+
+      for (const [hours, minutes] of [['0', '0'], ['1', '75'], ['-1', '0'], ['1.5', '0']]) {
+        component.updateElapsedHoursDraft(draftEvent(hours));
+        component.updateElapsedMinutesDraft(draftEvent(minutes));
+        expect(component.isElapsedDraftValid).withContext(`${hours}h ${minutes}m`).toBeFalse();
+        component.saveElapsedEdit();
+      }
+
+      expect(component.workoutCompletedAt).toBe('2026-06-06T11:00:00.000Z');
+      expect(component.elapsedMs).toBe(60 * 60 * 1000);
+    });
+
+    it('only opens the editor for completed workouts', () => {
+      jasmine.clock().mockDate(new Date('2026-06-06T10:00:00.000Z'));
+      component.currentLog.exercises = [createExercise('Press', false)];
+      component.startWorkout();
+
+      component.beginElapsedEdit();
+
+      expect(component.isEditingElapsed).toBeFalse();
+    });
+  });
+
   it('resets an in-progress workout by clearing the timer and unchecking every exercise', async () => {
     component.currentLog.exercises = [createExercise('Clean', false)];
     component.currentLog.cardioExercises = [];

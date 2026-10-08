@@ -159,6 +159,31 @@ export class WorkoutTimingStore {
     }
 
     /**
+     * Correct a completed workout's elapsed time after the fact. The start and
+     * paused total are kept and the completion moves to fit; if that would land
+     * in the future, completion is capped at now and the start moves earlier
+     * instead. Returns false when the workout isn't completed.
+     */
+    public setCompletedElapsed(elapsedMs: number, nowIso?: string): boolean {
+        if (!this.startedAt() || !this.completedAt() || elapsedMs < 0) {
+            return false;
+        }
+
+        const startMs = new Date(this.startedAt()).getTime();
+        const nowMs = nowIso ? new Date(nowIso).getTime() : Date.now();
+        let completedMs = startMs + this.totalPausedMs() + elapsedMs;
+        if (completedMs > nowMs) {
+            this.startedAt.set(new Date(startMs - (completedMs - nowMs)).toISOString());
+            completedMs = nowMs;
+        }
+
+        const completedAt = new Date(completedMs).toISOString();
+        this.completedAt.set(completedAt);
+        this.refreshElapsed(completedAt);
+        return true;
+    }
+
+    /**
      * Clear completion and any pause so the workout returns to in-progress.
      * The window since completion is folded into the paused total so elapsed
      * time resumes from where it froze rather than counting the gap.
