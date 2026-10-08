@@ -1,4 +1,4 @@
-import { DatePipe, NgStyle } from '@angular/common';
+import { DatePipe, NgStyle, NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -48,6 +48,7 @@ interface SimpleLogForm {
     imports: [
         DatePipe,
         NgStyle,
+        NgTemplateOutlet,
         ReactiveFormsModule,
         TranslateModule,
         MatDialogModule,
@@ -91,6 +92,9 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     private readonly _workoutDateTime = signal<string>('');
     private readonly _isEditingSimpleLogTitle = signal<boolean>(false);
     private readonly _simpleLogTitleDraft = signal<string>('');
+    private readonly _isEditingElapsed = signal<boolean>(false);
+    private readonly _elapsedHoursDraft = signal<string>('');
+    private readonly _elapsedMinutesDraft = signal<string>('');
 
     public get currentLanguage(): string { return this._currentLanguage(); }
     public set currentLanguage(value: string) { this._currentLanguage.set(value); }
@@ -115,6 +119,10 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     public set isEditingSimpleLogTitle(value: boolean) { this._isEditingSimpleLogTitle.set(value); }
     public get simpleLogTitleDraft(): string { return this._simpleLogTitleDraft(); }
     public set simpleLogTitleDraft(value: string) { this._simpleLogTitleDraft.set(value); }
+    public get isEditingElapsed(): boolean { return this._isEditingElapsed(); }
+    public set isEditingElapsed(value: boolean) { this._isEditingElapsed.set(value); }
+    public get elapsedHoursDraft(): string { return this._elapsedHoursDraft(); }
+    public get elapsedMinutesDraft(): string { return this._elapsedMinutesDraft(); }
 
     private _calendarStore = inject(SimpleLogCalendarStore);
     private _timing = inject(WorkoutTimingStore);
@@ -470,6 +478,54 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
 
     public getElapsedTimeLabel(): string {
         return this._programImportService.formatElapsedMs(this.elapsedMs);
+    }
+
+    /** Open the inline editor for a completed workout's total time, prefilled to the minute. */
+    public beginElapsedEdit(): void {
+        if (!this.workoutCompletedAt) {
+            return;
+        }
+
+        const totalMinutes = Math.round(this.elapsedMs / 60000);
+        this._elapsedHoursDraft.set(String(Math.floor(totalMinutes / 60)));
+        this._elapsedMinutesDraft.set(String(totalMinutes % 60));
+        this.isEditingElapsed = true;
+    }
+
+    public updateElapsedHoursDraft(event: Event): void {
+        this._elapsedHoursDraft.set((event.currentTarget as HTMLInputElement).value);
+    }
+
+    public updateElapsedMinutesDraft(event: Event): void {
+        this._elapsedMinutesDraft.set((event.currentTarget as HTMLInputElement).value);
+    }
+
+    /** Whether the drafted hours/minutes form a valid, non-zero duration. */
+    public get isElapsedDraftValid(): boolean {
+        return this.elapsedDraftMs() !== undefined;
+    }
+
+    public saveElapsedEdit(): void {
+        const elapsedMs = this.elapsedDraftMs();
+        if (elapsedMs === undefined) {
+            return;
+        }
+
+        if (this._timing.setCompletedElapsed(elapsedMs)) {
+            if (this.isImportedWorkout) {
+                // Imported workouts take their start date from the timer; keep
+                // it aligned if the correction moved the start.
+                this.currentLog.startDatim = new Date(this.workoutStartedAt);
+                this.touchCurrentLog();
+                this._workoutHeader.setLogStartDate(this.currentLog.startDatim);
+            }
+            this.saveCurrentWorkoutState();
+        }
+        this.isEditingElapsed = false;
+    }
+
+    public cancelElapsedEdit(): void {
+        this.isEditingElapsed = false;
     }
 
     public createNewSimpleLog(
@@ -905,10 +961,23 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     }
 
     private loadWorkoutTiming(state: ImportedWorkoutState | SimpleLogTimingState): void {
+        this.isEditingElapsed = false;
         this._timing.load(state);
         if (this._timing.pauseIfIdle()) {
             this.saveCurrentWorkoutState();
         }
+    }
+
+    /** The drafted duration in ms, or undefined unless hours >= 0, minutes 0-59 and total > 0. */
+    private elapsedDraftMs(): number | undefined {
+        const hours = Number(this.elapsedHoursDraft || 0);
+        const minutes = Number(this.elapsedMinutesDraft || 0);
+        if (!Number.isInteger(hours) || !Number.isInteger(minutes) || hours < 0 || minutes < 0 || minutes > 59) {
+            return undefined;
+        }
+
+        const elapsedMs = (hours * 60 + minutes) * 60000;
+        return elapsedMs > 0 ? elapsedMs : undefined;
     }
 
     /** Shorthand for an instant translation lookup. */

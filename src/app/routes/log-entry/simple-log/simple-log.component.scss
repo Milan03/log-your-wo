@@ -258,6 +258,37 @@
     font-size: 1.25rem;
 }
 
+.workout-duration-edit {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+}
+
+.workout-duration-edit input {
+    width: 4.25rem;
+    min-height: 34px;
+    padding: 4px 8px;
+    color: #1f2933;
+    border: 1px solid variables.$primary;
+    border-radius: 5px;
+    background: #fff;
+    font-weight: 600;
+}
+
+.workout-duration-edit__trigger {
+    padding: 2px 6px;
+    color: #5f6b76;
+    border: 0;
+    background: transparent;
+    font-size: 0.85rem;
+}
+
+.workout-duration-edit__trigger:hover,
+.workout-duration-edit__trigger:focus-visible {
+    color: variables.$primary;
+}
+
 .imported-log-toolbar__paused-pill {
     padding: 3px 8px;
     border-radius: 999px;
