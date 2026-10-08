@@ -1,4 +1,5 @@
 import { inject, Injectable, signal } from '@angular/core';
+import { Observable, Subject } from 'rxjs';
 
 import {
     WorkoutTimerService,
@@ -12,6 +13,15 @@ export interface WorkoutTimingState {
     pausedAt?: string;
     totalPausedMs?: number;
     elapsedMs?: number;
+    /** Last user interaction with the workout (set toggles, edits, start/resume). */
+    lastActivityAt?: string;
+    /** True when the clock was paused automatically because the workout went idle. */
+    idlePaused?: boolean;
+}
+
+/** Hydration input: a persisted timing state, optionally carrying its record's `updatedAt`. */
+export interface WorkoutTimingLoadState extends WorkoutTimingState {
+    updatedAt?: string;
 }
 
 /**
@@ -27,12 +37,18 @@ export interface WorkoutTimingState {
 @Injectable()
 export class WorkoutTimingStore {
     private _timer = inject(WorkoutTimerService);
+    private _idlePausedSource = new Subject<void>();
+
+    /** Emits when the per-second tick auto-pauses an idle workout, so the host can persist. */
+    public readonly idlePaused$: Observable<void> = this._idlePausedSource.asObservable();
 
     public readonly startedAt = signal<string | undefined>(undefined);
     public readonly completedAt = signal<string | undefined>(undefined);
     public readonly pausedAt = signal<string | undefined>(undefined);
     public readonly totalPausedMs = signal<number>(0);
     public readonly elapsedMs = signal<number>(0);
+    public readonly lastActivityAt = signal<string | undefined>(undefined);
+    public readonly idlePaused = signal<boolean>(false);
 
     public get isStarted(): boolean {
         return Boolean(this.startedAt());
@@ -44,7 +60,35 @@ export class WorkoutTimingStore {
             return false;
         }
 
-        this.startedAt.set(new Date().toISOString());
+        const now = new Date().toISOString();
+        this.startedAt.set(now);
+        this.lastActivityAt.set(now);
+        this.syncTimer();
+        return true;
+    }
+
+    /** Record a user interaction so idle detection measures from now. */
+    public recordActivity(): void {
+        if (this.startedAt() && !this.completedAt()) {
+            this.lastActivityAt.set(new Date().toISOString());
+        }
+    }
+
+    /**
+     * If the clock is running but nothing has happened for longer than the
+     * idle threshold (see `WorkoutTimerService.idleSince`), pause it retroactively at the last activity
+     * so the idle gap doesn't count. Returns true when it auto-paused (so the
+     * caller can persist).
+     */
+    public pauseIfIdle(nowIso?: string): boolean {
+        const idleSince = this._timer.idleSince(this.snapshot(), this.lastActivityAt(), nowIso);
+        if (!idleSince) {
+            return false;
+        }
+
+        this.pausedAt.set(idleSince);
+        this.idlePaused.set(true);
+        this.refreshElapsed(nowIso);
         this.syncTimer();
         return true;
     }
@@ -80,19 +124,26 @@ export class WorkoutTimingStore {
             return;
         }
 
+        const now = new Date().toISOString();
         this.totalPausedMs.set(this._timer.accumulatePauseMs(
             this.totalPausedMs(),
             this.pausedAt(),
-            new Date().toISOString()
+            now
         ));
         this.pausedAt.set(undefined);
+        this.idlePaused.set(false);
+        this.lastActivityAt.set(now);
         this.refreshElapsed();
         this.syncTimer();
     }
 
-    /** Mark the workout complete, folding any open paused window into the total. */
-    public complete(): void {
-        const completedAt = new Date().toISOString();
+    /**
+     * Mark the workout complete, folding any open paused window into the total.
+     * Pass `atIso` to complete at an earlier instant (e.g. the last activity of
+     * an idle-paused workout); it must not precede an open pause.
+     */
+    public complete(atIso?: string): void {
+        const completedAt = atIso || new Date().toISOString();
         if (this.pausedAt()) {
             this.totalPausedMs.set(this._timer.accumulatePauseMs(
                 this.totalPausedMs(),
@@ -102,6 +153,7 @@ export class WorkoutTimingStore {
         }
         this.completedAt.set(completedAt);
         this.pausedAt.set(undefined);
+        this.idlePaused.set(false);
         this.refreshElapsed(completedAt);
         this.syncTimer();
     }
@@ -113,6 +165,7 @@ export class WorkoutTimingStore {
      */
     public reopen(): void {
         this.pausedAt.set(undefined);
+        this.idlePaused.set(false);
         this.clearCompletion();
     }
 
@@ -131,18 +184,24 @@ export class WorkoutTimingStore {
                 now
             ));
             this.completedAt.set(undefined);
+            this.lastActivityAt.set(now);
             this.refreshElapsed(now);
         }
         this.syncTimer();
     }
 
-    /** Hydrate timing from a saved/imported workout state. */
-    public load(state: WorkoutTimingState | undefined): void {
+    /**
+     * Hydrate timing from a saved/imported workout state. Records saved before
+     * activity tracking fall back to their `updatedAt` as the last activity.
+     */
+    public load(state: WorkoutTimingLoadState | undefined): void {
         this.startedAt.set(state ? state.startedAt : undefined);
         this.completedAt.set(state ? state.completedAt : undefined);
         this.pausedAt.set(state ? state.pausedAt : undefined);
         this.totalPausedMs.set(state && state.totalPausedMs ? state.totalPausedMs : 0);
         this.elapsedMs.set(state && state.elapsedMs ? state.elapsedMs : 0);
+        this.lastActivityAt.set(state ? state.lastActivityAt || state.updatedAt || state.startedAt : undefined);
+        this.idlePaused.set(Boolean(state && state.idlePaused && state.pausedAt && !state.completedAt));
         this.refreshElapsed();
         this.syncTimer();
     }
@@ -154,6 +213,8 @@ export class WorkoutTimingStore {
         this.pausedAt.set(undefined);
         this.totalPausedMs.set(0);
         this.elapsedMs.set(0);
+        this.lastActivityAt.set(undefined);
+        this.idlePaused.set(false);
         this._timer.stop();
     }
 
@@ -169,7 +230,9 @@ export class WorkoutTimingStore {
             completedAt: this.completedAt(),
             pausedAt: this.pausedAt(),
             totalPausedMs: this.totalPausedMs(),
-            elapsedMs: this.elapsedMs()
+            elapsedMs: this.elapsedMs(),
+            lastActivityAt: this.lastActivityAt(),
+            idlePaused: this.idlePaused() || undefined
         };
     }
 
@@ -186,6 +249,14 @@ export class WorkoutTimingStore {
         this.elapsedMs.set(this._timer.elapsedMs(this.snapshot(), nowIso));
     }
 
+    private onTick(): void {
+        if (this.pauseIfIdle()) {
+            this._idlePausedSource.next();
+            return;
+        }
+        this.refreshElapsed();
+    }
+
     private syncTimer(): void {
         if (this._timer.isRunning(this.snapshot())) {
             // Only start when not already ticking, so frequent state changes
@@ -193,7 +264,7 @@ export class WorkoutTimingStore {
             // per-second tick writes the `elapsedMs` signal, which marks any
             // OnPush view reading it for check — no manual change detection.
             if (!this._timer.isTicking()) {
-                this._timer.start(() => this.refreshElapsed());
+                this._timer.start(() => this.onTick());
             }
         } else {
             this._timer.stop();

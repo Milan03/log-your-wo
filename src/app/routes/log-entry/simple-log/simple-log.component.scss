@@ -179,6 +179,36 @@
     }
 }
 
+.workout-idle-banner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding: 12px 14px;
+    border: 1px solid variables.$warning;
+    border-left-width: 4px;
+    border-radius: 8px;
+    background: rgba(255, 152, 0, 0.1);
+}
+
+.workout-idle-banner__text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.workout-idle-banner__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+:host-context(.app-dark-mode) .workout-idle-banner {
+    background: rgba(255, 152, 0, 0.14);
+}
+
 .imported-log-toolbar {
     display: flex;
     align-items: flex-end;

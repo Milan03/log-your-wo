@@ -114,4 +114,6 @@ export interface ImportedWorkoutState {
     pausedAt?: string;
     totalPausedMs?: number;
     elapsedMs?: number;
+    lastActivityAt?: string;
+    idlePaused?: boolean;
 }

@@ -85,6 +85,31 @@ describe('WorkoutTimerService', () => {
         });
     });
 
+    describe('idleSince', () => {
+        const now = '2026-06-14T12:00:00.000Z';
+
+        it('returns the last activity once the running workout has been idle past the threshold', () => {
+            const timing = snapshot({ startedAt: '2026-06-14T10:00:00.000Z' });
+
+            expect(service.idleSince(timing, '2026-06-14T11:15:00.000Z', now)).toBe('2026-06-14T11:15:00.000Z');
+        });
+
+        it('falls back to startedAt when there is no recorded activity', () => {
+            const timing = snapshot({ startedAt: '2026-06-14T10:00:00.000Z' });
+
+            expect(service.idleSince(timing, undefined, now)).toBe('2026-06-14T10:00:00.000Z');
+        });
+
+        it('is undefined while activity is recent or the clock is not running', () => {
+            const startedAt = '2026-06-14T10:00:00.000Z';
+
+            expect(service.idleSince(snapshot({ startedAt }), '2026-06-14T11:30:00.000Z', now)).toBeUndefined();
+            expect(service.idleSince(snapshot({ startedAt, pausedAt: '2026-06-14T10:30:00.000Z' }), undefined, now)).toBeUndefined();
+            expect(service.idleSince(snapshot({ startedAt, completedAt: '2026-06-14T10:30:00.000Z' }), undefined, now)).toBeUndefined();
+            expect(service.idleSince(snapshot(), undefined, now)).toBeUndefined();
+        });
+    });
+
     describe('accumulatePauseMs', () => {
         it('adds the finished paused window to the running total', () => {
             const total = service.accumulatePauseMs(

@@ -14,6 +14,7 @@ import { ProgramProgressService } from './program-progress.service';
 import { WorkbookImportService } from './workbook-import.service';
 import { ImportedProgramStorageService } from './imported-program-storage.service';
 import { ProgramImportCloudService } from './program-import-cloud.service';
+import { WorkoutTimerService } from './workout-timer.service';
 
 @Injectable({
     providedIn: 'root'
@@ -23,6 +24,7 @@ export class ProgramImportService {
     private workbookImport = inject(WorkbookImportService);
     private storage = inject(ImportedProgramStorageService);
     private cloud = inject(ProgramImportCloudService);
+    private timer = inject(WorkoutTimerService);
 
     private readonly defaultCompletionColor = '#2fb379';
     private readonly deletedProgramIds = new Set<string>();
@@ -382,8 +384,8 @@ export class ProgramImportService {
         const exercises = state ? state.exercises : this.createExercisesForDay(day);
         const now = new Date().toISOString();
         const startedAt = state && state.startedAt ? state.startedAt : now;
-        const totalPausedMs = state && state.totalPausedMs ? state.totalPausedMs : 0;
-        const elapsedMs = this.progress.calculateElapsedMs(startedAt, now, totalPausedMs);
+        const { completedAt, totalPausedMs } = this.completionTiming(state, now);
+        const elapsedMs = this.progress.calculateElapsedMs(startedAt, completedAt, totalPausedMs);
 
         this.saveWorkoutState({
             programId: program.id,
@@ -400,11 +402,42 @@ export class ProgramImportService {
                 completed: true
             })),
             startedAt,
-            completedAt: now,
+            completedAt,
             pausedAt: undefined,
             totalPausedMs,
-            elapsedMs
+            elapsedMs,
+            lastActivityAt: state?.lastActivityAt
         });
+    }
+
+    /**
+     * When a day completed from outside the workout view should end, and the
+     * paused total at that point. An idle (forgotten) workout ends at its last
+     * activity; an open manual pause is folded into the paused total.
+     */
+    private completionTiming(
+        state: ImportedWorkoutState | undefined,
+        now: string
+    ): { completedAt: string; totalPausedMs: number } {
+        const totalPausedMs = state && state.totalPausedMs ? state.totalPausedMs : 0;
+        if (!state || !state.startedAt) {
+            return { completedAt: now, totalPausedMs };
+        }
+
+        if (state.pausedAt) {
+            const completedAt = state.idlePaused ? state.pausedAt : now;
+            return {
+                completedAt,
+                totalPausedMs: this.timer.accumulatePauseMs(totalPausedMs, state.pausedAt, completedAt)
+            };
+        }
+
+        const idleSince = this.timer.idleSince(
+            { ...state, totalPausedMs },
+            state.lastActivityAt || state.updatedAt,
+            now
+        );
+        return { completedAt: idleSince || now, totalPausedMs };
     }
 
     public getWorkoutStates(): ImportedWorkoutState[] {

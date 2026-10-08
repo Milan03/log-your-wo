@@ -22,6 +22,22 @@
     <main class="simple-log-main">
       <!-- START Content Body START -->
       <div class="container-lg" [ngStyle]="completionStyles">
+        @if (isWorkoutIdlePaused) {
+          <div class="workout-idle-banner" role="status">
+            <div class="workout-idle-banner__text">
+              <strong>{{ 'log-entry.IdlePausedTitle' | translate }}</strong>
+              <span>{{ 'log-entry.IdlePausedText' | translate:{ time: (workoutPausedAt | date:idlePausedDateFormat) } }}</span>
+            </div>
+            <div class="workout-idle-banner__actions">
+              <button class="btn btn-primary btn-sm" type="button" (click)="completeIdleWorkout()">
+                {{ 'log-entry.IdleCompleteAt' | translate:{ time: (workoutPausedAt | date:idlePausedDateFormat) } }}
+              </button>
+              <button class="btn btn-outline-secondary btn-sm" type="button" (click)="resumeWorkout()">
+                {{ 'log-entry.Resume' | translate }}
+              </button>
+            </div>
+          </div>
+        }
         @if (isImportedWorkout) {
           <div class="imported-log-toolbar">
             <div class="imported-log-toolbar__left">

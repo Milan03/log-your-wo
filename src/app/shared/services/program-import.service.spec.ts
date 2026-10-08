@@ -349,6 +349,68 @@ describe('ProgramImportService', () => {
         expect(state.distanceMeasure).toBe('mi');
     });
 
+    describe('markDayComplete timing', () => {
+        beforeEach(() => {
+            jasmine.clock().install();
+            jasmine.clock().mockDate(new Date('2026-06-06T14:00:00.000Z'));
+            service.saveProgram(createProgram());
+        });
+
+        afterEach(() => jasmine.clock().uninstall());
+
+        function saveTiming(timing: Partial<ImportedWorkoutState>): void {
+            service.saveWorkoutState({
+                programId: service.getProgram().id,
+                weekId: 'week-1',
+                dayId: 'week-1-day-1',
+                exercises: [createExercise('Clean', false)],
+                startedAt: '2026-06-06T10:00:00.000Z',
+                totalPausedMs: 0,
+                ...timing
+            });
+        }
+
+        it('ends a forgotten running workout at its last activity', () => {
+            saveTiming({ lastActivityAt: '2026-06-06T10:30:00.000Z' });
+
+            service.markDayComplete('week-1', 'week-1-day-1');
+
+            const state = service.getWorkoutState('week-1', 'week-1-day-1');
+            expect(state.completedAt).toBe('2026-06-06T10:30:00.000Z');
+            expect(state.elapsedMs).toBe(30 * 60 * 1000);
+        });
+
+        it('ends an idle-paused workout at the pause', () => {
+            saveTiming({ pausedAt: '2026-06-06T10:40:00.000Z', idlePaused: true });
+
+            service.markDayComplete('week-1', 'week-1-day-1');
+
+            const state = service.getWorkoutState('week-1', 'week-1-day-1');
+            expect(state.completedAt).toBe('2026-06-06T10:40:00.000Z');
+            expect(state.elapsedMs).toBe(40 * 60 * 1000);
+        });
+
+        it('excludes an open manual pause from elapsed time', () => {
+            saveTiming({ pausedAt: '2026-06-06T10:50:00.000Z' });
+
+            service.markDayComplete('week-1', 'week-1-day-1');
+
+            const state = service.getWorkoutState('week-1', 'week-1-day-1');
+            expect(state.completedAt).toBe('2026-06-06T14:00:00.000Z');
+            expect(state.elapsedMs).toBe(50 * 60 * 1000);
+        });
+
+        it('ends an active workout now', () => {
+            saveTiming({ startedAt: '2026-06-06T13:30:00.000Z', lastActivityAt: '2026-06-06T13:55:00.000Z' });
+
+            service.markDayComplete('week-1', 'week-1-day-1');
+
+            const state = service.getWorkoutState('week-1', 'week-1-day-1');
+            expect(state.completedAt).toBe('2026-06-06T14:00:00.000Z');
+            expect(state.elapsedMs).toBe(30 * 60 * 1000);
+        });
+    });
+
     it('formats elapsed milliseconds consistently', () => {
         expect(service.formatElapsedMs(0)).toBe('00:00:00');
         expect(service.formatElapsedMs(3723000)).toBe('01:02:03');

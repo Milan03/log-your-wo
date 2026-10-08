@@ -142,6 +142,13 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     public get workoutPausedAt(): string { return this._timing.pausedAt(); }
     public get totalPausedMs(): number { return this._timing.totalPausedMs(); }
     public get elapsedMs(): number { return this._timing.elapsedMs(); }
+    public get isWorkoutIdlePaused(): boolean { return this._timing.idlePaused() && !this._timing.completedAt(); }
+
+    /** Time-only when the idle pause happened today, otherwise include the date. */
+    public get idlePausedDateFormat(): string {
+        const pausedAt = this.workoutPausedAt;
+        return pausedAt && new Date(pausedAt).toDateString() === new Date().toDateString() ? 'shortTime' : 'short';
+    }
 
     // Calendar/history view state lives in SimpleLogCalendarStore; these
     // accessors keep the template and existing call sites pointed at it.
@@ -190,6 +197,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         this.subToOpenDialogStream();
         this.subToSimpleLogs();
         this.subToRouteParams();
+        this.subToIdlePause();
     }
 
     ngOnDestroy(): void {
@@ -247,6 +255,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
                 if (!this.isImportedWorkout && exerciseCountBeforeAdd === 0) {
                     this.ensureWorkoutStarted();
                 }
+                this._timing.recordActivity();
                 this.saveCurrentWorkoutState();
             }
         });
@@ -263,6 +272,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             this.currentLog.cardioExercises = this._exerciseList.removeById(this.currentLog.cardioExercises, exercise.exerciseId);
         }
         this.touchCurrentLog();
+        this._timing.recordActivity();
         this.saveCurrentWorkoutState();
     }
 
@@ -288,6 +298,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             if (result) {
                 this.replaceExercise(exercise, result);
                 this.touchCurrentLog();
+                this._timing.recordActivity();
                 this.saveCurrentWorkoutState();
             }
         });
@@ -303,6 +314,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         }
         this.touchCurrentLog();
         this.syncWorkoutCompletion();
+        this._timing.recordActivity();
         this.saveCurrentWorkoutState();
     }
 
@@ -340,11 +352,28 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
             return;
         }
 
+        await this.completeWorkout();
+    }
+
+    /**
+     * Complete an idle-paused workout at its last activity, so the time spent
+     * after the user stopped logging isn't counted. The banner is the
+     * confirmation, so no extra confirm dialog is shown.
+     */
+    public async completeIdleWorkout(): Promise<void> {
+        if (!this.isWorkoutIdlePaused) {
+            return;
+        }
+
+        await this.completeWorkout(this.workoutPausedAt);
+    }
+
+    private async completeWorkout(atIso?: string): Promise<void> {
         this.ensureWorkoutStarted();
         this.currentLog.exercises = this._exerciseList.setAllCompleted(this.currentLog.exercises, true);
         this.currentLog.cardioExercises = this._exerciseList.setAllCompleted(this.currentLog.cardioExercises, true);
         this.touchCurrentLog();
-        this._timing.complete();
+        this._timing.complete(atIso);
         this.saveCurrentWorkoutState();
         const completeAction = await this._confirmDialog.success({
             title: this.t('log-entry.MarkCompleteDoneTitle'),
@@ -689,6 +718,12 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         });
     }
 
+    private subToIdlePause(): void {
+        this._timing.idlePaused$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+            this.saveCurrentWorkoutState();
+        });
+    }
+
     private subToRouteParams(): void {
         this._activatedRoute.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
             const weekId = params.get('weekId');
@@ -773,7 +808,10 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
     }
 
     private pauseActiveWorkoutForNavigation(): void {
-        if (this._timing.pauseForNavigation()) {
+        // A workout left idle before navigating pauses back at its last
+        // activity rather than at the navigation instant.
+        const idlePaused = this._timing.pauseIfIdle();
+        if (this._timing.pauseForNavigation() || idlePaused) {
             this.saveCurrentWorkoutState();
         }
     }
@@ -802,11 +840,7 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
         const savedLog = this._simpleLogService.saveLog(this.currentLog, this.workoutDate, {
             weightMeasure: this.weightMeasure,
             distanceMeasure: this.distanceMeasure,
-            startedAt: this.workoutStartedAt,
-            completedAt: this.workoutCompletedAt,
-            pausedAt: this.workoutPausedAt,
-            totalPausedMs: this.totalPausedMs,
-            elapsedMs: this.elapsedMs
+            ...this._timing.toState()
         });
         if (!this.activeSimpleLogId) {
             this.activeSimpleLogId = savedLog.id;
@@ -872,6 +906,9 @@ export class SimpleLogComponent implements OnInit, OnDestroy {
 
     private loadWorkoutTiming(state: ImportedWorkoutState | SimpleLogTimingState): void {
         this._timing.load(state);
+        if (this._timing.pauseIfIdle()) {
+            this.saveCurrentWorkoutState();
+        }
     }
 
     /** Shorthand for an instant translation lookup. */
