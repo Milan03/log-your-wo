@@ -12,6 +12,12 @@ export interface WorkoutTimingSnapshot {
 }
 
 /**
+ * How long a running workout may go without user activity before it is treated
+ * as forgotten and paused back at the last activity.
+ */
+export const WORKOUT_IDLE_THRESHOLD_MS = 45 * 60 * 1000;
+
+/**
  * Owns the workout elapsed-time math and the per-second tick interval. State is
  * held by the caller (so it can be persisted/bound); this service only computes
  * over a snapshot and drives the interval.
@@ -40,6 +46,22 @@ export class WorkoutTimerService {
             ? now - new Date(timing.pausedAt).getTime()
             : 0;
         return Math.max(endTime - new Date(timing.startedAt).getTime() - timing.totalPausedMs - pausedWindowMs, 0);
+    }
+
+    /**
+     * The instant a running workout went idle (its last activity, falling back
+     * to `startedAt`) when that was at least `WORKOUT_IDLE_THRESHOLD_MS` ago;
+     * undefined while the workout is active, paused or done.
+     */
+    public idleSince(timing: WorkoutTimingSnapshot, lastActivityAt: string | undefined, nowIso?: string): string | undefined {
+        if (!this.isRunning(timing)) {
+            return undefined;
+        }
+
+        const since = lastActivityAt || timing.startedAt;
+        const sinceMs = new Date(since).getTime();
+        const now = nowIso ? new Date(nowIso).getTime() : Date.now();
+        return Number.isFinite(sinceMs) && now - sinceMs >= WORKOUT_IDLE_THRESHOLD_MS ? since : undefined;
     }
 
     /** Add the just-finished paused window (pausedAt -> endIso) to the running total. */

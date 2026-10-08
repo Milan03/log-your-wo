@@ -681,6 +681,91 @@ describe('SimpleLogComponent', () => {
     jasmine.clock().uninstall();
   });
 
+  it('auto-pauses a running workout at its last activity once it has been idle too long', () => {
+    jasmine.clock().install();
+    jasmine.clock().mockDate(new Date('2026-06-06T10:00:00.000Z'));
+    const exercise = createExercise('Press', false);
+    component.currentLog.exercises = [exercise];
+    component.startWorkout();
+
+    jasmine.clock().tick(10 * 60 * 1000);
+    component.onExerciseRowClick(exercise);
+    expect(component.isWorkoutIdlePaused).toBeFalse();
+
+    // 45 idle minutes after the last set toggle, the tick pauses the clock
+    // back at that toggle so the forgotten time doesn't count.
+    jasmine.clock().tick(45 * 60 * 1000);
+
+    expect(component.isWorkoutIdlePaused).toBeTrue();
+    expect(component.workoutPausedAt).toBe('2026-06-06T10:10:00.000Z');
+    expect(component.elapsedMs).toBe(10 * 60 * 1000);
+    expect(simpleLogService.getLogs()[0].idlePaused).toBeTrue();
+    jasmine.clock().uninstall();
+  });
+
+  it('completes an idle workout loaded later at its last activity', async () => {
+    jasmine.clock().install();
+    jasmine.clock().mockDate(new Date('2026-06-06T13:00:00.000Z'));
+    const log = new SimpleLog();
+    log.exercises = [createExercise('Press', true)];
+    const saved = simpleLogService.saveLog(log, '2026-06-06', {
+      startedAt: '2026-06-06T10:00:00.000Z',
+      lastActivityAt: '2026-06-06T10:20:00.000Z',
+      totalPausedMs: 0
+    });
+
+    (component as any).loadSimpleLog(saved.id);
+
+    expect(component.isWorkoutIdlePaused).toBeTrue();
+    expect(component.elapsedMs).toBe(20 * 60 * 1000);
+
+    await component.completeIdleWorkout();
+
+    expect(component.workoutCompletedAt).toBe('2026-06-06T10:20:00.000Z');
+    expect(component.elapsedMs).toBe(20 * 60 * 1000);
+    expect(component.isWorkoutIdlePaused).toBeFalse();
+    expect(simpleLogService.getLog(saved.id).completedAt).toBe('2026-06-06T10:20:00.000Z');
+    jasmine.clock().uninstall();
+  });
+
+  it('resumes an idle workout without counting the idle gap', () => {
+    jasmine.clock().install();
+    jasmine.clock().mockDate(new Date('2026-06-06T13:00:00.000Z'));
+    const log = new SimpleLog();
+    log.exercises = [createExercise('Press', false)];
+    const saved = simpleLogService.saveLog(log, '2026-06-06', {
+      startedAt: '2026-06-06T12:00:00.000Z',
+      lastActivityAt: '2026-06-06T12:05:00.000Z',
+      totalPausedMs: 0
+    });
+    (component as any).loadSimpleLog(saved.id);
+
+    component.resumeWorkout();
+    jasmine.clock().tick(60 * 1000);
+
+    expect(component.isWorkoutIdlePaused).toBeFalse();
+    expect(component.elapsedMs).toBe(6 * 60 * 1000);
+    jasmine.clock().uninstall();
+  });
+
+  it('does not idle-pause a workout with recent activity on load', () => {
+    jasmine.clock().install();
+    jasmine.clock().mockDate(new Date('2026-06-06T10:30:00.000Z'));
+    const log = new SimpleLog();
+    log.exercises = [createExercise('Press', false)];
+    const saved = simpleLogService.saveLog(log, '2026-06-06', {
+      startedAt: '2026-06-06T10:00:00.000Z',
+      lastActivityAt: '2026-06-06T10:20:00.000Z',
+      totalPausedMs: 0
+    });
+
+    (component as any).loadSimpleLog(saved.id);
+
+    expect(component.isWorkoutIdlePaused).toBeFalse();
+    expect(component.workoutPausedAt).toBeUndefined();
+    jasmine.clock().uninstall();
+  });
+
   it('resets an in-progress workout by clearing the timer and unchecking every exercise', async () => {
     component.currentLog.exercises = [createExercise('Clean', false)];
     component.currentLog.cardioExercises = [];

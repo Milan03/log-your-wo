@@ -41,6 +41,8 @@ export interface SavedSimpleLog {
     pausedAt?: string;
     totalPausedMs?: number;
     elapsedMs?: number;
+    lastActivityAt?: string;
+    idlePaused?: boolean;
 }
 
 export interface SimpleLogTimingState {
@@ -49,6 +51,8 @@ export interface SimpleLogTimingState {
     pausedAt?: string;
     totalPausedMs?: number;
     elapsedMs?: number;
+    lastActivityAt?: string;
+    idlePaused?: boolean;
 }
 
 export interface SimpleLogSaveState extends SimpleLogTimingState {
